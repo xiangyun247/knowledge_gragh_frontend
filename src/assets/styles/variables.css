@@ -1,0 +1,99 @@
+/* 科技感配色方案 - 主色调 */
+:root {
+  /* 背景色 */
+  --primary-dark: #0a0e27;
+  --secondary-dark: #1a1f3a;
+  --tertiary-dark: #2d3748;
+  
+  /* 主题色 */
+  --primary-blue: #00d4ff;
+  --accent-purple: #9c27ff;
+  --accent-cyan: #00e5ff;
+  --accent-pink: #ff2d95;
+  
+  /* 功能色 */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+  
+  /* 渐变色 */
+  --gradient-main: linear-gradient(135deg, #00d4ff 0%, #9c27ff 100%);
+  --gradient-glow: linear-gradient(45deg, #00d4ff, #9c27ff, #ff2d95);
+  --gradient-bg: linear-gradient(135deg, rgba(10, 14, 39, 0.95) 0%, rgba(156, 39, 255, 0.1) 50%, rgba(0, 212, 255, 0.05) 100%);
+  --gradient-card: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  --gradient-border: linear-gradient(45deg, #00d4ff, #9c27ff, #ff2d95);
+  
+  /* 文本色 */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --text-muted: rgba(255, 255, 255, 0.6);
+  --text-disabled: rgba(255, 255, 255, 0.4);
+  
+  /* 边框色 */
+  --border-primary: rgba(0, 212, 255, 0.3);
+  --border-secondary: rgba(156, 39, 255, 0.4);
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-glow: rgba(0, 212, 255, 0.5);
+  --border-glass: rgba(255, 255, 255, 0.1);
+  
+  /* 阴影 */
+  --shadow-sm: 0 2px 8px rgba(0, 212, 255, 0.1), 0 0 10px rgba(0, 212, 255, 0.05);
+  --shadow-md: 0 4px 16px rgba(0, 212, 255, 0.2), 0 0 20px rgba(0, 212, 255, 0.1);
+  --shadow-lg: 0 8px 32px rgba(0, 212, 255, 0.3), 0 0 40px rgba(0, 212, 255, 0.15);
+  --shadow-glow: 0 0 20px rgba(0, 212, 255, 0.5), 0 0 40px rgba(156, 39, 255, 0.3);
+  --shadow-card: 0 4px 20px rgba(0, 212, 255, 0.15), 0 0 30px rgba(0, 212, 255, 0.05), 0 0 0 1px rgba(0, 212, 255, 0.1);
+  --shadow-glow-purple: 0 0 20px rgba(156, 39, 255, 0.5), 0 0 40px rgba(156, 39, 255, 0.3);
+  --shadow-glow-pink: 0 0 20px rgba(255, 45, 149, 0.5), 0 0 40px rgba(255, 45, 149, 0.3);
+  
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+  
+  /* 圆角 */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 50%;
+  
+  /* 动画 */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  /* 字体 */
+  --font-family-sans: 'Orbitron', 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-mono: 'Roboto Mono', 'JetBrains Mono', 'Consolas', 'Courier New', Courier, monospace;
+  --font-family-main: var(--font-family-sans);
+  
+  /* 层级 */
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+}
+
+/* 深色主题增强 */
+[data-theme="dark"] {
+  --primary-dark: #050714;
+  --secondary-dark: #12172a;
+  --tertiary-dark: #1e293b;
+}
+
+/* 响应式断点 */
+:root {
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-xxl: 1600px;
+}

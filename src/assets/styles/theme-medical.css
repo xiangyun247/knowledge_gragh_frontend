@@ -1,0 +1,848 @@
+/* 医疗风配色方案 - 经典医疗白蓝风 */
+/* 简洁干净，与科技风形成对比 */
+
+/* 默认主题为科技风，医疗风仅在 data-theme="medical" 时生效 */
+:root {
+  /* 默认科技风保持不变 */
+}
+
+[data-theme="medical"] {
+  /* 背景色 - 白色加浅蓝色系 */
+  --primary-dark: #ffffff;
+  --secondary-dark: #f0f7ff;
+  --tertiary-dark: #e8f4ff;
+  
+  /* 主题色 - 医疗蓝（浅蓝色调） */
+  --primary-blue: #0066cc;
+  --accent-purple: #4a90e2;
+  --accent-cyan: #5dade2;
+  --accent-pink: #74b9ff;
+  
+  /* 功能色 */
+  --success: #28a745;
+  --warning: #ffc107;
+  --error: #dc3545;
+  --info: #0066cc;
+  
+  /* 渐变色 - 简洁的医疗蓝渐变 */
+  --gradient-main: linear-gradient(135deg, #0066cc 0%, #4a90e2 100%);
+  --gradient-glow: linear-gradient(135deg, #0066cc, #4a90e2);
+  --gradient-bg: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+  --gradient-card: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+  --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 247, 255, 0.98) 100%);
+  --gradient-border: linear-gradient(135deg, #0066cc, #4a90e2);
+  
+  /* 文本色 - 黑色为主 */
+  --text-primary: #000000;
+  --text-secondary: #1a1a1a;
+  --text-muted: #666666;
+  --text-disabled: #999999;
+  
+  /* 边框色 - 浅蓝色边框 */
+  --border-primary: #cce5ff;
+  --border-secondary: #b3d9ff;
+  --border-light: #e6f2ff;
+  --border-glow: #0066cc;
+  --border-glass: #cce5ff;
+  
+  /* 阴影 - 简洁的阴影效果，增强卡片可见性 */
+  --shadow-sm: 0 2px 6px rgba(0, 102, 204, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 102, 204, 0.15);
+  --shadow-lg: 0 8px 20px rgba(0, 102, 204, 0.2);
+  --shadow-glow: 0 0 0 rgba(0, 102, 204, 0); /* 医疗风不使用发光效果 */
+  --shadow-card: 0 2px 10px rgba(0, 102, 204, 0.12), 0 0 0 1px rgba(0, 102, 204, 0.15);
+  --shadow-glow-purple: 0 0 0 rgba(74, 144, 226, 0);
+  --shadow-glow-pink: 0 0 0 rgba(116, 185, 255, 0);
+  
+  /* 辅助背景色 - 浅蓝色系 */
+  --bg-light: #ffffff;
+  --bg-lighter: #f0f7ff;
+  --bg-hover: #e0efff;
+  --bg-active: #cce5ff;
+}
+
+/* 医疗风下的特殊样式覆盖 */
+[data-theme="medical"] body {
+  background-color: var(--primary-dark);
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .app-container {
+  background-color: var(--primary-dark);
+  color: var(--text-primary);
+}
+
+/* 医疗风下隐藏动态背景 */
+[data-theme="medical"] .animated-background {
+  display: none;
+}
+
+/* 医疗风下的卡片样式 - 增强可见性 */
+[data-theme="medical"] .app-card,
+[data-theme="medical"] .feature-card,
+[data-theme="medical"] .data-display,
+[data-theme="medical"] .chart-container {
+  background: var(--bg-light);
+  border: 2px solid var(--border-primary);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: none; /* 医疗风不使用毛玻璃效果 */
+  color: var(--text-primary);
+}
+
+/* 医疗风下的按钮样式 */
+[data-theme="medical"] .btn-primary,
+[data-theme="medical"] .el-button--primary,
+[data-theme="medical"] .app-btn-primary {
+  background: var(--gradient-main);
+  color: #ffffff;
+  border: none;
+  box-shadow: var(--shadow-md);
+}
+
+[data-theme="medical"] .btn-primary:hover,
+[data-theme="medical"] .el-button--primary:hover,
+[data-theme="medical"] .app-btn-primary:hover {
+  background: var(--gradient-glow);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+/* 医疗风下的导航栏 */
+[data-theme="medical"] .top-navbar {
+  background-color: #ffffff;
+  border-bottom: 2px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
+}
+
+[data-theme="medical"] .top-navbar .system-name {
+  color: var(--text-primary);
+  background: var(--gradient-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 医疗风下的 Logo：关闭旋转，改为轻微呼吸缩放 */
+[data-theme="medical"] .top-navbar .logo {
+  animation: medicalLogoPulse 4s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(0, 102, 204, 0.2);
+}
+
+@keyframes medicalLogoPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+[data-theme="medical"] .top-navbar .nav-item {
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .top-navbar .nav-item:hover {
+  background-color: var(--bg-hover);
+  color: var(--primary-blue);
+}
+
+[data-theme="medical"] .top-navbar .user-name {
+  color: var(--text-primary);
+}
+
+/* 医疗风下的输入框 */
+[data-theme="medical"] .el-input__inner,
+[data-theme="medical"] .app-input {
+  background-color: var(--secondary-dark);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .el-input__inner:focus,
+[data-theme="medical"] .app-input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+/* 医疗风下的滚动条 */
+[data-theme="medical"] ::-webkit-scrollbar-track {
+  background: var(--tertiary-dark);
+}
+
+[data-theme="medical"] ::-webkit-scrollbar-thumb {
+  background: var(--primary-blue);
+  border-radius: 5px;
+}
+
+[data-theme="medical"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-purple);
+}
+
+/* 医疗风下的链接和导航项 */
+[data-theme="medical"] .nav-item {
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .nav-item:hover {
+  background-color: var(--bg-hover);
+  color: var(--primary-blue);
+}
+
+[data-theme="medical"] .nav-item.active {
+  background: var(--gradient-main);
+  color: #ffffff;
+}
+
+/* 医疗风下的标题：去掉渐变与阴影，使用黑/深灰 + 医疗蓝细节 */
+[data-theme="medical"] .app-title {
+  color: var(--text-primary);
+  background: none;
+  -webkit-background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+  text-shadow: none;
+}
+
+[data-theme="medical"] .app-title::after {
+  background: var(--primary-blue);
+  box-shadow: none;
+}
+
+[data-theme="medical"] .section-title,
+[data-theme="medical"] .side-title,
+[data-theme="medical"] .chart-title {
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .section-title::after,
+[data-theme="medical"] .side-title::after,
+[data-theme="medical"] .chart-title::after {
+  background: var(--primary-blue);
+  box-shadow: none;
+}
+
+/* 医疗风下的三级标题与说明文字 */
+[data-theme="medical"] .feature-title,
+[data-theme="medical"] .stat-label,
+[data-theme="medical"] .display-title {
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .display-subtitle,
+[data-theme="medical"] .trend-label,
+[data-theme="medical"] .feature-description {
+  color: var(--text-muted);
+}
+
+/* 医疗风下的普通文本 */
+[data-theme="medical"] .display-title,
+[data-theme="medical"] .display-subtitle,
+[data-theme="medical"] .trend-label,
+[data-theme="medical"] .feature-title,
+[data-theme="medical"] .feature-description,
+[data-theme="medical"] .chart-title,
+[data-theme="medical"] .stat-label {
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .display-subtitle,
+[data-theme="medical"] .trend-label,
+[data-theme="medical"] .feature-description {
+  color: var(--text-muted);
+}
+
+/* 医疗风下的数字显示 */
+[data-theme="medical"] .stat-number {
+  background: var(--gradient-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 医疗风下的图表容器 */
+[data-theme="medical"] .chart-container {
+  background: var(--secondary-dark);
+  border: 1px solid var(--border-primary);
+}
+
+/* 医疗风下的时间线 */
+[data-theme="medical"] .timeline-line {
+  background: linear-gradient(to bottom, 
+    transparent 0%,
+    rgba(0, 102, 204, 0.2) 5%,
+    rgba(0, 102, 204, 0.4) 20%,
+    rgba(0, 102, 204, 0.5) 50%,
+    rgba(0, 168, 232, 0.5) 50%,
+    rgba(0, 102, 204, 0.4) 80%,
+    rgba(0, 102, 204, 0.2) 95%,
+    transparent 100%
+  );
+  box-shadow: none;
+}
+
+[data-theme="medical"] .timeline-node {
+  background: var(--gradient-main);
+  box-shadow: 0 0 8px rgba(0, 102, 204, 0.3);
+}
+
+/* 医疗风下的首页布局 */
+[data-theme="medical"] .home-container {
+  background-color: var(--primary-dark);
+}
+
+[data-theme="medical"] .home-column {
+  background-color: transparent;
+}
+
+/* 医疗风下的功能卡片 - 增强可见性 */
+[data-theme="medical"] .feature-card {
+  background: var(--bg-light);
+  border: 2px solid var(--border-primary);
+  box-shadow: var(--shadow-card);
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .feature-card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-blue);
+  background: var(--bg-lighter);
+  transform: translateY(-3px);
+}
+
+/* 医疗风下的图标容器：统一浅蓝圆形背景 + 医疗蓝图标 */
+[data-theme="medical"] .feature-icon,
+[data-theme="medical"] .display-icon,
+[data-theme="medical"] .cover-overview .card-icon {
+  background-color: var(--bg-hover);
+  border: 1px solid var(--border-primary);
+  box-shadow: none;
+  color: var(--primary-blue);
+}
+
+/* 医疗风下的数据展示卡片 - 增强可见性 */
+[data-theme="medical"] .data-display {
+  background: var(--bg-light);
+  border: 2px solid var(--border-primary);
+  box-shadow: var(--shadow-card);
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .data-display:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-blue);
+  background: var(--bg-lighter);
+  transform: translateY(-3px);
+}
+
+/* 医疗风下的图表容器 - 增强可见性 */
+[data-theme="medical"] .chart-container {
+  background: var(--bg-light);
+  border: 2px solid var(--border-primary);
+  box-shadow: var(--shadow-card);
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .chart-container:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-blue);
+  background: var(--bg-lighter);
+  transform: translateY(-3px);
+}
+
+/* 医疗风下的统计信息 - 增强可见性 */
+[data-theme="medical"] .stats-section {
+  background-color: var(--bg-light);
+  border: 2px solid var(--border-primary);
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="medical"] .stat-item {
+  color: var(--text-primary);
+}
+
+/* 医疗风下的趋势标签 */
+[data-theme="medical"] .trend-up {
+  color: var(--success);
+}
+
+[data-theme="medical"] .trend-down {
+  color: var(--error);
+}
+
+/* 医疗风下的聊天界面 */
+[data-theme="medical"] .chat-container {
+  background-color: var(--bg-light);
+  border: 2px solid var(--border-primary);
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="medical"] .chat-main {
+  background-color: var(--bg-lighter);
+  border: 2px solid var(--border-primary);
+}
+
+[data-theme="medical"] .welcome-message {
+  background: var(--bg-lighter);
+  border: 2px solid var(--border-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .welcome-message h3,
+[data-theme="medical"] .welcome-message p {
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .welcome-icon {
+  background: var(--gradient-main);
+  box-shadow: var(--shadow-md);
+}
+
+[data-theme="medical"] .message-bubble {
+  background: var(--bg-lighter);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .message-text {
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .message-time {
+  color: var(--text-muted);
+}
+
+[data-theme="medical"] .user-message .message-bubble {
+  background: var(--gradient-main);
+  color: #ffffff;
+}
+
+[data-theme="medical"] .chat-sidebar {
+  background-color: var(--bg-lighter);
+  border: 2px solid var(--border-primary);
+}
+
+[data-theme="medical"] .sidebar-header h3,
+[data-theme="medical"] .sidebar-header h4 {
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .chat-input {
+  background-color: var(--bg-lighter);
+  border: 2px solid var(--border-primary);
+}
+
+/* 医疗风下的实体标签 */
+[data-theme="medical"] .entity-tag {
+  background-color: var(--bg-hover);
+  color: var(--primary-blue);
+  border: 1px solid var(--border-primary);
+}
+
+[data-theme="medical"] .entity-tag:hover {
+  background-color: var(--bg-active);
+  border-color: var(--primary-blue);
+}
+
+/* ========== 医疗风下的新对话界面优化 ========== */
+
+/* 1. 发送按钮去掉蓝紫色配色，改为医疗蓝 */
+[data-theme="medical"] .chat-input .el-button--primary {
+  background: var(--gradient-main) !important;
+  border: none !important;
+  box-shadow: var(--shadow-md) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="medical"] .chat-input .el-button--primary:hover {
+  background: var(--gradient-glow) !important;
+  box-shadow: var(--shadow-lg) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* 2. 示例问题的字体颜色改为加粗黑色 */
+[data-theme="medical"] .quick-questions .el-button {
+  background-color: var(--bg-lighter) !important;
+  color: var(--text-primary) !important;
+  border: 2px solid var(--border-primary) !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="medical"] .quick-questions .el-button:hover {
+  background-color: var(--bg-hover) !important;
+  border-color: var(--primary-blue) !important;
+  box-shadow: var(--shadow-md) !important;
+  color: var(--text-primary) !important;
+}
+
+/* 3. 关联信息内，暂无关联信息上方的图标颜色加深但仍保持浅色调 */
+[data-theme="medical"] .empty-sidebar .el-empty__image {
+  opacity: 1 !important;
+}
+
+[data-theme="medical"] .empty-sidebar .el-empty__image svg,
+[data-theme="medical"] .empty-sidebar .el-empty__image svg path,
+[data-theme="medical"] .empty-sidebar .el-empty__image svg g {
+  fill: #0066cc !important;
+  stroke: #0066cc !important;
+  opacity: 1 !important;
+}
+
+[data-theme="medical"] .empty-sidebar .el-empty__image img {
+  opacity: 1 !important;
+  filter: brightness(0.4) saturate(2) contrast(1.5) !important;
+  mix-blend-mode: normal !important;
+}
+
+/* 如果Element UI使用背景图 */
+[data-theme="medical"] .empty-sidebar .el-empty__image {
+  background-color: transparent !important;
+}
+
+[data-theme="medical"] .empty-sidebar .el-empty__description {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="medical"] .graph-preview .el-empty__image {
+  opacity: 1 !important;
+}
+
+[data-theme="medical"] .graph-preview .el-empty__image svg,
+[data-theme="medical"] .graph-preview .el-empty__image svg path,
+[data-theme="medical"] .graph-preview .el-empty__image svg g {
+  fill: #0066cc !important;
+  stroke: #0066cc !important;
+  opacity: 1 !important;
+}
+
+[data-theme="medical"] .graph-preview .el-empty__image img {
+  opacity: 1 !important;
+  filter: brightness(0.4) saturate(2) contrast(1.5) !important;
+  mix-blend-mode: normal !important;
+}
+
+[data-theme="medical"] .graph-preview .el-empty__description {
+  color: var(--text-muted) !important;
+}
+
+/* Element UI Empty组件的通用样式覆盖 - 增强图标可见性 */
+[data-theme="medical"] .el-empty__image {
+  opacity: 1 !important;
+}
+
+[data-theme="medical"] .el-empty__image svg,
+[data-theme="medical"] .el-empty__image svg path,
+[data-theme="medical"] .el-empty__image svg g,
+[data-theme="medical"] .el-empty__image svg circle,
+[data-theme="medical"] .el-empty__image svg rect,
+[data-theme="medical"] .el-empty__image svg polygon {
+  fill: #0066cc !important;
+  stroke: #0066cc !important;
+  opacity: 1 !important;
+}
+
+[data-theme="medical"] .el-empty__image img {
+  opacity: 1 !important;
+  filter: brightness(0.4) saturate(2) contrast(1.5) !important;
+  mix-blend-mode: normal !important;
+}
+
+/* ========== 医疗风下的登录注册界面优化 ========== */
+
+/* 登录页面整体背景 */
+[data-theme="medical"] .login-page {
+  background: var(--gradient-bg) !important;
+  background-color: var(--primary-dark) !important;
+}
+
+/* 登录容器 */
+[data-theme="medical"] .login-container {
+  background: var(--bg-light) !important;
+  border: 2px solid var(--border-primary) !important;
+  box-shadow: var(--shadow-lg) !important;
+  backdrop-filter: none !important;
+}
+
+/* 左侧背景区域 */
+[data-theme="medical"] .login-bg {
+  background: var(--gradient-bg) !important;
+  background-color: var(--bg-lighter) !important;
+}
+
+[data-theme="medical"] .bg-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="medical"] .bg-description {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="medical"] .bg-logo {
+  background: var(--gradient-main) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* 知识图谱可视化 - 医疗风下使用医疗蓝色 */
+[data-theme="medical"] .knowledge-graph svg {
+  filter: drop-shadow(0 0 10px rgba(0, 102, 204, 0.2)) !important;
+}
+
+[data-theme="medical"] .particle {
+  fill: rgba(0, 102, 204, 0.5) !important;
+}
+
+[data-theme="medical"] .graph-links path {
+  stroke: rgba(0, 102, 204, 0.3) !important;
+}
+
+[data-theme="medical"] .link-dots .dot {
+  fill: rgba(0, 102, 204, 0.7) !important;
+  filter: drop-shadow(0 0 3px rgba(0, 102, 204, 0.5)) !important;
+}
+
+[data-theme="medical"] .node-glows .glow,
+[data-theme="medical"] .node-glows .glow-center {
+  fill: rgba(0, 102, 204, 0.08) !important;
+}
+
+[data-theme="medical"] .node {
+  fill: rgba(255, 255, 255, 0.9) !important;
+  filter: drop-shadow(0 0 5px rgba(0, 102, 204, 0.2)) !important;
+}
+
+[data-theme="medical"] .node text {
+  fill: var(--text-primary) !important;
+}
+
+[data-theme="medical"] .node-center {
+  fill: var(--primary-blue) !important;
+  filter: drop-shadow(0 0 10px rgba(0, 102, 204, 0.4)) !important;
+  stroke: #ffffff !important;
+  stroke-width: 2 !important;
+}
+
+[data-theme="medical"] .node-center text {
+  fill: #ffffff !important;
+}
+
+[data-theme="medical"] .node:hover {
+  fill: rgba(0, 102, 204, 0.2) !important;
+  filter: drop-shadow(0 0 8px rgba(0, 102, 204, 0.4)) !important;
+}
+
+[data-theme="medical"] .node-center:hover {
+  fill: var(--accent-purple) !important;
+  filter: drop-shadow(0 0 15px rgba(0, 102, 204, 0.6)) !important;
+}
+
+/* 表单区域 */
+[data-theme="medical"] .login-form-container {
+  background-color: var(--bg-light) !important;
+}
+
+/* 标签页样式 */
+[data-theme="medical"] .login-tabs >>> .el-tabs__nav-wrap::after {
+  background-color: var(--border-primary) !important;
+}
+
+[data-theme="medical"] .login-tabs >>> .el-tabs__active-bar {
+  background-color: var(--primary-blue) !important;
+}
+
+[data-theme="medical"] .login-tabs >>> .el-tabs__item {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="medical"] .login-tabs >>> .el-tabs__item.is-active {
+  color: var(--primary-blue) !important;
+}
+
+/* 表单标签 */
+[data-theme="medical"] .el-form-item__label {
+  color: var(--text-primary) !important;
+}
+
+/* 输入框样式 */
+[data-theme="medical"] .el-input {
+  background-color: var(--bg-light) !important;
+  border: 2px solid var(--border-primary) !important;
+}
+
+[data-theme="medical"] .el-input__inner {
+  background-color: var(--bg-light) !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+}
+
+[data-theme="medical"] .el-input__inner::placeholder {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="medical"] .el-input__inner:focus {
+  border-color: var(--primary-blue) !important;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1) !important;
+}
+
+[data-theme="medical"] .el-input__prefix {
+  color: var(--text-muted) !important;
+}
+
+/* 复选框 */
+[data-theme="medical"] .el-checkbox__label {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="medical"] .el-checkbox__input.is-checked .el-checkbox__inner {
+  background-color: var(--primary-blue) !important;
+  border-color: var(--primary-blue) !important;
+}
+
+/* 忘记密码链接 */
+[data-theme="medical"] .forget-password {
+  color: var(--primary-blue) !important;
+}
+
+/* 登录/注册按钮 */
+[data-theme="medical"] .login-btn,
+[data-theme="medical"] .register-btn {
+  background: var(--gradient-main) !important;
+  border: none !important;
+  box-shadow: var(--shadow-md) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="medical"] .login-btn:hover,
+[data-theme="medical"] .register-btn:hover {
+  background: var(--gradient-glow) !important;
+  box-shadow: var(--shadow-lg) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* 切换按钮 */
+[data-theme="medical"] .switch-btn {
+  background-color: var(--bg-lighter) !important;
+  border: 2px solid var(--border-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="medical"] .switch-btn:hover {
+  background-color: var(--bg-hover) !important;
+  border-color: var(--primary-blue) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* 针对Element UI可能使用的其他图标元素 */
+[data-theme="medical"] .el-empty__image * {
+  fill: #0066cc !important;
+  stroke: #0066cc !important;
+  color: #0066cc !important;
+}
+
+/* 如果图标是作为背景图片 */
+[data-theme="medical"] .el-empty__image {
+  background-image: none !important;
+}
+
+/* 使用伪元素增强图标可见性 */
+[data-theme="medical"] .empty-sidebar .el-empty__image::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 102, 204, 0.05);
+  border-radius: 8px;
+  z-index: -1;
+}
+
+/* ========== 医疗风下的首页样式优化 ========== */
+
+/* 1. 系统能力下的卡片图标背景色改为浅色 */
+[data-theme="medical"] .feature-icon {
+  background: var(--gradient-main) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+[data-theme="medical"] .chat-icon,
+[data-theme="medical"] .graph-icon,
+[data-theme="medical"] .search-icon,
+[data-theme="medical"] .upload-icon,
+[data-theme="medical"] .history-icon,
+[data-theme="medical"] .faq-icon {
+  background: var(--gradient-main) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* 2. 系统监控下的蓝紫色字体改为黑色加粗 */
+[data-theme="medical"] .display-body {
+  overflow: hidden !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+[data-theme="medical"] .display-body .stat-number {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  background-clip: unset !important;
+  color: var(--text-primary) !important;
+  font-weight: 900 !important;
+  font-size: clamp(20px, 3.5vw, 30px) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+[data-theme="medical"] .data-display {
+  overflow: hidden !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+[data-theme="medical"] .timeline-item {
+  overflow: hidden !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 3. 系统监控下的其他文字颜色 */
+[data-theme="medical"] .display-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="medical"] .display-subtitle {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="medical"] .trend-label {
+  color: var(--text-muted) !important;
+}
+
+/* 4. 实时监控下图表标题字体 */
+[data-theme="medical"] .chart-title {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="medical"] .chart-title::before {
+  background: var(--gradient-main) !important;
+  box-shadow: 0 0 8px rgba(0, 102, 204, 0.4) !important;
+}
+
+/* 5. 统计信息区域 */
+[data-theme="medical"] .stats-section {
+  background-color: var(--bg-light) !important;
+  border: 2px solid var(--border-primary) !important;
+}
+
+[data-theme="medical"] .stat-label {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="medical"] .stat-number {
+  background: var(--gradient-main) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+

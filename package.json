@@ -1,0 +1,62 @@
+{
+  "name": "vue",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "dev": "npm run serve",
+    "build:prod": "vue-cli-service build --mode production",
+    "preview": "npm run build && serve -s dist"
+  },
+  "dependencies": {
+    "anime": "^0.1.2",
+    "animejs": "^3.2.1",
+    "axios": "^1.13.2",
+    "core-js": "^3.8.3",
+    "d3": "^7.9.0",
+    "dayjs": "^1.11.19",
+    "echarts": "^5.5.1",
+    "element-ui": "^2.15.14",
+    "file-saver": "^2.0.5",
+    "gsap": "^3.12.2",
+    "particles.js": "^2.0.0",
+    "three": "^0.160.1",
+    "vue": "^2.6.14",
+    "vue-echarts": "^7.0.0",
+    "vue-particles": "^1.0.9",
+    "vue-router": "^3.6.5",
+    "vuex": "^3.6.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/eslint-parser": "^7.28.5",
+    "@vue/babel-preset-app": "^5.0.9",
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-plugin-eslint": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-vue": "^8.7.1",
+    "vue-template-compiler": "^2.6.14"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "@babel/eslint-parser"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

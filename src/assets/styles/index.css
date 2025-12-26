@@ -1,0 +1,449 @@
+/* 样式入口文件 - 整合所有样式资源 */
+
+/* 1. 样式重置 */
+@import './reset.css';
+
+/* 2. CSS变量定义 */
+@import './variables.css';
+
+/* 3. 主题样式 */
+@import './theme.css';
+
+/* 4. 医疗风主题样式 */
+@import './theme-medical.css';
+
+/* 5. 动画效果 */
+@import './animations.css';
+
+/* 5. 全局样式 */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-main);
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  background-color: var(--primary-dark);
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* 全局扫描线效果 - 已禁用 */
+/* body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(0, 245, 212, 0.5);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+  animation: scanLine 3s linear infinite;
+  z-index: 1000;
+  opacity: 0.5;
+} */
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(26, 31, 58, 0.5);
+  border-radius: var(--radius-sm);
+  backdrop-filter: blur(5px);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(0, 245, 212, 0.8), rgba(0, 187, 249, 0.8));
+  border-radius: var(--radius-sm);
+  border: 2px solid rgba(26, 31, 58, 0.8);
+  opacity: 0.8;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  opacity: 1;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+  transform: scale(1.1);
+}
+
+/* 页面容器 */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--primary-dark);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 主内容区域 */
+.main-content {
+  flex: 1;
+  padding: var(--spacing-lg);
+  margin-top: var(--header-height);
+  margin-bottom: var(--footer-height);
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp 0.8s ease-out;
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 卡片样式 */
+.app-card {
+  background: var(--gradient-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-card);
+  transition: all var(--transition-normal);
+  backdrop-filter: blur(15px);
+  position: relative;
+  overflow: hidden;
+}
+
+.app-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: var(--radius-lg);
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(0, 245, 212, 0.3), rgba(0, 187, 249, 0.3));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.app-card:hover {
+  box-shadow: var(--shadow-lg), 0 0 40px rgba(0, 255, 255, 0.15);
+  border-color: var(--border-glow);
+  transform: translateY(-3px);
+}
+
+.app-card:hover::before {
+  opacity: 1;
+}
+
+/* ========== 统一信息层级：标题体系（科技风默认样式） ========== */
+
+/* 一级标题：页面主标题，仅用于 app-title / 封面主标题 */
+.app-title {
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-lg);
+  position: relative;
+  display: inline-block;
+  font-family: var(--font-family-sans);
+  /* 科技风：保留渐变 + 发光 */
+  background: linear-gradient(135deg, #00f5d4, #00bbf9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+}
+
+.app-title::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(135deg, #00f5d4, #00bbf9);
+  border-radius: var(--radius-sm);
+  animation: linePulse 2s ease-in-out infinite;
+}
+
+/* 二级标题：模块标题（系统能力 / 系统监控 / 实时监控 / 图表标题等） */
+.section-title,
+.side-title,
+.chart-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+  position: relative;
+  font-family: var(--font-family-sans);
+}
+
+/* 二级标题下细线（科技风下用轻微霓虹，但不渐变文字） */
+.section-title::after,
+.side-title::after,
+.chart-title::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  width: 56px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(0, 245, 212, 0.8), rgba(0, 187, 249, 0.8));
+  box-shadow: 0 0 10px rgba(0, 245, 212, 0.3);
+}
+
+/* 三级标题：卡片内小标题（功能卡标题 / 指标名称等） */
+.feature-title,
+.stat-label,
+.display-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-family-sans);
+}
+
+/* 正文与说明文字 */
+.body-text,
+.display-subtitle,
+.trend-label,
+.feature-description {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* 按钮基础样式 */
+.app-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-family-sans);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  min-width: 120px;
+}
+
+.app-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.app-btn:hover::before {
+  left: 100%;
+}
+
+.app-btn-primary {
+  background: linear-gradient(135deg, #00f5d4, #00bbf9);
+  color: var(--primary-dark);
+  box-shadow: var(--shadow-glow);
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+.app-btn-primary:hover {
+  background: linear-gradient(135deg, #00bbf9, #00f5d4);
+  box-shadow: var(--shadow-glow), 0 0 40px rgba(0, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.app-btn-secondary {
+  background: rgba(26, 31, 58, 0.5);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  backdrop-filter: blur(10px);
+}
+
+.app-btn-secondary:hover {
+  background: rgba(26, 31, 58, 0.7);
+  border-color: var(--border-glow);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+}
+
+/* 轻量级按钮（例如导航条、次要动作） */
+.app-btn-ghost {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+}
+
+.app-btn-ghost:hover {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: var(--border-glow);
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.3);
+}
+
+/* 输入框基础样式 */
+.app-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(26, 31, 58, 0.5);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-normal);
+  backdrop-filter: blur(10px);
+  font-family: var(--font-family-mono);
+}
+
+.app-input:focus {
+  outline: none;
+  border-color: var(--border-glow);
+  box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.2), 0 0 15px rgba(0, 255, 255, 0.1);
+  background: rgba(26, 31, 58, 0.7);
+}
+
+/* 响应式设计 */
+@media (max-width: 576px) {
+  /* 小屏设备 */
+  .main-content {
+    padding: var(--spacing-sm);
+  }
+  
+  .app-title {
+    font-size: var(--font-size-lg);
+  }
+  
+  .app-card {
+    padding: var(--spacing-md);
+  }
+  
+  .app-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+  
+  .app-input {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 768px) {
+  /* 平板设备 */
+  .main-content {
+    padding: var(--spacing-md);
+  }
+  
+  .app-title {
+    font-size: var(--font-size-xl);
+  }
+}
+
+@media (max-width: 992px) {
+  /* 中等屏幕 */
+  .app-card {
+    padding: var(--spacing-lg);
+  }
+}
+
+@media (min-width: 1600px) {
+  /* 超大屏幕 */
+  .container {
+    max-width: 1500px;
+  }
+}
+
+/* 加载状态 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 14, 39, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-index-modal);
+}
+
+/* 错误状态 */
+.error-message {
+  color: var(--error-color);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-xs);
+}
+
+/* 成功状态 */
+.success-message {
+  color: var(--success-color);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-xs);
+}
+
+/* 统一空状态样式 */
+.empty-state,
+.empty-component,
+.empty-search {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  min-height: 300px;
+}
+
+.empty-state .el-empty,
+.empty-component .el-empty,
+.empty-search .el-empty {
+  width: 100%;
+}
+
+.empty-state .el-empty__image,
+.empty-component .el-empty__image,
+.empty-search .el-empty__image {
+  width: 120px;
+  height: 120px;
+}
+
+.empty-state .el-empty__description,
+.empty-component .el-empty__description,
+.empty-search .el-empty__description {
+  color: var(--text-muted);
+  font-size: 16px;
+  margin-top: 16px;
+}
+
+.empty-state .el-button,
+.empty-component .el-button,
+.empty-search .el-button {
+  margin-top: 24px;
+}
+
+/* 聊天发送按钮 disabled 状态优化 */
+.chat-send-btn.is-disabled,
+.chat-send-btn:disabled {
+  background: rgba(0, 102, 204, 0.3) !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+  border: none !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+[data-theme="medical"] .chat-send-btn.is-disabled,
+[data-theme="medical"] .chat-send-btn:disabled {
+  background: rgba(0, 102, 204, 0.2) !important;
+  color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* 提示信息 */
+.info-message {
+  color: var(--info-color);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-xs);
+}
