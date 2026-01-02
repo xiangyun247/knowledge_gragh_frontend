@@ -200,6 +200,15 @@ const graph = {
       method: 'POST',
       data
     });
+  },
+
+  // 获取图谱列表
+  getGraphList(params = {}) {
+    return request({
+      url: '/api/graph/list',
+      method: 'GET',
+      params
+    });
   }
 };
 

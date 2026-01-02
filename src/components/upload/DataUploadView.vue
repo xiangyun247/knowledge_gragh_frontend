@@ -575,7 +575,8 @@ export default {
       file.progressInterval = setInterval(async () => {
         try {
           const response = await this.$http.get(`/api/kg/build/progress/${file.taskId}`);
-          const progressData = response.data;
+          // 后端返回格式: {status: "success", data: task_info}
+          const progressData = response.data.data || response.data;
           
           // 更新文件进度和状态
           file.kgProgress = progressData.progress;

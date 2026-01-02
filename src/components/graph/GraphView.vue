@@ -6,6 +6,32 @@
         <h3>知识图谱可视化</h3>
       </div>
       <div class="toolbar-right">
+        <!-- 图谱切换功能 -->
+        <el-select
+          v-model="selectedGraphId"
+          placeholder="选择图谱"
+          style="width: 200px; margin-right: 10px;"
+          @change="handleGraphChange"
+          clearable
+          filterable
+        >
+          <el-option
+            label="全部图谱（合并显示）"
+            value=""
+          ></el-option>
+          <el-option
+            v-for="graph in graphList"
+            :key="graph.graph_id"
+            :label="`${graph.graph_name} (${graph.entity_count}实体/${graph.relation_count}关系)`"
+            :value="graph.graph_id"
+          >
+            <span style="float: left">{{ graph.graph_name }}</span>
+            <span style="float: right; color: #8492a6; font-size: 13px">
+              {{ graph.entity_count }}/{{ graph.relation_count }}
+            </span>
+          </el-option>
+        </el-select>
+        
         <!-- 搜索功能 -->
         <el-input
           v-model="searchKeyword"
@@ -151,11 +177,15 @@ export default {
       loadedCount: 0,
       pageSize: 100,
       maxNodes: 1000,  // 设置最大加载节点数，防止性能问题
-      lazyLoadEnabled: true
+      lazyLoadEnabled: true,
+      // 图谱切换相关数据
+      selectedGraphId: '',
+      graphList: []
     }
   },
   mounted() {
     this.initChart()
+    this.getGraphList()
     this.loadGraphData()
     window.addEventListener('resize', this.handleResize)
   },
@@ -275,14 +305,52 @@ export default {
       this.chart.setOption(option)
     },
     
+    // 获取图谱列表
+    async getGraphList() {
+      try {
+        const response = await graphApi.getGraphList()
+        if (response.data && response.data.status === 'success') {
+          this.graphList = response.data.data.list || []
+          console.log('获取图谱列表成功:', this.graphList.length, '个图谱')
+        }
+      } catch (error) {
+        console.error('获取图谱列表失败:', error)
+        this.$message.warning('获取图谱列表失败，将显示全部图谱')
+      }
+    },
+    
+    // 处理图谱切换
+    handleGraphChange(graphId) {
+      console.log('切换图谱:', graphId)
+      this.selectedGraphId = graphId || ''
+      // 重置懒加载状态
+      this.loadedCount = 0
+      this.lazyLoadEnabled = true
+      // 清空当前图谱数据
+      this.graphData = null
+      // 重新加载图谱数据
+      this.loadGraphData()
+    },
+    
     // 加载图谱数据
     async loadGraphData() {
       try {
+        // 构建请求参数
+        const params = {
+          limit: 100  // 初始加载限制 100 个节点
+        }
+        
+        // 如果选择了特定图谱，添加 graph_id 参数
+        if (this.selectedGraphId) {
+          params.graph_id = this.selectedGraphId
+          console.log('加载指定图谱数据:', this.selectedGraphId)
+        } else {
+          console.log('加载全部图谱数据（合并显示）')
+        }
+        
         // 从后端 API 获取图谱数据
         const response = await service.get('/api/graph/data', {
-          params: {
-            limit: 100  // 初始加载限制 100 个节点
-          }
+          params
         })
         
         // 定义节点类型与颜色映射
@@ -706,12 +774,20 @@ export default {
         // 计算下一页的偏移量
         const offset = this.loadedCount
         
+        // 构建请求参数
+        const params = {
+          limit: this.pageSize,
+          offset: offset
+        }
+        
+        // 如果选择了特定图谱，添加 graph_id 参数
+        if (this.selectedGraphId) {
+          params.graph_id = this.selectedGraphId
+        }
+        
         // 从后端 API 获取更多节点数据
         const response = await service.get('/api/graph/data', {
-          params: {
-            limit: this.pageSize,
-            offset: offset  // 需要后端支持 offset 参数
-          }
+          params
         })
         
         // 处理新获取的数据
