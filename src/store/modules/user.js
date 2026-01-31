@@ -1,6 +1,7 @@
 // 用户模块状态管理
 import storage from '@/utils/storage'
 import { Message } from 'element-ui'
+import auth from '@/api/auth'
 
 export default {
   namespaced: true,
@@ -34,53 +35,61 @@ export default {
     }
   },
   actions: {
-    // 登录
-    login({ commit }, userData) {
-      // 这里应该是异步请求后端API的逻辑
-      // 为了演示，我们直接模拟登录成功
-      return new Promise((resolve, reject) => {
-        try {
-          // 模拟API请求
-          setTimeout(() => {
-            // 假设登录成功，返回用户信息和令牌
-            const mockUserInfo = {
-              id: 1,
-              username: userData.username,
-              email: `${userData.username}@example.com`,
-              role: 'user',
-              avatar: ''
-            }
-            const mockToken = 'mock-jwt-token-' + Date.now()
-            
-            // 更新状态
-            commit('SET_USER_INFO', mockUserInfo)
-            commit('SET_TOKEN', mockToken)
-            
-            Message.success('登录成功')
-            resolve(mockUserInfo)
-          }, 500)
-        } catch (error) {
-          Message.error('登录失败')
-          reject(error)
+    // 登录：调用后端 /api/auth/login
+    async login({ commit }, userData) {
+      try {
+        const resp = await auth.login({
+          username: userData.username,
+          password: userData.password
+        })
+        const data = resp.data || {}
+        const user = data.user || (data.data && data.data.user) || {}
+        const token = data.token || (data.data && data.data.token)
+
+        if (!user.id || !token) {
+          throw new Error('登录响应格式不正确')
         }
-      })
+
+        const userInfo = {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role || 'user',
+          avatar: user.avatar || ''
+        }
+
+        commit('SET_USER_INFO', userInfo)
+        commit('SET_TOKEN', token)
+        Message.success('登录成功')
+        return userInfo
+      } catch (error) {
+        const raw = error.response?.data?.detail || error.message || '未知错误'
+        let mapped = raw
+        if (/用户名或密码错误/.test(raw)) {
+          mapped = '用户名或密码不正确'
+        }
+        Message.error('登录失败：' + mapped)
+        throw error
+      }
     },
-    // 注册
-    register({ commit }, userData) {
-      // 这里应该是异步请求后端API的逻辑
-      // 为了演示，我们直接模拟注册成功
-      return new Promise((resolve, reject) => {
-        try {
-          // 模拟API请求
-          setTimeout(() => {
-            Message.success('注册成功')
-            resolve()
-          }, 500)
-        } catch (error) {
-          Message.error('注册失败')
-          reject(error)
+    // 注册：调用后端 /api/auth/register
+    async register(_, registerData) {
+      try {
+        await auth.register({
+          username: registerData.username,
+          email: registerData.email,
+          password: registerData.password
+        })
+        Message.success('注册成功，请登录')
+      } catch (error) {
+        const raw = error.response?.data?.detail || error.message || '未知错误'
+        let mapped = raw
+        if (/用户名已存在/.test(raw)) {
+          mapped = '该用户名已被使用，请换一个'
         }
-      })
+        Message.error('注册失败：' + mapped)
+        throw error
+      }
     },
     // 登出
     logout({ commit }) {
@@ -90,18 +99,14 @@ export default {
         resolve()
       })
     },
-    // 更新用户信息
+    // 更新用户信息（仍为前端本地更新）
     updateUserInfo({ commit, state }, userInfo) {
       return new Promise((resolve, reject) => {
         try {
-          // 模拟API请求
-          setTimeout(() => {
-            // 合并更新用户信息
-            const updatedUserInfo = { ...state.userInfo, ...userInfo }
-            commit('SET_USER_INFO', updatedUserInfo)
-            Message.success('用户信息更新成功')
-            resolve(updatedUserInfo)
-          }, 500)
+          const updatedUserInfo = { ...state.userInfo, ...userInfo }
+          commit('SET_USER_INFO', updatedUserInfo)
+          Message.success('用户信息更新成功')
+          resolve(updatedUserInfo)
         } catch (error) {
           Message.error('用户信息更新失败')
           reject(error)

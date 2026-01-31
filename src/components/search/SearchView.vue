@@ -327,7 +327,7 @@ export default {
     
     // 查看关联实体
     viewRelationEntity(targetId) {
-      const entity = this.mockResults.find(item => item.id === targetId);
+      const entity = this.searchResults.find(item => item.id === targetId);
       if (entity) {
         this.selectedEntity = entity;
       }

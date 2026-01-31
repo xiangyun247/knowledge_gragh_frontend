@@ -4,6 +4,7 @@ import Vuex from 'vuex'
 // 导入模块
 import user from './modules/user'
 import app from './modules/app'
+import chat from './modules/chat'
 
 // 使用Vuex插件
 Vue.use(Vuex)
@@ -11,8 +12,9 @@ Vue.use(Vuex)
 // 创建Vuex实例
 const store = new Vuex.Store({
   modules: {
-    user, // 用户相关状态
-    app   // 应用相关状态
+    user,  // 用户相关状态
+    app,   // 应用相关状态
+    chat   // 聊天问答状态（消息、会话、来源），切换路由后返回仍保留
   },
   // 全局getter
   getters: {

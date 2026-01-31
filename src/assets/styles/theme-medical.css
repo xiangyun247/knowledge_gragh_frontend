@@ -259,6 +259,118 @@
   background-clip: text;
 }
 
+/* ===========================
+ * 医疗风下的 Chat 问答布局适配
+ * 让左侧侧边栏 / 右侧关联信息都符合白蓝医疗风
+ * =========================== */
+
+/* 整体容器与卡片背景改为浅色 */
+[data-theme="medical"] .chat-page {
+  height: calc(100vh - 140px);
+}
+
+[data-theme="medical"] .chat-container {
+  background: var(--bg-light);
+  border-color: var(--border-primary);
+  box-shadow: var(--shadow-card);
+}
+
+/* 左侧对话侧边栏：改为白底蓝边，文字深色 */
+[data-theme="medical"] .chat-session-sidebar {
+  background: var(--bg-light);
+  border-color: var(--border-primary);
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="medical"] .session-title {
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .session-title i {
+  color: var(--primary-blue);
+}
+
+[data-theme="medical"] .session-list-title {
+  color: var(--text-muted);
+}
+
+[data-theme="medical"] .session-item {
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .session-item:hover {
+  background-color: var(--bg-hover);
+}
+
+[data-theme="medical"] .session-item-meta {
+  color: var(--text-muted);
+}
+
+[data-theme="medical"] .session-item.active {
+  background: var(--gradient-main);
+  color: #ffffff;
+  box-shadow: var(--shadow-md);
+}
+
+[data-theme="medical"] .session-item.active .session-item-meta {
+  color: #e5f2ff;
+}
+
+/* 右侧关联信息面板：白底 + 深色文字 */
+[data-theme="medical"] .chat-sidebar {
+  background: var(--bg-light);
+  border-color: var(--border-primary);
+}
+
+[data-theme="medical"] .sidebar-header h3 {
+  color: var(--primary-blue);
+  background: none;
+  -webkit-background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+  background-clip: border-box;
+}
+
+[data-theme="medical"] .sources-from-graph h4,
+[data-theme="medical"] .sources-from-doc h4 {
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .source-item {
+  color: var(--text-primary);
+  border-color: var(--border-primary);
+}
+
+[data-theme="medical"] .source-item--graph {
+  background-color: var(--bg-lighter);
+}
+
+[data-theme="medical"] .source-item--doc {
+  background-color: #e8f4ff;
+}
+
+[data-theme="medical"] .source-item--graph:hover,
+[data-theme="medical"] .source-item--doc:hover {
+  background-color: var(--bg-hover);
+}
+
+/* 深度思考面板中的文字颜色 */
+[data-theme="medical"] .analysis-title,
+[data-theme="medical"] .analysis-text,
+[data-theme="medical"] .analysis-reasoning {
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .analysis-subtitle {
+  color: var(--text-muted);
+}
+
+[data-theme="medical"] .analysis-tag-graph,
+[data-theme="medical"] .analysis-tag-doc,
+[data-theme="medical"] .analysis-tag-history,
+[data-theme="medical"] .analysis-tag-tool {
+  color: var(--text-primary);
+}
+
 /* 医疗风下的图表容器 */
 [data-theme="medical"] .chart-container {
   background: var(--secondary-dark);
@@ -292,6 +404,120 @@
 
 [data-theme="medical"] .home-column {
   background-color: transparent;
+}
+
+/* 医疗风下的首页仪表盘 .home-dashboard */
+[data-theme="medical"] .home-dashboard .welcome-bar {
+  background: var(--bg-lighter);
+  border-color: var(--border-primary);
+}
+
+[data-theme="medical"] .home-dashboard .welcome-date {
+  color: var(--text-muted);
+}
+
+[data-theme="medical"] .home-dashboard .welcome-greeting {
+  background: var(--gradient-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="medical"] .home-dashboard .quick-btn {
+  color: var(--primary-blue);
+  border-color: var(--border-secondary);
+  background: var(--bg-lighter);
+}
+
+[data-theme="medical"] .home-dashboard .quick-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary-blue);
+}
+
+[data-theme="medical"] .home-dashboard .metric-card {
+  background: var(--bg-light);
+  border-color: var(--border-primary);
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="medical"] .home-dashboard .metric-card:hover {
+  border-color: var(--primary-blue);
+  box-shadow: var(--shadow-lg);
+}
+
+[data-theme="medical"] .home-dashboard .metric-icon {
+  color: var(--primary-blue);
+}
+
+[data-theme="medical"] .home-dashboard .metric-value {
+  background: var(--gradient-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="medical"] .home-dashboard .metric-label {
+  color: var(--text-muted);
+}
+
+[data-theme="medical"] .home-dashboard .panel {
+  background: var(--bg-light);
+  border-color: var(--border-primary);
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="medical"] .home-dashboard .panel:hover {
+  border-color: var(--primary-blue);
+  box-shadow: var(--shadow-lg);
+}
+
+[data-theme="medical"] .home-dashboard .panel-title {
+  color: var(--text-primary);
+  border-bottom-color: var(--border-light);
+}
+
+[data-theme="medical"] .home-dashboard .chart-tabs span {
+  color: var(--text-muted);
+}
+
+[data-theme="medical"] .home-dashboard .chart-tabs span.active,
+[data-theme="medical"] .home-dashboard .chart-tabs span:hover {
+  background: var(--bg-hover);
+  color: var(--primary-blue);
+}
+
+[data-theme="medical"] .home-dashboard .mini-card {
+  background: var(--bg-lighter);
+  border-color: var(--border-primary);
+}
+
+[data-theme="medical"] .home-dashboard .mini-value {
+  color: var(--primary-blue);
+}
+
+[data-theme="medical"] .home-dashboard .mini-label {
+  color: var(--text-muted);
+}
+
+[data-theme="medical"] .home-dashboard .panel-metrics,
+[data-theme="medical"] .home-dashboard .panel-metrics strong {
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .home-dashboard .panel-metrics .text-danger {
+  color: var(--error);
+}
+
+[data-theme="medical"] .home-dashboard .panel-metrics .text-success {
+  color: var(--success);
+}
+
+[data-theme="medical"] .home-dashboard .top-block-title {
+  color: var(--text-muted);
+}
+
+[data-theme="medical"] .home-dashboard .top-list {
+  color: var(--text-primary);
 }
 
 /* 医疗风下的功能卡片 - 增强可见性 */
@@ -649,11 +875,11 @@
 }
 
 [data-theme="medical"] .login-tabs >>> .el-tabs__item {
-  color: var(--text-muted) !important;
+  color: var(--text-primary) !important;
 }
 
 [data-theme="medical"] .login-tabs >>> .el-tabs__item.is-active {
-  color: var(--primary-blue) !important;
+  color: var(--text-primary) !important; /* 登录/注册激活文字改为黑色 */
 }
 
 /* 表单标签 */
@@ -846,3 +1072,37 @@
   background-clip: text !important;
 }
 
+/* 医疗风下知识库页面：左侧栏与底部提问栏 */
+[data-theme="medical"] .kb-sidebar {
+  background: var(--bg-light);
+  border-color: var(--border-primary);
+}
+
+[data-theme="medical"] .kb-sidebar .sidebar-nav-item.active {
+  background: var(--bg-hover);
+  color: var(--primary-blue);
+}
+
+[data-theme="medical"] .kb-sidebar .section-item.active {
+  background: var(--bg-hover);
+  color: var(--primary-blue);
+}
+
+[data-theme="medical"] .kb-main-title {
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .kb-ask-bar {
+  background: var(--bg-light);
+  border-color: var(--border-primary);
+}
+
+[data-theme="medical"] .kb-ask-input .el-input__inner {
+  background: var(--secondary-dark);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .kb-ask-tip {
+  color: var(--text-muted);
+}

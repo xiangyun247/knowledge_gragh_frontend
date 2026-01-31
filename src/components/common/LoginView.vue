@@ -106,7 +106,7 @@
                 </el-form-item>
                 <div class="form-options">
                   <el-checkbox v-model="loginForm.rememberMe">记住我</el-checkbox>
-                  <el-button type="text" class="forget-password">忘记密码？</el-button>
+                  <el-button type="text" class="forget-password" @click="goForgotPassword">忘记密码？</el-button>
                 </div>
                 <el-form-item>
                   <el-button type="primary" size="large" class="login-btn app-btn app-btn-primary" :loading="loginLoading" @click="handleLogin">
@@ -148,6 +148,7 @@
                     size="large"
                     show-password
                   ></el-input>
+                  <div class="field-tip">建议同时包含字母和数字，提升账号安全性</div>
                 </el-form-item>
                 <el-form-item label="确认密码" prop="confirmPassword">
                   <el-input
@@ -244,6 +245,9 @@ export default {
       }
     },
     ...mapActions('user', ['login', 'register']),
+    goForgotPassword() {
+      this.$router.push('/forgot-password')
+    },
     handleLogin() {
       this.$refs.loginForm.validate((valid) => {
         if (valid) {
@@ -252,9 +256,6 @@ export default {
           this.login(this.loginForm)
             .then(() => {
               this.$router.push('/')
-            })
-            .catch((error) => {
-              this.$message.error('登录失败：' + (error.message || '未知错误'))
             })
             .finally(() => {
               this.loginLoading = false
@@ -272,11 +273,12 @@ export default {
           // 使用Vuex的register action
           this.register(this.registerForm)
             .then(() => {
-              this.$message.success('注册成功，请登录')
+              // 注册成功后自动把用户名填回登录表单，密码留空
+              this.loginForm.username = this.registerForm.username
+              this.loginForm.password = ''
+              this.registerForm.password = ''
+              this.registerForm.confirmPassword = ''
               this.activeTab = 'login'
-            })
-            .catch((error) => {
-              this.$message.error('注册失败：' + (error.message || '未知错误'))
             })
             .finally(() => {
               this.registerLoading = false
@@ -611,6 +613,12 @@ export default {
 .el-form-item__label {
   color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
+}
+
+.field-tip {
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .el-input {

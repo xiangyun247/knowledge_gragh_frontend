@@ -55,7 +55,8 @@
           @keyup.enter.native="sendMessage"
           resize="none"
         ></el-input>
-        <el-button type="primary" @click="sendMessage" :disabled="!inputMessage.trim()">
+        <el-checkbox v-model="useStream" size="small" class="stream-checkbox">流式输出</el-checkbox>
+        <el-button type="primary" @click="sendMessage" :disabled="!inputMessage.trim() || isTyping" :loading="isTyping">
           <i class="el-icon-send"></i>
           发送
         </el-button>
@@ -72,28 +73,33 @@
       </div>
       
       <div class="sidebar-content">
-        <div v-if="relatedEntities.length > 0" class="related-entities">
-          <h4>相关实体</h4>
-          <div class="entity-list">
-            <el-tag
-              v-for="(entity, index) in relatedEntities"
-              :key="index"
-              @click="viewEntityDetails(entity)"
-              class="entity-tag"
+        <div v-if="sourcesGraph.length > 0" class="sources-from-graph">
+          <h4>来自图谱</h4>
+          <div class="sources-list">
+            <div
+              v-for="(s, idx) in sourcesGraph"
+              :key="'g'+idx"
+              class="source-item source-item--graph"
+              @click="goToSource(s)"
             >
-              {{ entity }}
-            </el-tag>
+              {{ (s.content || '').slice(0, 72) }}{{ (s.content || '').length > 72 ? '…' : '' }}
+            </div>
           </div>
         </div>
-        
-        <div v-if="showMiniGraph" class="mini-graph">
-          <h4>关系图谱</h4>
-          <div class="graph-preview">
-            <el-empty description="点击实体查看关系图谱"></el-empty>
+        <div v-if="sourcesDoc.length > 0" class="sources-from-doc">
+          <h4>来自文献</h4>
+          <div class="sources-list">
+            <div
+              v-for="(s, idx) in sourcesDoc"
+              :key="'d'+idx"
+              class="source-item source-item--doc"
+              @click="goToSource(s)"
+            >
+              {{ (s.content || '').slice(0, 72) }}{{ (s.content || '').length > 72 ? '…' : '' }}
+            </div>
           </div>
         </div>
-        
-        <div v-if="!relatedEntities.length && !showMiniGraph" class="empty-sidebar">
+        <div v-if="sourcesGraph.length === 0 && sourcesDoc.length === 0" class="empty-sidebar">
           <el-empty description="暂无关联信息"></el-empty>
         </div>
       </div>
@@ -109,7 +115,7 @@
 <script>
 import TypingIndicator from '../components/chat/TypingIndicator.vue'
 import dayjs from 'dayjs'
-import { sendMessageToBackend as apiSendMessage } from '../api/chat'
+import { sendMessageToBackend as apiSendMessage, sendMessageToBackendStream } from '../api/chat'
 import { saveHistoryRecord, HISTORY_TYPES } from '../utils/historyUtils'
 
 export default {
@@ -122,8 +128,11 @@ export default {
       messages: [],
       inputMessage: '',
       isTyping: false,
-      relatedEntities: [],
-      showMiniGraph: false,
+      sourcesGraph: [],
+      sourcesDoc: [],
+      lastQuestionForSources: '',
+      sessionId: '',
+      useStream: false,
       sidebarOpen: true,
       quickQuestions: [
         '什么是糖尿病？',
@@ -134,8 +143,16 @@ export default {
     }
   },
   mounted() {
-    // 初始化聊天历史
+    this.sessionId = `s-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
     this.initChatHistory()
+    this.applyQuestionFromRoute()
+  },
+  watch: {
+    '$route': function (to) {
+      if (to.path === '/chat' && to.query.question && to.query.autoSend === '1') {
+        this.applyQuestionFromRoute()
+      }
+    }
   },
   methods: {
     // 初始化聊天历史
@@ -170,54 +187,80 @@ export default {
       this.inputMessage = question
       this.sendMessage()
     },
+    // 从路由 query 填入并发送问题（图谱页「问医生」跳转过来时）
+    applyQuestionFromRoute() {
+      const q = this.$route && this.$route.query && this.$route.query.question
+      if (!q || !String(q).trim()) return
+      const autoSend = this.$route.query.autoSend === '1'
+      this.$nextTick(() => {
+        this.inputMessage = String(q).trim()
+        if (autoSend) {
+          this.sendMessage()
+          this.$router.replace({ path: '/chat', query: {} })
+        }
+      })
+    },
     
-    // 调用后端API发送消息
+    // 调用后端API发送消息。6.1 session_id 多轮；6.2 useStream 流式
     sendMessageToBackend(question) {
+      this.sourcesGraph = []
+      this.sourcesDoc = []
+
+      if (this.useStream) {
+        const sys = { type: 'system', content: '', timestamp: Date.now() }
+        this.messages.push(sys)
+        this.isTyping = false
+        const idx = this.messages.length - 1
+        sendMessageToBackendStream(question, this.sessionId, {
+          onChunk: (d) => {
+            const m = this.messages[idx]
+            if (m && m.type === 'system') this.$set(m, 'content', (m.content || '') + d)
+          },
+          onDone: ({ answer, sources }) => {
+            const m = this.messages[idx]
+            if (m && m.type === 'system' && !(m.content || '').trim()) this.$set(m, 'content', answer || '未获取到有效回答')
+            this.lastQuestionForSources = question
+            this.sourcesGraph = (sources || []).filter(s => s && ['graph', 'entity'].includes(s.type))
+            this.sourcesDoc = (sources || []).filter(s => s && s.type === 'doc')
+            saveHistoryRecord(HISTORY_TYPES.CHAT, { question, answer: m?.content || answer, messages: [this.messages[idx - 1], this.messages[idx]] })
+            this.scrollToBottom()
+          },
+          onError: (e) => {
+            const m = this.messages[idx]
+            if (m && m.type === 'system') this.$set(m, 'content', `请求失败: ${e?.message || '未知错误'}`)
+            this.scrollToBottom()
+          }
+        })
+        this.scrollToBottom()
+        return
+      }
+
       this.isTyping = true
-      
-      // 调用真实API
-      apiSendMessage({ question: question })
+      apiSendMessage({ question, session_id: this.sessionId })
         .then(response => {
-          console.log('收到完整响应:', response)
-          // 处理后端返回的响应
+          const answer = response.data.answer || response.data.response || '未获取到有效回答'
           const systemMessage = {
             type: 'system',
-            content: response.data.answer || response.data.response || '未获取到有效回答',
+            content: answer,
             timestamp: Date.now()
           }
-          
           this.messages.push(systemMessage)
           this.isTyping = false
-          
-          // 保存聊天历史记录
+
           saveHistoryRecord(HISTORY_TYPES.CHAT, {
-            question: question,
-            answer: response.data.answer || response.data.response || '未获取到有效回答',
+            question,
+            answer,
             messages: [
               { type: 'user', content: question, timestamp: Date.now() - 1000 },
               systemMessage
             ]
           })
-          
-          // 从响应中获取关联实体（兼容不同后端返回格式）
-          if (response.data.sources) {
-            // 从sources中提取实体
-            this.relatedEntities = response.data.sources.map(source => {
-              if (typeof source === 'object') {
-                return source.name || source.type || '未知实体'
-              }
-              return source
-            })
-            this.showMiniGraph = true
-          } else if (response.data.related_entities) {
-            this.relatedEntities = response.data.related_entities
-            this.showMiniGraph = true
-          } else {
-            this.relatedEntities = []
-            this.showMiniGraph = false
-          }
-          
-          // 滚动到底部
+
+          this.lastQuestionForSources = question
+          const src = response.data.sources || []
+          this.sourcesGraph = src.filter(s => s && ['graph', 'entity'].includes(s.type))
+          this.sourcesDoc = src.filter(s => s && s.type === 'doc')
+
           this.scrollToBottom()
         })
         .catch(error => {
@@ -243,13 +286,16 @@ export default {
         })
     },
     
-    // 查看实体详情
-    viewEntityDetails(entity) {
-      // 跳转到图谱页面或搜索页面
-      this.$router.push({
-        name: 'GraphView',
-        params: { entity: entity }
-      })
+    // 5.3 来源跳转：文献→文献检索，图/实体→图谱或实体搜索
+    goToSource(s) {
+      if (!s) return
+      if (s.type === 'doc') {
+        this.$router.push({ path: '/knowledge-base', query: this.lastQuestionForSources ? { q: this.lastQuestionForSources } : {} })
+      } else if (s.type === 'entity') {
+        this.$router.push({ path: '/search', query: this.lastQuestionForSources ? { keyword: this.lastQuestionForSources } : {} })
+      } else {
+        this.$router.push({ path: '/graph' })
+      }
     },
     
     // 格式化时间
@@ -480,6 +526,9 @@ export default {
   box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.3);
 }
 
+.stream-checkbox { color: rgba(255, 255, 255, 0.85); }
+.stream-checkbox .el-checkbox__label { color: inherit; }
+
 .chat-input .el-button {
   background: var(--gradient-glow);
   border: none;
@@ -549,36 +598,57 @@ export default {
   overflow-y: auto;
 }
 
-/* 相关实体 */
-.related-entities h4,
-.mini-graph h4 {
+/* 来自图谱 / 来自文献 */
+.sources-from-graph h4,
+.sources-from-doc h4 {
   color: rgba(255, 255, 255, 0.9);
   font-size: 14px;
   margin-bottom: 12px;
   font-weight: 600;
 }
 
-.entity-list {
+.sources-list {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
 }
 
-.entity-tag {
-  background-color: rgba(0, 212, 255, 0.1);
-  color: var(--primary-blue);
-  border: 1px solid rgba(0, 212, 255, 0.3);
-  border-radius: 16px;
-  padding: 4px 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.source-item {
+  padding: 8px 10px;
+  border-radius: 8px;
   font-size: 12px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: 1px solid transparent;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
-.entity-tag:hover {
-  background-color: rgba(0, 212, 255, 0.2);
-  box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
-  transform: translateY(-2px);
+.source-item--graph {
+  background-color: rgba(0, 212, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.25);
+}
+
+.source-item--graph:hover {
+  background-color: rgba(0, 212, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 212, 255, 0.2);
+}
+
+.source-item--doc {
+  background-color: rgba(156, 39, 255, 0.08);
+  border-color: rgba(156, 39, 255, 0.25);
+}
+
+.source-item--doc:hover {
+  background-color: rgba(156, 39, 255, 0.15);
+  border-color: rgba(156, 39, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(156, 39, 255, 0.2);
 }
 
 /* 迷你图谱 */

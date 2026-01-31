@@ -1,11 +1,14 @@
 // API 请求入口文件
 
 // 导入各个 API 模块
-import chat from './chat';
+import * as chat from './chat';
 import graph from './graph';
 import history from './history';
 import search from './search';
 import upload from './upload';
+import hadoop from './hadoop';
+import kb from './kb';
+import auth from './auth';
 
 // 导出所有 API 模块
 export {
@@ -13,7 +16,10 @@ export {
   graph,
   history,
   search,
-  upload
+  upload,
+  hadoop,
+  kb,
+  auth
 };
 
 // 默认导出（可选，方便直接导入）
@@ -22,5 +28,8 @@ export default {
   graph,
   history,
   search,
-  upload
+  upload,
+  hadoop,
+  kb,
+  auth
 };

@@ -52,14 +52,24 @@
           <el-button @click="resetZoom" title="重置视图">
             <i class="el-icon-refresh"></i>
           </el-button>
+          <el-button @click="resetView" title="返回完整视图（清空搜索与筛选）">
+            <i class="el-icon-back"></i>
+            返回
+          </el-button>
           <el-button @click="clearGraph" title="清除图谱" type="danger">
             <i class="el-icon-delete"></i>
             清除
           </el-button>
-          <el-button @click="exportGraph" title="导出图谱">
-            <i class="el-icon-download"></i>
-            导出
-          </el-button>
+          <el-dropdown @command="handleExport" trigger="click">
+            <el-button title="导出图谱">
+              <i class="el-icon-download"></i>
+              导出 <i class="el-icon-arrow-down el-icon--right"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="json">导出完整数据 (JSON)</el-dropdown-item>
+              <el-dropdown-item command="image">导出当前视图 (图片)</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
           <el-button @click="toggleFullscreen" title="全屏/退出全屏">
             <i :class="isFullscreen ? 'el-icon-cancel' : 'el-icon-full-screen'"></i>
           </el-button>
@@ -76,6 +86,8 @@
             <el-dropdown-item command="symptom">症状</el-dropdown-item>
             <el-dropdown-item command="treatment">治疗方法</el-dropdown-item>
             <el-dropdown-item command="medicine">药物</el-dropdown-item>
+            <el-dropdown-item command="examination">检查</el-dropdown-item>
+            <el-dropdown-item command="location">部位</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
         
@@ -180,14 +192,29 @@ export default {
       lazyLoadEnabled: true,
       // 图谱切换相关数据
       selectedGraphId: '',
-      graphList: []
+      graphList: [],
+      // 程序化缩放比例（用于放大/缩小按钮）
+      graphZoomScale: 1
     }
   },
   mounted() {
     this.initChart()
-    this.getGraphList()
-    this.loadGraphData()
+    this.applyRouteGraph()
+    this.getGraphList().finally(() => {
+      this.loadGraphData()
+    })
     window.addEventListener('resize', this.handleResize)
+  },
+  watch: {
+    '$route': function (to) {
+      if (to.name === 'GraphViewWithFile' && to.params.file_id) {
+        this.applyRouteGraph()
+        this.loadGraphData()
+      } else if (to.name === 'GraphView' && to.query.graphId) {
+        this.selectedGraphId = to.query.graphId
+        this.loadGraphData()
+      }
+    }
   },
   beforeDestroy() {
     if (this.chart) {
@@ -305,6 +332,22 @@ export default {
       this.chart.setOption(option)
     },
     
+    // 根据路由设置当前图谱（/graph/:file_id 或 query.graphId）
+    applyRouteGraph() {
+      const fileId = this.$route?.params?.file_id
+      const queryGraphId = this.$route?.query?.graphId
+      if (fileId) {
+        this.selectedGraphId = fileId
+        this.graphData = null
+      } else if (queryGraphId) {
+        this.selectedGraphId = queryGraphId
+        this.graphData = null
+      } else {
+        this.selectedGraphId = ''
+        this.graphData = null
+      }
+    },
+
     // 获取图谱列表
     async getGraphList() {
       try {
@@ -313,9 +356,11 @@ export default {
           this.graphList = response.data.data.list || []
           console.log('获取图谱列表成功:', this.graphList.length, '个图谱')
         }
+        return response
       } catch (error) {
         console.error('获取图谱列表失败:', error)
         this.$message.warning('获取图谱列表失败，将显示全部图谱')
+        throw error
       }
     },
     
@@ -364,20 +409,57 @@ export default {
         ]
         
         // 处理后端返回的数据格式，为节点添加颜色属性
-        const nodesWithColor = response.data.nodes.map(node => {
+        const nodesWithColor = (response.data.nodes || []).map(node => {
           const typeInfo = nodeTypes.find(t => t.category === node.category)
           return {
             ...node,
+            id: node.id ?? node.name,
+            name: node.name ?? node.id,
             color: typeInfo ? typeInfo.color : '#9c27ff' // 默认颜色
           }
         })
+        const rawEdges = response.data.edges || response.data.data?.relations || []
+        // 建立 规范化键 -> 实际节点 id 的映射，保证 source/target 与节点 id 一致（兼容大小写、空格）
+        const idByKey = new Map()
+        nodesWithColor.forEach(n => {
+          const id = n.id ?? n.name
+          if (id == null || id === '') return
+          const key = String(id).trim()
+          idByKey.set(key, id)
+          idByKey.set(key.toLowerCase(), id)
+        })
+        const resolveId = (val) => {
+          if (val == null || val === '') return null
+          const key = String(val).trim()
+          return idByKey.get(key) ?? idByKey.get(key.toLowerCase()) ?? null
+        }
+        // 只保留两端都能解析到节点 id 的边，并统一为 ECharts 所需的 source/target/value
+        const links = []
+        rawEdges.forEach(e => {
+          const s = e.source ?? e.subject ?? ''
+          const t = e.target ?? e.object ?? ''
+          const actualSource = resolveId(s)
+          const actualTarget = resolveId(t)
+          if (actualSource && actualTarget) {
+            links.push({
+              source: actualSource,
+              target: actualTarget,
+              value: e.value ?? e.relation ?? e.predicate ?? e.type ?? '',
+              relation: e.relation ?? e.predicate ?? e.type ?? ''
+            })
+          }
+        })
+        if (rawEdges.length > 0 && links.length === 0) {
+          console.warn('[GraphView] 边数据被全部过滤：rawEdges=', rawEdges.length, 'nodes=', nodesWithColor.length, '示例边', rawEdges[0], '示例节点id', nodesWithColor[0]?.id ?? nodesWithColor[0]?.name)
+        }
         
         const graphData = {
           nodes: nodesWithColor,
-          links: response.data.edges
+          links
         }
         
         this.graphData = graphData
+        this.graphZoomScale = 1
         
         // 更新图表数据
         this.chart.setOption({
@@ -386,6 +468,7 @@ export default {
             links: this.graphData.links
           }]
         })
+        this.$nextTick(() => this._applyGraphZoom())
         
         // 启动节点出现动画
         this.startNodeAnimation()
@@ -511,31 +594,81 @@ export default {
       })
     },
     
-    // 放大
+    // 放大（通过 zrender 根节点缩放）
     zoomIn() {
-      this.chart.dispatchAction({
-        type: 'graphRoam',
-        action: 'zoom',
-        animation: true,
-        zoom: 1.2
-      })
+      if (!this.chart) return
+      this.graphZoomScale = Math.min(this.graphZoomScale * 1.25, 5)
+      this._applyGraphZoom()
     },
     
     // 缩小
     zoomOut() {
-      this.chart.dispatchAction({
-        type: 'graphRoam',
-        action: 'zoom',
-        animation: true,
-        zoom: 1 / 1.2
-      })
+      if (!this.chart) return
+      this.graphZoomScale = Math.max(this.graphZoomScale / 1.25, 0.2)
+      this._applyGraphZoom()
     },
     
-    // 重置视图
+    // 获取 zrender 根节点列表（zrender 使用 getRoots() 返回 _roots 数组）
+    _getZrRoots() {
+      const zr = this.chart && this.chart.getZr && this.chart.getZr()
+      if (!zr || !zr.storage) return []
+      const s = zr.storage
+      if (typeof s.getRoots === 'function') return s.getRoots() || []
+      if (s._roots && Array.isArray(s._roots)) return s._roots
+      return []
+    },
+    
+    // 应用当前缩放比例到画布
+    _applyGraphZoom() {
+      try {
+        const roots = this._getZrRoots()
+        if (!roots.length) return
+        roots.forEach(root => {
+          if (root && root.scale !== undefined) {
+            root.scale = [this.graphZoomScale, this.graphZoomScale]
+            if (root.dirty) root.dirty(true)
+          }
+        })
+        const zr = this.chart.getZr()
+        if (zr && zr.refresh) zr.refresh()
+      } catch (e) {
+        console.warn('图谱缩放失败:', e)
+      }
+    },
+    
+    // 重置视图（缩放与平移）
     resetZoom() {
-      this.chart.dispatchAction({
-        type: 'restore'
+      if (!this.chart) return
+      this.graphZoomScale = 1
+      try {
+        const roots = this._getZrRoots()
+        roots.forEach(root => {
+          if (root) {
+            if (root.scale !== undefined) root.scale = [1, 1]
+            if (root.position !== undefined) root.position = [0, 0]
+            if (root.dirty) root.dirty(true)
+          }
+        })
+        const zr = this.chart.getZr()
+        if (zr && zr.refresh) zr.refresh()
+      } catch (e) {
+        console.warn('重置视图失败:', e)
+      }
+    },
+    
+    // 返回完整视图：清空搜索、取消筛选、重置缩放，恢复显示全部节点与边
+    resetView() {
+      this.searchKeyword = ''
+      this.graphZoomScale = 1
+      if (!this.graphData) return
+      this.chart.setOption({
+        series: [{
+          data: this.graphData.nodes,
+          links: this.graphData.links
+        }]
       })
+      this._applyGraphZoom()
+      this.$message.success('已恢复完整视图')
     },
     
     // 清除图谱
@@ -574,19 +707,39 @@ export default {
       })
     },
     
-    // 导出图谱
-    exportGraph() {
-      const dataURL = this.chart.getDataURL({
-        type: 'png',
-        backgroundColor: '#0a0e27',
-        pixelRatio: 2,
-        excludeComponents: ['toolbox']
-      })
-      
-      const link = document.createElement('a')
-      link.href = dataURL
-      link.download = `知识图谱_${new Date().getTime()}.png`
-      link.click()
+    // 导出：完整数据(JSON) 或 当前视图(图片)
+    handleExport(command) {
+      if (command === 'json') {
+        if (!this.graphData || (!this.graphData.nodes.length && !this.graphData.links.length)) {
+          this.$message.warning('暂无图谱数据可导出')
+          return
+        }
+        const payload = {
+          nodes: this.graphData.nodes,
+          links: this.graphData.links,
+          exportedAt: new Date().toISOString()
+        }
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `知识图谱_${new Date().getTime()}.json`
+        link.click()
+        URL.revokeObjectURL(url)
+        this.$message.success('已导出完整数据 (JSON)')
+      } else if (command === 'image') {
+        const dataURL = this.chart.getDataURL({
+          type: 'png',
+          backgroundColor: '#0a0e27',
+          pixelRatio: 2,
+          excludeComponents: ['toolbox']
+        })
+        const link = document.createElement('a')
+        link.href = dataURL
+        link.download = `知识图谱_${new Date().getTime()}.png`
+        link.click()
+        this.$message.success('已导出当前视图 (图片)')
+      }
     },
     
     // 处理筛选
@@ -719,14 +872,14 @@ export default {
       })
     },
 
-    // 从节点一键发起“问医生”对话
+    // 从节点一键发起“问医生”：跳转问答页并自动填入、发送「请为我介绍一下XXX」
     askDoctor() {
       if (!this.selectedNode) return
-      const name = this.selectedNode.name || '该疾病'
-      const question = `我想咨询关于「${name}」的详细医疗建议，请结合定义、常见症状、检查和治疗方案进行专业说明。`
+      const name = this.selectedNode.name || '该实体'
+      const question = `请为我介绍一下${name}`
       this.$router.push({
         path: '/chat',
-        query: { question }
+        query: { question, autoSend: '1' }
       })
       this.showNodeDetail = false
     },

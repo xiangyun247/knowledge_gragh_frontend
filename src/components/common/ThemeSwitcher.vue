@@ -1,13 +1,8 @@
 <template>
   <div class="theme-switcher">
-    <el-tooltip :content="currentTheme === 'tech' ? '切换到医疗风' : '切换到科技风'" placement="bottom">
-      <div 
-        class="theme-toggle-btn" 
-        @click="toggleTheme"
-        :class="{ 'medical': currentTheme === 'medical' }"
-      >
-        <i :class="currentTheme === 'tech' ? 'el-icon-view' : 'el-icon-medicine-box'"></i>
-        <span class="theme-label">{{ currentTheme === 'tech' ? '科技风' : '医疗风' }}</span>
+    <el-tooltip content="切换风格" placement="bottom">
+      <div class="theme-toggle-btn" @click="toggleTheme">
+        <i class="el-icon-brush"></i>
       </div>
     </el-tooltip>
   </div>
@@ -63,73 +58,26 @@ export default {
 .theme-toggle-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  background: linear-gradient(135deg, rgba(0, 255, 255, 1), rgba(255, 0, 255, 1));
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #00f5d4, #22c55e);
   color: #ffffff;
-  border-radius: 18px;
+  border-radius: 50%;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 255, 255, 0.3);
-  font-size: 13px;
-  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(0, 245, 212, 0.4);
   user-select: none;
   border: none;
 }
 
 .theme-toggle-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 255, 255, 0.4);
-}
-
-.theme-toggle-btn.medical {
-  background: linear-gradient(135deg, #0066cc, #00a8e8);
-  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
-}
-
-.theme-toggle-btn.medical:hover {
-  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
-}
-
-.theme-label {
-  font-size: 13px;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 16px rgba(0, 245, 212, 0.5);
 }
 
 .theme-toggle-btn i {
-  font-size: 16px;
-}
-
-/* 医疗风下的主题切换按钮 */
-[data-theme="medical"] .theme-toggle-btn {
-  background: linear-gradient(135deg, #0066cc, #00a8e8);
-  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3);
-  color: #ffffff;
-}
-
-[data-theme="medical"] .theme-toggle-btn:hover {
-  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
-}
-
-/* 响应式设计 */
-@media (max-width: 992px) {
-  .theme-label {
-    display: none;
-  }
-  
-  .theme-toggle-btn {
-    padding: 6px 10px;
-  }
-}
-
-@media (max-width: 768px) {
-  .theme-toggle-btn {
-    padding: 5px 8px;
-    font-size: 12px;
-  }
-  
-  .theme-toggle-btn i {
-    font-size: 14px;
-  }
+  font-size: 18px;
 }
 </style>
 

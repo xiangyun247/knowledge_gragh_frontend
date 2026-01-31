@@ -12,7 +12,7 @@
         <i :class="{ 'el-icon-menu': !isMenuOpen, 'el-icon-close': isMenuOpen }" class="menu-icon"></i>
       </div>
       
-      <!-- 功能按钮导航 -->
+      <!-- 功能按钮导航：首页 / 对话·图谱·知识库 / 搜索·上传 / 历史·FAQ -->
       <nav :class="{ 'nav-menu': true, 'nav-menu-open': isMenuOpen }">
         <router-link to="/" class="nav-item" active-class="active" @click="closeMenu">
           <i class="el-icon-s-home"></i>
@@ -26,17 +26,21 @@
           <i class="el-icon-data-analysis"></i>
           <span>知识图谱</span>
         </router-link>
+        <router-link to="/knowledge-base" class="nav-item" active-class="active" @click="closeMenu">
+          <i class="el-icon-document"></i>
+          <span>知识库</span>
+        </router-link>
         <router-link to="/search" class="nav-item" active-class="active" @click="closeMenu">
           <i class="el-icon-search"></i>
           <span>实体搜索</span>
         </router-link>
-        <router-link to="/history" class="nav-item" active-class="active" @click="closeMenu">
-          <i class="el-icon-document-copy"></i>
-          <span>历史记录</span>
-        </router-link>
         <router-link to="/upload" class="nav-item" active-class="active" @click="closeMenu">
           <i class="el-icon-upload2"></i>
           <span>数据上传</span>
+        </router-link>
+        <router-link to="/history" class="nav-item" active-class="active" @click="closeMenu">
+          <i class="el-icon-document-copy"></i>
+          <span>历史记录</span>
         </router-link>
         <router-link to="/faq" class="nav-item" active-class="active" @click="closeMenu">
           <i class="el-icon-question"></i>
@@ -48,14 +52,13 @@
       <div class="user-section">
         <!-- 主题切换按钮 -->
         <ThemeSwitcher />
-        
         <!-- 未登录时显示登录/注册按钮 -->
         <div v-if="!isLoggedIn" class="auth-buttons">
-          <el-button type="primary" size="small" plain class="app-btn app-btn-ghost" @click="handleLoginClick">
+          <el-button type="primary" size="small" plain @click="handleLoginClick">
             <i class="el-icon-key"></i>
             登录
           </el-button>
-          <el-button type="success" size="small" class="app-btn app-btn-secondary" @click="handleRegisterClick">
+          <el-button type="success" size="small" @click="handleRegisterClick">
             <i class="el-icon-user-plus"></i>
             注册
           </el-button>
@@ -63,11 +66,7 @@
         <!-- 登录后显示用户信息下拉菜单 -->
         <el-dropdown v-else trigger="click">
           <span class="user-info">
-            <el-avatar 
-              :src="avatarSrc" 
-              :icon="!avatarSrc && 'el-icon-user'" 
-              size="medium"
-            ></el-avatar>
+            <el-avatar :src="userInfo.avatar || ''" :icon="avatarIcon" size="medium"></el-avatar>
             <span class="user-name">{{ userInfo.username || '用户' }}</span>
             <i class="el-icon-arrow-down"></i>
           </span>
@@ -96,10 +95,10 @@ import { mapGetters, mapActions } from 'vuex'
 import ThemeSwitcher from '../common/ThemeSwitcher.vue'
 
 export default {
-  name: 'TopNavBar',
   components: {
     ThemeSwitcher
   },
+  name: 'TopNavBar',
   data() {
     return {
       isMenuOpen: false
@@ -107,17 +106,13 @@ export default {
   },
   computed: {
     ...mapGetters(['isLoggedIn', 'userInfo']),
-    // 计算头像源，如果没有头像则使用默认头像
-    avatarSrc() {
-      return this.userInfo.avatar || this.getDefaultAvatar()
+    // ElAvatar 的 icon 必须是字符串，有头像时传空字符串，无头像时传图标类名
+    avatarIcon() {
+      return this.userInfo.avatar ? '' : 'el-icon-user'
     }
   },
   methods: {
     ...mapActions('user', ['logout']),
-    // 获取默认头像
-    getDefaultAvatar() {
-      return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjEwMCIgZmlsbD0iIzAwZDRmZiIgb3BhY2l0eT0iMC4yIi8+PHBhdGggZD0iTTEwMCAxMDBjMjcuNiAwIDUwIDIyLjQgNTAgNTBzLTIyLjQgNTAtNTAgNTAtNTAtMjIuNC01MC01MCAyMi40LTUwIDUwLTUwem0wIDIwYy0xNi42IDAtMzAgMTMuNC0zMCAzMHMxMy40IDMwIDMwIDMwIDMwLTEzLjQgMzAtMzAtMTMuNC0zMC0zMC0zMHoiIGZpbGw9IiMwMGQ0ZmYiLz48L3N2Zz4='
-    },
     toggleMenu() {
       this.isMenuOpen = !this.isMenuOpen
     },
@@ -160,7 +155,7 @@ export default {
   background-color: rgba(10, 14, 39, 0.85);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(0, 245, 212, 0.2);
-  box-shadow: 0 4px 20px rgba(0, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 245, 212, 0.1);
   position: relative;
   z-index: 100;
 }
@@ -186,8 +181,8 @@ export default {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(0, 255, 255, 1), rgba(255, 0, 255, 1));
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+  background: linear-gradient(135deg, #00f5d4, #00bbf9);
+  box-shadow: 0 0 20px rgba(0, 245, 212, 0.5);
   animation: rotate 20s linear infinite;
 }
 
@@ -226,7 +221,7 @@ export default {
 
 .mobile-menu-btn:hover {
   background-color: rgba(0, 245, 212, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 245, 212, 0.3);
 }
 
 .menu-icon {
@@ -236,20 +231,24 @@ export default {
 
 .nav-menu {
   display: flex;
-  gap: 5px;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 4px;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 14px;
   color: #ffffff;
   text-decoration: none;
-  border-radius: 20px;
+  border-radius: 18px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
 }
 
 .nav-item::before {
@@ -259,13 +258,13 @@ export default {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0, 245, 212, 0.2), transparent);
   transition: left 0.5s;
 }
 
 .nav-item:hover {
   background-color: rgba(0, 245, 212, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 245, 212, 0.3);
   transform: translateY(-2px);
 }
 
@@ -274,8 +273,8 @@ export default {
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, rgba(0, 255, 255, 1), rgba(255, 0, 255, 1));
-  box-shadow: 0 4px 12px rgba(0, 255, 255, 0.4);
+  background: linear-gradient(135deg, #00f5d4, #00bbf9);
+  box-shadow: 0 4px 12px rgba(0, 245, 212, 0.4);
 }
 
 .user-section {
@@ -300,7 +299,7 @@ export default {
 
 .auth-buttons .el-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 245, 212, 0.3);
 }
 
 .user-info {
@@ -315,7 +314,7 @@ export default {
 
 .user-info:hover {
   background-color: rgba(0, 245, 212, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 245, 212, 0.3);
 }
 
 .user-name {
@@ -323,8 +322,8 @@ export default {
   font-weight: 500;
 }
 
-/* 响应式设计 */
-@media (max-width: 992px) {
+/* 响应式：中屏改为仅图标，避免顶栏挤换行 */
+@media (max-width: 1100px) {
   .nav-item span {
     display: none;
   }
@@ -357,7 +356,7 @@ export default {
     align-items: center;
     padding: 20px 0;
     transition: left 0.3s ease;
-    box-shadow: 4px 0 20px rgba(0, 255, 255, 0.1);
+    box-shadow: 4px 0 20px rgba(0, 245, 212, 0.1);
   }
   
   .nav-menu-open {

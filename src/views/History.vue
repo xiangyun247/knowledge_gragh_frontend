@@ -51,7 +51,8 @@
             >
               <el-option label="全部" value=""></el-option>
               <el-option label="问答" value="chat"></el-option>
-              <el-option label="图谱查询" value="graph"></el-option>
+              <el-option label="图谱查询" value="graph_query"></el-option>
+              <el-option label="图谱构建" value="graph_build"></el-option>
               <el-option label="实体搜索" value="search"></el-option>
               <el-option label="数据上传" value="upload"></el-option>
             </el-select>
@@ -159,11 +160,11 @@
         </div>
       </div>
       
-      <!-- 时间轴列表 -->
-      <div class="timeline-container" v-if="filteredRecords.length > 0">
+      <!-- 时间轴列表（分页后的当前页数据） -->
+      <div class="timeline-container" v-if="paginatedRecords.length > 0">
         <el-timeline>
           <el-timeline-item
-            v-for="record in filteredRecords"
+            v-for="record in paginatedRecords"
             :key="record.id"
             :timestamp="formatDateTime(record.createTime)"
             placement="top"
@@ -185,8 +186,11 @@
                     <template v-if="record.type === 'chat'">
                       {{ record.content?.question || '新对话' }}
                     </template>
-                    <template v-else-if="record.type === 'graph'">
+                    <template v-else-if="record.type === 'graph_query' || record.type === 'graph'">
                       {{ record.content?.entity || '知识图谱' }}
+                    </template>
+                    <template v-else-if="record.type === 'graph_build'">
+                      {{ record.content?.graphName || record.content?.graphId || record.title || '新图谱' }}
                     </template>
                     <template v-else-if="record.type === 'upload'">
                       {{ record.content?.filename || '未知文件' }}
@@ -233,15 +237,20 @@
                   <template v-if="record.type === 'chat'">
                     <div class="chat-answer">{{ record.content?.answer || '无回答内容' }}</div>
                   </template>
-                  <template v-else-if="record.type === 'graph'">
+                  <template v-else-if="record.type === 'graph_query' || record.type === 'graph'">
                     <div class="graph-info">
                       节点数: {{ record.content?.nodes || 0 }}, 链接数: {{ record.content?.links || 0 }}
+                    </div>
+                  </template>
+                  <template v-else-if="record.type === 'graph_build'">
+                    <div class="graph-info">
+                      图谱: {{ record.content?.graphName || record.content?.graphId || '新图谱' }}
                     </div>
                   </template>
                   <template v-else-if="record.type === 'upload'">
                     <div class="upload-info">
                       文件大小: {{ formatFileSize(record.content?.fileSize || 0) }}, 文件类型: {{ record.content?.fileType || '未知' }}
-                      <template v-if="record.status === 'success'">
+                      <template v-if="record.status === 'success' || record.status === 'completed'">
                         <span class="upload-success"> ✓ 上传成功</span>
                       </template>
                       <template v-else-if="record.status === 'failed'">
@@ -281,7 +290,7 @@
                           <span class="result-text">{{ record.content?.answer || '无回答内容' }}</span>
                         </div>
                       </template>
-                      <template v-else-if="record.type === 'graph'">
+                      <template v-else-if="record.type === 'graph_query' || record.type === 'graph'">
                         <div class="detail-item">
                           <label>查询实体:</label>
                           <span class="result-text">{{ record.content?.entity || '无实体内容' }}</span>
@@ -298,6 +307,16 @@
                               <span class="stat-value">{{ record.content?.links || 0 }}</span>
                             </div>
                           </div>
+                        </div>
+                      </template>
+                      <template v-else-if="record.type === 'graph_build'">
+                        <div class="detail-item">
+                          <label>图谱名称:</label>
+                          <span class="result-text">{{ record.content?.graphName || record.content?.graphId || '新图谱' }}</span>
+                        </div>
+                        <div class="detail-item">
+                          <label>状态:</label>
+                          <span class="result-text">{{ getRecordStatusText(record.status) }}</span>
                         </div>
                       </template>
                       <template v-else-if="record.type === 'upload'">
@@ -362,7 +381,7 @@
     <!-- 分页 -->
     <div class="pagination-container" v-if="filteredRecords.length > 0">
       <el-pagination
-        v-model="currentPage"
+        :current-page="currentPage"
         :page-size="pageSize"
         :total="filteredRecords.length"
         layout="total, sizes, prev, pager, next, jumper"
@@ -403,8 +422,11 @@
             <template v-if="currentRecord.type === 'chat'">
               <div class="chat-question">问题: {{ currentRecord.content?.question || '无问题内容' }}</div>
             </template>
-            <template v-else-if="currentRecord.type === 'graph'">
+            <template v-else-if="currentRecord.type === 'graph_query' || currentRecord.type === 'graph'">
               <div class="graph-entity">实体: {{ currentRecord.content?.entity || '无实体内容' }}</div>
+            </template>
+            <template v-else-if="currentRecord.type === 'graph_build'">
+              <div class="graph-entity">图谱: {{ currentRecord.content?.graphName || currentRecord.content?.graphId || '新图谱' }}</div>
             </template>
             <template v-else-if="currentRecord.type === 'upload'">
               <div class="upload-info">
@@ -423,8 +445,11 @@
             <template v-if="currentRecord.type === 'chat'">
               <pre class="result-content">{{ currentRecord.content?.answer || '无回答内容' }}</pre>
             </template>
-            <template v-else-if="currentRecord.type === 'graph'">
+            <template v-else-if="currentRecord.type === 'graph_query' || currentRecord.type === 'graph'">
               <pre class="result-content">节点数: {{ currentRecord.content?.nodes || 0 }}, 链接数: {{ currentRecord.content?.links || 0 }}</pre>
+            </template>
+            <template v-else-if="currentRecord.type === 'graph_build'">
+              <pre class="result-content">图谱构建: {{ getRecordStatusText(currentRecord.status) }}</pre>
             </template>
             <template v-else-if="currentRecord.type === 'upload'">
               <pre class="result-content">状态: {{ getRecordStatusText(currentRecord.status) }}</pre>
@@ -530,8 +555,15 @@ export default {
     todayRecords() {
       const today = new Date().toDateString();
       return this.historyRecords.filter(record => {
-        return new Date(record.timestamp).toDateString() === today;
+        const t = record.createTime || record.timestamp || record.created_at;
+        return t && new Date(t).toDateString() === today;
       }).length;
+    },
+
+    // 当前页记录（分页切片）
+    paginatedRecords() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      return this.filteredRecords.slice(start, start + this.pageSize);
     }
   },
   created() {
@@ -685,7 +717,8 @@ export default {
           this.$message.success(`正在重复问答：${question}`);
           break;
         }
-        case 'graph': {
+        case 'graph':
+        case 'graph_query': {
           this.$router.push({ 
             name: 'GraphView', 
             params: { entity: record.content?.entity || '' } 
@@ -694,11 +727,20 @@ export default {
           this.$message.success(`正在重复图谱查询：${entity}`);
           break;
         }
+        case 'graph_build': {
+          const graphId = record.content?.graphId || record.graph_id;
+          if (graphId) {
+            this.$router.push({ name: 'GraphView', params: { file_id: graphId } });
+          }
+          this.$message.success('正在查看图谱构建结果');
+          break;
+        }
         case 'upload': {
           // 跳转到图谱可视化页面，显示该文件生成的知识图谱
+          const fileId = record.file_id || record.content?.fileId || record.content?.file_id;
           this.$router.push({ 
             name: 'GraphView', 
-            params: { file_id: record.file_id } 
+            params: { file_id: fileId } 
           });
           const filename = record.content?.filename || '未知文件';
           this.$message.success(`正在查看文件生成的知识图谱：${filename}`);
@@ -716,9 +758,9 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // 从localStorage删除记录
         import('../utils/historyUtils').then(({ deleteHistoryRecord }) => {
           deleteHistoryRecord(id);
+          this.loadHistory();
           this.$message.success('记录删除成功');
         });
       }).catch(() => {
@@ -737,18 +779,20 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
-        this.historyRecords = this.historyRecords.filter(record => {
-          return !this.selectedRecords.includes(record.id);
-        });
-        this.filterHistory();
+      }).then(async () => {
+        const { deleteHistoryRecord } = await import('../utils/historyUtils');
+        for (const id of this.selectedRecords) {
+          await deleteHistoryRecord(id);
+        }
+        this.loadHistory();
+        this.resetSelection();
         this.$message.success('选中记录删除成功');
       }).catch(() => {
         this.$message.info('已取消删除');
       });
     },
     
-    // 删除所有记录
+    // 删除所有记录（当前筛选条件下）
     deleteAll() {
       if (this.filteredRecords.length === 0) {
         this.$message.warning('没有可删除的记录');
@@ -759,13 +803,13 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
-        // 删除筛选后的所有记录
-        const filteredIds = this.filteredRecords.map(record => record.id);
-        this.historyRecords = this.historyRecords.filter(record => {
-          return !filteredIds.includes(record.id);
-        });
-        this.filterHistory();
+      }).then(async () => {
+        const { deleteHistoryRecord } = await import('../utils/historyUtils');
+        const ids = this.filteredRecords.map(record => record.id);
+        for (const id of ids) {
+          await deleteHistoryRecord(id);
+        }
+        this.loadHistory();
         this.$message.success('记录删除成功');
       }).catch(() => {
         this.$message.info('已取消删除');
@@ -807,6 +851,8 @@ export default {
       const iconMap = {
         'chat': 'el-icon-chat-dot-round',
         'graph': 'el-icon-data-analysis',
+        'graph_query': 'el-icon-data-analysis',
+        'graph_build': 'el-icon-connection',
         'search': 'el-icon-search',
         'upload': 'el-icon-upload2'
       };
@@ -818,6 +864,8 @@ export default {
       const typeMap = {
         'chat': 'primary',
         'graph': 'success',
+        'graph_query': 'success',
+        'graph_build': 'success',
         'search': 'info',
         'upload': 'warning'
       };
@@ -829,6 +877,8 @@ export default {
       const typeMap = {
         'chat': '问答',
         'graph': '图谱查询',
+        'graph_query': '图谱查询',
+        'graph_build': '图谱构建',
         'search': '实体搜索',
         'upload': '数据上传'
       };
@@ -839,8 +889,11 @@ export default {
     getRecordStatusType(status) {
       const statusMap = {
         'success': 'success',
+        'completed': 'success',
         'failed': 'danger',
-        'processing': 'warning'
+        'processing': 'warning',
+        'uploading': 'warning',
+        'pending': 'info'
       };
       return statusMap[status] || 'info';
     },
@@ -849,8 +902,11 @@ export default {
     getRecordStatusText(status) {
       const statusMap = {
         'success': '成功',
+        'completed': '成功',
         'failed': '失败',
-        'processing': '进行中'
+        'processing': '进行中',
+        'uploading': '进行中',
+        'pending': '待处理'
       };
       return statusMap[status] || '未知';
     },

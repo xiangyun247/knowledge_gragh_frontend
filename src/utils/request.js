@@ -21,7 +21,13 @@ service.interceptors.request.use(
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
-    
+
+    // 7.1 多租户：当前用户 id 供后端 KB、图谱、Agent 做权限过滤
+    const userInfo = storage.get('userInfo');
+    if (userInfo && userInfo.id != null && userInfo.id !== '') {
+      config.headers['X-User-Id'] = String(userInfo.id);
+    }
+
     // 处理请求参数
     if (config.method === 'get') {
       // GET 请求参数处理

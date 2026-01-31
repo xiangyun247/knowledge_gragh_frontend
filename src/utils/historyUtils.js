@@ -35,9 +35,9 @@ export async function saveHistoryRecord(type, data = {}, extra = {}) {
 
   try {
     const response = await historyApi.saveHistory(newRecord)
-    // 触发自定义事件，通知其他组件历史记录已更新
-    window.dispatchEvent(new CustomEvent('historyUpdated', { detail: { newRecord: response.data } }))
-    return response.data
+    const saved = response.data?.data ?? response.data ?? newRecord
+    window.dispatchEvent(new CustomEvent('historyUpdated', { detail: { newRecord: saved } }))
+    return saved
   } catch (error) {
     console.error('保存历史记录失败:', error)
     return newRecord
@@ -47,7 +47,7 @@ export async function saveHistoryRecord(type, data = {}, extra = {}) {
 // 获取所有历史记录
 export async function getAllHistory() {
   try {
-    const response = await historyApi.getHistoryList({ limit: 10000 })
+    const response = await historyApi.getHistoryList({ limit: 1000 })
     const list = response.data?.data?.list || response.data?.data?.records
     return Array.isArray(list) ? list : []
   } catch (error) {
@@ -59,7 +59,7 @@ export async function getAllHistory() {
 // 根据类型获取历史记录
 export async function getHistoryByType(type) {
   try {
-    const response = await historyApi.getHistoryList({ type, limit: 10000 })
+    const response = await historyApi.getHistoryList({ type, limit: 1000 })
     const list = response.data?.data?.list || response.data?.data?.records
     return Array.isArray(list) ? list : []
   } catch (error) {

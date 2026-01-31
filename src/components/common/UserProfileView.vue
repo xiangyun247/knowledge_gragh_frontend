@@ -2,7 +2,17 @@
   <div class="user-profile-page">
     <div class="profile-container">
       <div class="profile-header">
-        <h2>个人中心</h2>
+        <div class="profile-header-top">
+          <el-button
+            type="default"
+            icon="el-icon-back"
+            @click="goBack"
+            class="back-btn"
+          >
+            返回
+          </el-button>
+        </div>
+        <h2 class="profile-title">个人中心</h2>
         <p class="profile-subtitle">查看和修改您的个人信息</p>
       </div>
       
@@ -136,6 +146,15 @@ export default {
   },
   methods: {
     ...mapActions('user', ['updateUserInfo']),
+
+    // 返回上一页或首页
+    goBack() {
+      if (window.history.length > 1) {
+        this.$router.go(-1);
+      } else {
+        this.$router.push('/');
+      }
+    },
     
     // 获取默认头像
     getDefaultAvatar() {
@@ -277,11 +296,45 @@ export default {
   margin-bottom: 30px;
 }
 
-.profile-header h2 {
+.profile-header-top {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 16px;
+}
+
+.back-btn {
+  color: var(--text-primary);
+  border-color: var(--border-primary);
+  background: var(--bg-secondary);
+}
+
+.back-btn:hover {
+  color: var(--primary-blue);
+  border-color: var(--primary-blue);
+  background: rgba(0, 212, 255, 0.08);
+}
+
+.profile-header h2.profile-title {
+  position: relative;
   font-size: 28px;
   font-weight: 600;
   margin-bottom: 10px;
   color: var(--text-primary);
+}
+
+/* 个人中心标题下装饰条：使用青绿/蓝绿配色，去掉蓝紫发光 */
+.profile-header h2.profile-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #0d9488 0%, #0ea5e9 100%);
+  border-radius: 2px;
+  opacity: 0.9;
+  animation: none;
 }
 
 .profile-subtitle {
@@ -456,7 +509,7 @@ export default {
     margin: 10px;
   }
   
-  .profile-header h2 {
+  .profile-header h2.profile-title {
     font-size: 24px;
   }
   

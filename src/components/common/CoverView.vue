@@ -1,111 +1,121 @@
 <template>
   <div class="cover-container">
-    <!-- 封面主内容区 -->
+    <!-- 封面主内容区：左文案 + 右实景图 -->
     <section class="cover-hero">
-      <div class="cover-content">
-        <h1 class="cover-title">
-          <span class="title-line">探索医疗知识的</span>
-          <span class="title-highlight">智能图谱</span>
-        </h1>
-        <p class="cover-subtitle">
-          利用人工智能技术构建的医疗知识图谱系统，为您提供专业、准确的医疗信息查询与可视化服务
-        </p>
-        <div class="cover-cta-buttons">
-          <router-link to="/chat" class="btn-primary app-btn app-btn-primary" v-ripple>
-            <i class="el-icon-chat-dot-round"></i>
-            开始问答
-          </router-link>
-          <router-link to="/graph" class="btn-secondary app-btn app-btn-secondary" v-ripple>
-            <i class="el-icon-s-data"></i>
-            查看图谱
-          </router-link>
+      <div class="hero-layout">
+        <!-- 左侧文案与按钮 -->
+        <div class="hero-left">
+          <div class="brand-chip">
+            <span class="brand-en">YIMING AGENT</span>
+            <span class="brand-sep">·</span>
+            <span class="brand-zh">胰明智能体</span>
+          </div>
+
+          <h1 class="cover-title">
+            <span class="title-line">胰明 · 医疗知识图谱智能体</span>
+            <span class="title-slogan">Pancreas-focused Medical Knowledge Graph &amp; AI Copilot</span>
+            <span class="title-highlight">从病例到决策，一步到位</span>
+          </h1>
+
+          <p class="cover-subtitle">
+            基于大模型 + 知识图谱 + RAG，自动串联胰腺疾病相关的病史、影像与指南，为医生和研究者生成结构化分析与决策建议。
+          </p>
+
+          <div class="cover-cta-buttons">
+            <router-link to="/chat" class="btn-primary app-btn app-btn-primary" v-ripple>
+              <i class="el-icon-chat-dot-round"></i>
+              启动智能体会话
+            </router-link>
+            <router-link to="/graph" class="btn-secondary app-btn app-btn-secondary" v-ripple>
+              <i class="el-icon-s-data"></i>
+              打开知识图谱面板
+            </router-link>
+          </div>
+
+          <div class="hero-meta">
+            <span class="hero-meta-item">多模态数据：病历 · 影像 · 检验 · 指南</span>
+            <span class="hero-meta-dot"></span>
+            <span class="hero-meta-item">应用场景：病例讨论 · 诊疗决策支持 · 科研分析</span>
+          </div>
+        </div>
+
+        <!-- 右侧真实感视觉区域 -->
+        <div class="hero-right">
+          <div class="hero-image-card">
+            <img
+              class="hero-image"
+              src="@/assets/images/Cover.png"
+              alt="YiMing 胰明医疗知识图谱系统封面图"
+            />
+
+            <!-- 叠加迷你图谱 + 问答卡片，增强“真实系统”感 -->
+            <div class="hero-overlay hero-overlay-chat">
+              <div class="overlay-header">
+                <span class="overlay-tag">实时问答</span>
+                <span class="overlay-status">在线 · 胰腺炎病例</span>
+              </div>
+              <div class="overlay-question">「这例急性胰腺炎患者的重症风险如何？」</div>
+              <div class="overlay-answer">
+                系统综合血淀粉酶、CT 评分与既往病史，提示 <span class="risk-high">中高风险</span>，
+                建议 24 小时内重复影像并关注器官功能评分。
+              </div>
+            </div>
+
+            <div class="hero-overlay hero-overlay-graph">
+              <div class="mini-graph-title">胰腺疾病知识图谱</div>
+              <div class="mini-graph-nodes">
+                <span class="mini-node mini-node-primary">急性胰腺炎</span>
+                <span class="mini-node">症状</span>
+                <span class="mini-node">实验室指标</span>
+                <span class="mini-node">影像征象</span>
+                <span class="mini-node">并发症</span>
+                <span class="mini-node">指南推荐</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- 知识图谱概览 -->
+    <!-- 下方：患者历程卡片（知识图谱概览区域精简为一张卡片） -->
     <section class="cover-overview">
-      <h2 class="overview-title">知识图谱概览</h2>
       <div class="overview-timeline">
         <div class="timeline-axis"></div>
         <div class="overview-cards">
-          <div class="overview-card card-left">
+          <div class="overview-card card-left patient-journey-card">
             <div class="card-node"></div>
             <div class="card-content">
-              <div class="card-header">
-                <span class="card-title">总实体数</span>
-                <span class="card-icon card-icon-data">
-                  <i class="el-icon-s-data"></i>
-                </span>
+              <div class="patient-journey-header">
+                <div class="patient-journey-title">
+                  <span class="patient-label">患者历程：</span>
+                  <span class="patient-disease">胰腺炎</span>
+                </div>
+                <div class="patient-case-meta">实时同步 · 病例 #AP-2026-018</div>
               </div>
-              <div class="card-body">
-                <span class="card-number">10,500</span>
-                <span class="card-subtitle">个知识实体</span>
-              </div>
-              <div class="card-footer">
-                <span class="card-trend">+5.2%</span>
-                <span class="card-label">较上月</span>
-              </div>
-            </div>
-          </div>
 
-          <div class="overview-card card-right">
-            <div class="card-node"></div>
-            <div class="card-content">
-              <div class="card-header">
-                <span class="card-title">关系总数</span>
-                <span class="card-icon card-icon-link">
-                  <i class="el-icon-link"></i>
-                </span>
-              </div>
-              <div class="card-body">
-                <span class="card-number">52,000</span>
-                <span class="card-subtitle">条知识关联</span>
-              </div>
-              <div class="card-footer">
-                <span class="card-trend">+8.7%</span>
-                <span class="card-label">较上月</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="overview-card card-left">
-            <div class="card-node"></div>
-            <div class="card-content">
-              <div class="card-header">
-                <span class="card-title">搜索量</span>
-                <span class="card-icon card-icon-search">
-                  <i class="el-icon-search"></i>
-                </span>
-              </div>
-              <div class="card-body">
-                <span class="card-number">15,230</span>
-                <span class="card-subtitle">次搜索</span>
-              </div>
-              <div class="card-footer">
-                <span class="card-trend">+12.3%</span>
-                <span class="card-label">较上月</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="overview-card card-right">
-            <div class="card-node"></div>
-            <div class="card-content">
-              <div class="card-header">
-                <span class="card-title">用户活跃度</span>
-                <span class="card-icon card-icon-user">
-                  <i class="el-icon-user-solid"></i>
-                </span>
-              </div>
-              <div class="card-body">
-                <span class="card-number">89.5%</span>
-                <span class="card-subtitle">活跃度</span>
-              </div>
-              <div class="card-footer">
-                <span class="card-trend">+3.2%</span>
-                <span class="card-label">较上月</span>
-              </div>
+              <ul class="patient-journey-steps">
+                <li class="journey-step">
+                  <span class="journey-dot journey-dot-primary"></span>
+                  <div class="journey-text">
+                    <div class="journey-title">急诊首诊</div>
+                    <div class="journey-desc">自动抽取主诉与既往史，生成结构化入院要点。</div>
+                  </div>
+                </li>
+                <li class="journey-step">
+                  <span class="journey-dot journey-dot-secondary"></span>
+                  <div class="journey-text">
+                    <div class="journey-title">影像与检验整合</div>
+                    <div class="journey-desc">关联 CT 所见与实验室指标，更新病例在图谱中的关联。</div>
+                  </div>
+                </li>
+                <li class="journey-step">
+                  <span class="journey-dot journey-dot-tertiary"></span>
+                  <div class="journey-text">
+                    <div class="journey-title">图谱推理 + 智能体会话</div>
+                    <div class="journey-desc">基于指南与图谱完成风险评估与管理建议。</div>
+                  </div>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
@@ -230,66 +240,119 @@ export default {
 <style scoped>
 .cover-container {
   height: 100vh;
+  max-width: 1440px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: space-between;
-  padding: 24px 24px 24px;
+  padding: 32px;
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
-  background: 
-    radial-gradient(circle at top, rgba(0, 245, 212, 0.12), transparent 60%),
-    radial-gradient(circle at 80% 40%, rgba(0, 187, 249, 0.08), transparent 50%),
-    linear-gradient(135deg, #020817 0%, #050b18 50%, #020617 100%);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(250, 204, 21, 0.15), transparent 55%),
+    radial-gradient(circle at 85% 25%, rgba(59, 130, 246, 0.16), transparent 55%),
+    radial-gradient(circle at 10% 80%, rgba(45, 212, 191, 0.14), transparent 55%),
+    linear-gradient(135deg, #020617 0%, #020617 40%, #020617 100%);
 }
 
-/* 封面主内容区 */
+/* 封面主内容区：左右布局 */
 .cover-hero {
-  text-align: center;
-  margin-bottom: 24px;
   position: relative;
   z-index: 2;
+  width: 100%;
+  margin-bottom: 20px;
 }
 
-.cover-content {
-  max-width: 900px;
-  margin: 0 auto;
+.hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.15fr);
+  gap: 40px;
+  align-items: center;
+}
+
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.brand-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.7);
+  width: fit-content;
+}
+
+.brand-en {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #facc15;
+}
+
+.brand-sep {
+  color: rgba(148, 163, 184, 0.7);
+}
+
+.brand-zh {
+  font-size: 13px;
+  color: rgba(226, 232, 240, 0.9);
 }
 
 .cover-title {
-  font-size: clamp(32px, 4vw, 72px);
+  font-size: clamp(32px, 3.4vw, 56px);
   font-weight: 800;
-  margin-bottom: 24px;
-  line-height: 1.2;
-  letter-spacing: clamp(1px, 0.2vw, 3px);
-  position: relative;
+  margin-bottom: 10px;
+  line-height: 1.15;
+  letter-spacing: 0.04em;
 }
 
 .title-line {
   display: block;
-  background: linear-gradient(135deg, #00f5d4, #00bbf9);
+  background: linear-gradient(135deg, #e5e7eb, #f9fafb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: 
-    0 0 20px rgba(0, 245, 212, 0.8),
-    0 0 40px rgba(0, 245, 212, 0.6),
-    0 0 60px rgba(0, 187, 249, 0.4);
+  text-shadow:
+    0 0 24px rgba(15, 23, 42, 0.9);
   animation: breathe 3s ease-in-out infinite;
+}
+
+.title-slogan {
+  display: block;
+  margin-top: 6px;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.9); /* 中性浅灰白 */
+  background: none;
+  -webkit-background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+  background-clip: border-box;
+  text-shadow: none;
 }
 
 .title-highlight {
   display: block;
-  background: linear-gradient(135deg, #00f5d4, #00bbf9);
+  margin-top: 8px;
+  font-size: 0.8em;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: linear-gradient(120deg, #22c55e, #38bdf8, #eab308);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: 
-    0 0 20px rgba(0, 245, 212, 0.8),
-    0 0 40px rgba(0, 245, 212, 0.6),
-    0 0 60px rgba(0, 187, 249, 0.4);
-  animation: breathe 3s ease-in-out infinite 0.5s;
+  text-shadow:
+    0 0 18px rgba(34, 197, 94, 0.9),
+    0 0 32px rgba(56, 189, 248, 0.7);
+  animation: breathe 3s ease-in-out infinite 0.4s;
 }
 
 @keyframes breathe {
@@ -304,20 +367,34 @@ export default {
 }
 
 .cover-subtitle {
-  font-size: 20px;
+  font-size: 18px;
   color: rgba(255, 255, 255, 0.85);
-  margin-bottom: 48px;
+  margin-bottom: 24px;
   line-height: 1.8;
-  max-width: 700px;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 640px;
 }
 
 .cover-cta-buttons {
   display: flex;
   gap: 24px;
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.hero-meta-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: rgba(148, 163, 184, 0.6);
 }
 
 .btn-primary,
@@ -361,8 +438,8 @@ export default {
 }
 
 .btn-primary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 40px rgba(0, 245, 212, 0.7), 0 0 60px rgba(0, 187, 249, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 32px rgba(0, 245, 212, 0.6), 0 0 48px rgba(0, 187, 249, 0.4);
 }
 
 .btn-secondary {
@@ -374,17 +451,144 @@ export default {
 }
 
 .btn-secondary:hover {
-  transform: translateY(-3px);
+  transform: translateY(-1px);
   background: rgba(0, 245, 212, 0.12);
   border-color: rgba(0, 245, 212, 0.6);
-  box-shadow: 0 6px 30px rgba(0, 245, 212, 0.4);
+  box-shadow: 0 5px 26px rgba(0, 245, 212, 0.35);
+}
+
+/* 右侧实景卡片 */
+.hero-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hero-image-card {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  border-radius: 28px;
+  overflow: hidden;
+  background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.98));
+  box-shadow:
+    0 24px 80px rgba(15, 23, 42, 0.9),
+    0 0 50px rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  transform-origin: center center;
+  transform: perspective(1200px) rotateX(0deg) rotateY(0deg);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.hero-image-card:hover {
+  transform: perspective(1200px) rotateX(-3deg) rotateY(3deg) translateY(-4px);
+  box-shadow:
+    0 28px 90px rgba(15, 23, 42, 0.95),
+    0 0 70px rgba(15, 23, 42, 0.9);
+}
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.95;
+  filter: saturate(1.15) contrast(1.05);
+}
+
+.hero-overlay {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.94);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  font-size: 12px;
+}
+
+.hero-overlay-chat {
+  bottom: 20px;
+}
+
+.hero-overlay-graph {
+  top: 16px;
+  right: auto;
+  left: auto;
+  max-width: 260px;
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.overlay-tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.overlay-status {
+  font-size: 11px;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.overlay-question {
+  font-size: 12px;
+  color: rgba(248, 250, 252, 0.95);
+  margin-bottom: 4px;
+}
+
+.overlay-answer {
+  font-size: 11px;
+  color: rgba(209, 213, 219, 0.95);
+  line-height: 1.5;
+}
+
+.risk-high {
+  color: #f97316;
+  font-weight: 600;
+}
+
+.mini-graph-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: rgba(248, 250, 252, 0.96);
+}
+
+.mini-graph-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mini-node {
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: rgba(226, 232, 240, 0.9);
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.6);
+}
+
+.mini-node-primary {
+  background: radial-gradient(circle at 0 0, rgba(45, 212, 191, 0.3), rgba(15, 23, 42, 0.9));
+  border-color: rgba(45, 212, 191, 0.8);
 }
 
 /* 知识图谱概览 */
 .cover-overview {
   width: 100%;
   max-width: 1200px;
-  margin: 0 auto 16px;
+  margin: 0 auto 8px;
   position: relative;
   z-index: 2;
 }
@@ -578,6 +782,91 @@ export default {
 .card-label {
   color: rgba(255, 255, 255, 0.6);
   font-size: 13px;
+}
+
+/* 患者历程卡片样式 */
+.patient-journey-card {
+  padding: 24px 24px 22px;
+}
+
+.patient-journey-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 18px;
+}
+
+.patient-journey-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.patient-label {
+  opacity: 0.9;
+}
+
+.patient-disease {
+  font-weight: 700;
+  color: #4ade80;
+}
+
+.patient-case-meta {
+  font-size: 12px;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.patient-journey-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.journey-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.journey-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  margin-top: 4px;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.7);
+}
+
+.journey-dot-primary {
+  background: #22c55e;
+}
+
+.journey-dot-secondary {
+  background: #2dd4bf;
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.7);
+}
+
+.journey-dot-tertiary {
+  background: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+}
+
+.journey-text {
+  flex: 1;
+}
+
+.journey-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(241, 245, 249, 0.98);
+  margin-bottom: 2px;
+}
+
+.journey-desc {
+  font-size: 13px;
+  color: rgba(148, 163, 184, 0.95);
 }
 
 /* 进入系统按钮 */

@@ -159,6 +159,17 @@
             </div>
             <div class="file-actions">
               <el-button
+                v-if="file.success && file.fileId && !file.kbIngested"
+                type="warning"
+                icon="el-icon-upload2"
+                size="mini"
+                @click="ingestToKb(file)"
+                :loading="file.ingestingKb"
+              >
+                入库
+              </el-button>
+              <span v-if="file.success && file.kbIngested" class="kb-badge">已入库 ({{ file.kbChunkCount || 0 }} 块)</span>
+              <el-button
                 v-if="file.success && !file.kgGenerated"
                 type="primary"
                 icon="el-icon-data-line"
@@ -248,6 +259,161 @@
       </el-card>
     </div>
     
+    <!-- 文档知识库管理 -->
+    <div class="kb-section">
+      <el-card class="kb-card" shadow="hover">
+        <div class="kb-content">
+          <h3 class="kb-title">
+            <i class="el-icon-document"></i>
+            文档知识库
+          </h3>
+          <p class="kb-description">将已上传的文档入库到向量知识库，支持语义检索；可在此管理已入库文档。选择目标知识库后，在上方文件列表中点击「入库」或使用「批量入库」。</p>
+          <div class="kb-toolbar">
+            <span class="kb-toolbar-label">入库到知识库：</span>
+            <el-select
+              v-model="selectedKbId"
+              size="small"
+              placeholder="选择知识库"
+              class="kb-select"
+              style="width: 200px; margin-right: 12px;"
+            >
+              <el-option
+                v-for="b in kbBasesList"
+                :key="b.id"
+                :label="b.name"
+                :value="b.id"
+              />
+            </el-select>
+            <el-button
+              type="primary"
+              icon="el-icon-upload2"
+              @click="batchIngestToKb"
+              :loading="batchKbLoading"
+              :disabled="completedFiles.filter(f => f.success && f.fileId && !f.kbIngested).length === 0"
+              class="kb-btn"
+            >
+              批量入库
+            </el-button>
+            <el-button
+              icon="el-icon-refresh"
+              @click="loadKbDocList"
+              :loading="kbListLoading"
+              class="kb-btn"
+            >
+              刷新文档列表
+            </el-button>
+          </div>
+          <div class="kb-list-wrap">
+            <el-table
+              v-if="kbDocList.length > 0"
+              :data="kbDocList"
+              stripe
+              size="small"
+              class="kb-table"
+            >
+              <el-table-column prop="source_file" label="文件名" min-width="180" show-overflow-tooltip>
+                <template slot-scope="scope">{{ scope.row.source_file || scope.row.doc_id || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="类型" width="80">
+                <template slot-scope="scope">{{ scope.row.source_type || '—' }}</template>
+              </el-table-column>
+              <el-table-column label="块数" width="80" align="center">
+                <template slot-scope="scope">{{ scope.row.chunk_count != null ? scope.row.chunk_count : '—' }}</template>
+              </el-table-column>
+              <el-table-column label="操作" width="160" align="center" fixed="right">
+                <template slot-scope="scope">
+                  <el-button
+                    type="danger"
+                    size="mini"
+                    icon="el-icon-delete"
+                    @click="deleteKbDoc(scope.row)"
+                  >
+                    删除
+                  </el-button>
+                  <el-button
+                    type="warning"
+                    size="mini"
+                    icon="el-icon-refresh"
+                    :disabled="!canReindexKb(scope.row)"
+                    @click="reindexKbDoc(scope.row)"
+                  >
+                    重索引
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            <div v-else-if="kbListLoading" class="kb-empty">加载中…</div>
+            <div v-else class="kb-empty">暂无已入库文档，点击「刷新文档列表」或先对上方文件执行「入库」。</div>
+          </div>
+        </div>
+      </el-card>
+    </div>
+
+    <!-- Hadoop批量操作区域 -->
+    <div class="hadoop-section" v-if="completedFiles.length > 0">
+      <el-card class="hadoop-card" shadow="hover">
+        <div class="hadoop-content">
+          <h3 class="hadoop-title">
+            <i class="el-icon-server"></i>
+            Hadoop批量操作
+          </h3>
+          <p class="hadoop-description">使用Hadoop和Celery进行批量文件处理和知识图谱构建。批量构建可直接使用已上传的文件，无需先上传到HDFS。</p>
+          <div class="hadoop-buttons">
+            <el-button
+              type="primary"
+              icon="el-icon-upload2"
+              @click="batchUploadToHadoop"
+              :loading="batchUploadLoading"
+              :disabled="completedFiles.filter(f => f.success && f.fileId && !f.hdfsUploaded).length === 0"
+              class="hadoop-btn"
+            >
+              批量上传至HDFS
+            </el-button>
+            <el-button
+              type="success"
+              icon="el-icon-data-line"
+              @click="batchBuildKG"
+              :loading="batchBuildLoading"
+              :disabled="completedFiles.filter(f => f.success && f.fileId).length === 0"
+              class="hadoop-btn"
+            >
+              批量构建知识图谱
+            </el-button>
+          </div>
+          <!-- Hadoop任务状态 -->
+          <div class="hadoop-status" v-if="hadoopTaskId">
+            <div class="status-header">
+              <span class="status-title">批量构建任务状态</span>
+              <span class="task-id">任务ID: {{ hadoopTaskId }}</span>
+            </div>
+            <div class="status-content">
+              <el-progress
+                :percentage="hadoopProgress"
+                :color="customProgressColor"
+                :stroke-width="3"
+                class="progress-bar"
+              ></el-progress>
+              <div class="status-info">
+                <span class="status-text">{{ getStatusText(hadoopStatus) }}</span>
+                <span class="progress-text">{{ hadoopProgress }}%</span>
+              </div>
+              <div class="status-detail" v-if="hadoopStatus">
+                <el-button
+                  type="text"
+                  size="small"
+                  icon="el-icon-refresh"
+                  @click="refreshTaskStatus"
+                  :loading="refreshingStatus"
+                >
+                  刷新状态
+                </el-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </el-card>
+    </div>
+    
     <!-- 数据模板下载 -->
     <div class="template-section">
       <el-card class="template-card" shadow="hover">
@@ -296,6 +462,7 @@
 
 <script>
 import { saveHistoryRecord, updateHistoryStatus, HISTORY_TYPES } from '../../utils/historyUtils'
+import { hadoop, kb } from '../../api'
 
 export default {
   name: 'DataUploadPage',
@@ -320,8 +487,27 @@ export default {
         { name: '症状数据模板', format: 'CSV' },
         { name: '药物数据模板', format: 'JSON' },
         { name: '关系数据模板', format: 'XML' }
-      ]
+      ],
+      
+      // Hadoop相关状态
+      batchUploadLoading: false,  // 批量上传加载状态
+      batchBuildLoading: false,   // 批量构建加载状态
+      hadoopTaskId: null,         // Hadoop任务ID
+      hadoopProgress: 0,          // Hadoop任务进度
+      hadoopStatus: '',           // Hadoop任务状态
+      progressInterval: null,     // 进度查询定时器
+      refreshingStatus: false,    // 是否正在刷新状态
+
+      // 文档知识库相关
+      kbDocList: [],              // 已入库文档列表
+      kbListLoading: false,       // 文档列表加载中
+      batchKbLoading: false,      // 批量入库加载中
+      kbBasesList: [],            // 知识库列表（入库时选择目标）
+      selectedKbId: 'default'     // 当前选中的目标知识库 id
     };
+  },
+  created() {
+    this.loadKbBasesList();
   },
   computed: {
     // 是否正在上传
@@ -431,8 +617,8 @@ export default {
       file.kgGenerated = false;
       file.generatingKG = false;
       
-      // 保存初始上传记录
-      const historyRecord = saveHistoryRecord(HISTORY_TYPES.UPLOAD, {
+      // 保存初始上传记录（必须 await，否则 historyRecord 为 Promise，id 为 undefined 导致 PUT /api/history/undefined/status）
+      const historyRecord = await saveHistoryRecord(HISTORY_TYPES.UPLOAD, {
         filename: file.name,
         fileSize: file.size,
         fileType: file.name.split('.').pop().toLowerCase(),
@@ -470,15 +656,15 @@ export default {
           }
         });
         
-        // 上传成功
+        // 上传成功（用 $set 保证 fileId 等为响应式，入库按钮才能正确显示）
         file.progress = 100;
         file.success = true;
-        file.fileId = response.data.file_id; // 保存文件ID，用于后续生成知识图谱
-        file.message = '文件上传成功，请点击"生成知识图谱"按钮创建知识图谱';
+        this.$set(file, 'fileId', response.data.file_id);
+        file.message = '文件上传成功，可点击「入库」加入知识库或「生成知识图谱」';
         this.$message.success(`文件上传成功: ${file.name}`);
         
         // 更新历史记录状态
-        updateHistoryStatus(historyRecord.id, 'completed', '上传成功');
+        updateHistoryStatus(historyRecord.id, 'success', '上传成功');
         
         // 移到已完成列表
         const index = this.uploadingFiles.indexOf(file);
@@ -575,8 +761,7 @@ export default {
       file.progressInterval = setInterval(async () => {
         try {
           const response = await this.$http.get(`/api/kg/build/progress/${file.taskId}`);
-          // 后端返回格式: {status: "success", data: task_info}
-          const progressData = response.data.data || response.data;
+          const progressData = response.data;
           
           // 更新文件进度和状态
           file.kgProgress = progressData.progress;
@@ -597,12 +782,23 @@ export default {
             file.kgGenerated = true;
             file.message = `知识图谱生成成功，共包含 ${progressData.entities_created} 个实体和 ${progressData.relations_created} 条关系`;
             this.$message.success(`知识图谱生成成功: ${file.name}`);
+            // 写入图谱构建历史，便于历史记录页正确显示
+            saveHistoryRecord(HISTORY_TYPES.GRAPH_BUILD, {
+              graphName: file.name,
+              graphId: file.fileId,
+              entities_created: progressData.entities_created,
+              relations_created: progressData.relations_created
+            }, { status: 'success' });
           } else if (progressData.status === 'failed') {
             clearInterval(file.progressInterval);
             file.progressInterval = null;
             file.generatingKG = false;
             file.message = `知识图谱生成失败: ${progressData.message}`;
             this.$message.error(`生成知识图谱失败: ${file.name}`);
+            saveHistoryRecord(HISTORY_TYPES.GRAPH_BUILD, {
+              graphName: file.name,
+              graphId: file.fileId
+            }, { status: 'failed' });
           }
           
         } catch (error) {
@@ -754,37 +950,382 @@ export default {
       }, 300);
     },
     
-    // 下载模板
-    downloadTemplate(template) {
+    // 下载模板：使用当前 API 基础地址请求 blob，再触发下载
+    async downloadTemplate(template) {
+      const typeMap = {
+        '疾病数据模板': { type: 'disease', filename: '疾病数据模板.json' },
+        '症状数据模板': { type: 'symptom', filename: '症状数据模板.csv' },
+        '药物数据模板': { type: 'medicine', filename: '药物数据模板.json' },
+        '关系数据模板': { type: 'relation', filename: '关系数据模板.xml' }
+      };
+      const meta = typeMap[template.name];
+      if (!meta) {
+        this.$message.error('未知的模板类型');
+        return;
+      }
       this.$message.info(`正在下载模板: ${template.name}`);
-      
-      // 根据模板名称调用不同的后端API
-      let url = '';
-      switch (template.name) {
-        case '疾病数据模板':
-          url = 'http://localhost:5001/api/templates/disease';
-          break;
-        case '症状数据模板':
-          url = 'http://localhost:5001/api/templates/symptom';
-          break;
-        case '药物数据模板':
-          url = 'http://localhost:5001/api/templates/medicine';
-          break;
-        case '关系数据模板':
-          url = 'http://localhost:5001/api/templates/relation';
-          break;
-        default:
-          this.$message.error('未知的模板类型');
+      try {
+        const res = await this.$http.get(`/api/templates/${meta.type}`, { responseType: 'blob' });
+        const blob = res.data;
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = meta.filename;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.$message.success(`已下载: ${meta.filename}`);
+      } catch (err) {
+        console.error('模板下载失败:', err);
+        this.$message.error(err.response?.data?.detail || '模板下载失败');
+      }
+    },
+    
+    // 批量上传到HDFS（可选步骤，用于需要HDFS存储的场景）
+    async batchUploadToHadoop() {
+      this.batchUploadLoading = true;
+      try {
+        const files = this.completedFiles.filter(f => f.success && !f.hdfsUploaded && f.file);
+        if (files.length === 0) {
+          this.$message.warning('没有需要上传到HDFS的文件（文件可能已上传或文件对象不可用）');
           return;
+        }
+        
+        // 准备文件列表（使用原始文件对象）
+        const fileList = files.map(f => f.file).filter(Boolean);
+        if (fileList.length === 0) {
+          this.$message.warning('没有可用的文件对象，请重新上传文件');
+          return;
+        }
+        
+        // 调用Hadoop API批量上传
+        const response = await hadoop.batchUploadFiles(fileList);
+        
+        if (response.data && response.data.status === 'success') {
+          // 更新文件状态
+          const uploadedFileIds = response.data.uploaded_file_ids || [];
+          files.forEach((file, index) => {
+            if (uploadedFileIds.includes(file.fileId) || index < uploadedFileIds.length) {
+              file.hdfsUploaded = true;
+              file.hdfsFileId = uploadedFileIds[index] || file.fileId;
+            }
+          });
+          
+          this.$message.success(`批量上传到HDFS成功，共上传 ${response.data.total_files || files.length} 个文件`);
+        } else {
+          throw new Error(response.data?.message || '上传失败');
+        }
+      } catch (error) {
+        console.error('批量上传到HDFS失败:', error);
+        const errorMsg = error.response?.data?.detail || error.message || '批量上传到HDFS失败';
+        this.$message.error(errorMsg);
+      } finally {
+        this.batchUploadLoading = false;
+      }
+    },
+    
+    // 批量构建知识图谱
+    async batchBuildKG() {
+      this.batchBuildLoading = true;
+      try {
+        // 获取所有已上传成功的文件ID（不管是否已上传到HDFS，都可以批量构建）
+        const files = this.completedFiles.filter(f => f.success && f.fileId);
+        if (files.length === 0) {
+          this.$message.warning('没有可用的文件，请先上传文件');
+          return;
+        }
+        
+        // 提取文件ID列表
+        const fileIds = files.map(f => f.fileId).filter(Boolean);
+        if (fileIds.length === 0) {
+          this.$message.warning('没有有效的文件ID');
+          return;
+        }
+        
+        // 调用Hadoop API批量构建知识图谱
+        const response = await hadoop.batchBuildKG(fileIds, true);
+        
+        if (response.data && response.data.status === 'accepted' && response.data.task_id) {
+          this.hadoopTaskId = response.data.task_id;
+          this.hadoopProgress = 0;
+          this.hadoopStatus = 'processing';
+          this.$message.success(`批量构建任务已启动，任务ID: ${response.data.task_id}`);
+          
+          // 开始查询进度
+          this.startHadoopProgressCheck();
+        } else {
+          throw new Error(response.data?.message || '获取任务ID失败');
+        }
+      } catch (error) {
+        console.error('批量构建任务启动失败:', error);
+        const errorMsg = error.response?.data?.detail || error.message || '批量构建任务启动失败';
+        this.$message.error(errorMsg);
+      } finally {
+        this.batchBuildLoading = false;
+      }
+    },
+    
+    // 开始查询Hadoop任务进度
+    startHadoopProgressCheck() {
+      // 清除可能存在的旧定时器
+      if (this.progressInterval) {
+        clearInterval(this.progressInterval);
       }
       
-      // 创建一个隐藏的a标签用于下载
-      const a = document.createElement('a');
-      a.href = url;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      this.progressInterval = setInterval(async () => {
+        try {
+          const response = await hadoop.getBatchTaskStatus(this.hadoopTaskId);
+          const taskData = response.data;
+          
+          if (!taskData || !taskData.task) {
+            console.warn('任务数据为空');
+            return;
+          }
+          
+          const task = taskData.task;
+          
+          // 更新进度和状态
+          this.hadoopProgress = task.progress || 0;
+          this.hadoopStatus = task.status || '';
+          
+          // 更新状态文本显示
+          if (task.message) {
+            // 可以在这里更新更详细的状态信息
+          }
+          
+          // 如果任务完成或失败，停止查询
+          if (task.status === 'completed' || task.status === 'failed') {
+            clearInterval(this.progressInterval);
+            this.progressInterval = null;
+            
+            const message = task.message || '';
+            if (task.status === 'completed') {
+              const entitiesCount = task.entities_created || 0;
+              const relationsCount = task.relations_created || 0;
+              this.$message.success(
+                `批量构建完成！共生成 ${entitiesCount} 个实体和 ${relationsCount} 条关系。${message}`
+              );
+              // 写入图谱构建历史，便于历史记录页正确显示
+              saveHistoryRecord(HISTORY_TYPES.GRAPH_BUILD, {
+                graphName: '批量构建',
+                graphId: this.hadoopTaskId,
+                entities_created: entitiesCount,
+                relations_created: relationsCount
+              }, { status: 'success' });
+            } else {
+              this.$message.error(`批量构建失败: ${message}`);
+              saveHistoryRecord(HISTORY_TYPES.GRAPH_BUILD, {
+                graphName: '批量构建',
+                graphId: this.hadoopTaskId
+              }, { status: 'failed' });
+            }
+          }
+        } catch (error) {
+          console.error('查询Hadoop任务进度失败:', error);
+          // 如果任务不存在，停止查询
+          if (error.response && error.response.status === 404) {
+            clearInterval(this.progressInterval);
+            this.progressInterval = null;
+            this.$message.warning('任务不存在，已停止查询');
+          }
+        }
+      }, 2000);
+    },
+    
+    // 获取状态文本
+    getStatusText(status) {
+      const statusMap = {
+        'processing': '处理中',
+        'completed': '已完成',
+        'failed': '失败',
+        'pending': '等待中'
+      };
+      return statusMap[status] || status || '未知';
+    },
+
+    // ---------- 文档知识库 ----------
+    async loadKbBasesList() {
+      try {
+        const res = await kb.listBases();
+        const d = res.data;
+        if (d && d.status === 'success' && d.data && Array.isArray(d.data.list)) {
+          this.kbBasesList = d.data.list;
+          if (this.kbBasesList.length > 0 && !this.kbBasesList.some(b => b.id === this.selectedKbId)) {
+            this.selectedKbId = this.kbBasesList[0].id;
+          }
+        } else {
+          this.kbBasesList = [];
+        }
+      } catch (e) {
+        this.kbBasesList = [];
+      }
+    },
+    async ingestToKb(file) {
+      const fileId = file.fileId != null ? String(file.fileId).trim() : '';
+      if (!fileId) {
+        this.$message.warning('该文件暂无 fileId，请确认上传成功后再点击「入库」');
+        return;
+      }
+      this.$set(file, 'ingestingKb', true);
+      try {
+        const res = await kb.ingestWithFileId(fileId, this.selectedKbId || null);
+        const d = res.data;
+        if (d && d.status === 'success') {
+          this.$set(file, 'kbIngested', true);
+          this.$set(file, 'kbChunkCount', d.chunk_count || 0);
+          this.$message.success(`${file.name} 已入库，共 ${d.chunk_count || 0} 块`);
+          this.loadKbDocList();
+        } else {
+          throw new Error(d?.message || '入库失败');
+        }
+      } catch (e) {
+        const status = e.response?.status;
+        const detail = e.response?.data?.detail;
+        let msg = typeof detail === 'string' ? detail : (e.message || '入库失败');
+        if (status === 404) {
+          msg = '文件信息已失效（可能服务已重启），请重新上传该文件后再点击「入库」。';
+        }
+        this.$message.error(`${file.name} 入库失败: ${msg}`);
+      } finally {
+        this.$set(file, 'ingestingKb', false);
+      }
+    },
+
+    async batchIngestToKb() {
+      const files = this.completedFiles.filter(f => f.success && f.fileId != null && !f.kbIngested);
+      if (files.length === 0) {
+        this.$message.warning('没有可入库的文件');
+        return;
+      }
+      this.batchKbLoading = true;
+      let ok = 0;
+      for (const f of files) {
+        try {
+          const fileId = String(f.fileId).trim();
+          const res = await kb.ingestWithFileId(fileId, this.selectedKbId || null);
+          if (res.data && res.data.status === 'success') {
+            this.$set(f, 'kbIngested', true);
+            this.$set(f, 'kbChunkCount', res.data.chunk_count || 0);
+            ok++;
+          }
+        } catch (e) {
+          console.warn('batch ingest fail:', f.name, e);
+        }
+      }
+      this.batchKbLoading = false;
+      this.$message.success(`批量入库完成：成功 ${ok}/${files.length}`);
+      this.loadKbDocList();
+    },
+
+    async loadKbDocList() {
+      this.kbListLoading = true;
+      try {
+        const res = await kb.list();
+        const d = res.data;
+        if (d && d.status === 'success' && d.data && Array.isArray(d.data.list)) {
+          this.kbDocList = d.data.list.map((row) => ({
+            ...row,
+            doc_id: row.doc_id,
+            source_file: row.source_file || row.doc_id || '—',
+            source_type: row.source_type || '—',
+            chunk_count: row.chunk_count != null ? row.chunk_count : 0
+          }));
+        } else {
+          this.kbDocList = [];
+        }
+      } catch (e) {
+        this.kbDocList = [];
+        this.$message.error(e.response?.data?.detail || e.message || '获取文档列表失败');
+      } finally {
+        this.kbListLoading = false;
+      }
+    },
+
+    canReindexKb(doc) {
+      return this.completedFiles.some(f => f.success && f.fileId === doc.doc_id);
+    },
+
+    deleteKbDoc(doc) {
+      this.$confirm(`确认删除「${doc.source_file || doc.doc_id}」？将移除该文档的全部向量块。`, '删除文档', {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        try {
+          await kb.deleteDocument(doc.doc_id);
+          this.$message.success('已删除');
+          this.loadKbDocList();
+        } catch (e) {
+          this.$message.error(e.response?.data?.detail || e.message || '删除失败');
+        }
+      }).catch(() => {});
+    },
+
+    async reindexKbDoc(doc) {
+      if (!this.canReindexKb(doc)) {
+        this.$message.warning('仅当该文档对应的文件仍在当前页「已完成」列表中时可重索引');
+        return;
+      }
+      try {
+        const res = await kb.reindex(doc.doc_id);
+        const d = res.data;
+        if (d && d.status === 'success') {
+          this.$message.success(`重索引完成：${d.chunk_count} 块`);
+          this.loadKbDocList();
+          const f = this.completedFiles.find(x => x.fileId === doc.doc_id);
+          if (f) {
+            f.kbChunkCount = d.chunk_count;
+          }
+        } else {
+          throw new Error(d?.message || '重索引失败');
+        }
+      } catch (e) {
+        this.$message.error(e.response?.data?.detail || e.message || '重索引失败');
+      }
+    },
+
+    // 手动刷新任务状态
+    async refreshTaskStatus() {
+      if (!this.hadoopTaskId) {
+        return;
+      }
+      
+      this.refreshingStatus = true;
+      try {
+        const response = await hadoop.getBatchTaskStatus(this.hadoopTaskId);
+        const taskData = response.data;
+        
+        if (taskData && taskData.task) {
+          const task = taskData.task;
+          this.hadoopProgress = task.progress || 0;
+          this.hadoopStatus = task.status || '';
+          
+          if (task.status === 'completed' || task.status === 'failed') {
+            // 如果任务已完成或失败，停止自动查询
+            if (this.progressInterval) {
+              clearInterval(this.progressInterval);
+              this.progressInterval = null;
+            }
+          }
+        }
+        
+        this.$message.success('状态已刷新');
+      } catch (error) {
+        console.error('刷新任务状态失败:', error);
+        this.$message.error('刷新状态失败');
+      } finally {
+        this.refreshingStatus = false;
+      }
+    }
+  },
+  
+  // 组件销毁时清理定时器
+  beforeDestroy() {
+    if (this.progressInterval) {
+      clearInterval(this.progressInterval);
+      this.progressInterval = null;
     }
   }
 };
@@ -873,7 +1414,7 @@ export default {
 }
 
 .browse-btn {
-  background: var(--gradient-main);
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #22d3ee 100%);
   border: none;
   padding: 12px 30px;
   font-size: 16px;
@@ -884,7 +1425,7 @@ export default {
 
 .browse-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 0 20px rgba(20, 184, 166, 0.5);
 }
 
 .file-types {
@@ -1134,6 +1675,213 @@ export default {
   font-weight: 500;
 }
 
+/* 文档知识库区域样式 */
+.kb-section {
+  margin-bottom: 30px;
+  animation: fadeInUp 0.5s ease-out 0.45s both;
+}
+
+.kb-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+}
+
+.kb-content {
+  text-align: left;
+}
+
+.kb-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kb-description {
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.kb-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.kb-toolbar-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.kb-btn {
+  transition: all 0.3s ease;
+}
+
+.kb-list-wrap {
+  min-height: 120px;
+}
+
+.kb-table {
+  width: 100%;
+}
+
+/* 文档列表条纹行：与深色主题一致，避免白底/文字发虚 */
+.kb-table >>> .el-table__row--striped td {
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary);
+}
+.kb-table >>> .el-table td,
+.kb-table >>> .el-table th {
+  color: var(--text-primary);
+  border-color: var(--border-light);
+}
+.kb-table >>> .el-table {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+.kb-table >>> .el-table thead {
+  color: var(--text-secondary);
+}
+
+/* 文档列表行悬停：保持深色背景与可读文字，避免整行变白 */
+.kb-table >>> .el-table__body tr:hover > td {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--text-primary) !important;
+}
+.kb-table >>> .el-table__row--striped:hover > td {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-primary) !important;
+}
+
+.kb-empty {
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.kb-badge {
+  font-size: 12px;
+  color: var(--success-color);
+  margin-right: 4px;
+}
+
+/* Hadoop批量操作区域样式 */
+.hadoop-section {
+  margin-bottom: 30px;
+  animation: fadeInUp 0.5s ease-out 0.5s both;
+}
+
+.hadoop-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+}
+
+.hadoop-content {
+  text-align: center;
+}
+
+.hadoop-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.hadoop-description {
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.hadoop-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.hadoop-btn {
+  transition: all 0.3s ease;
+  padding: 10px 25px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.hadoop-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+}
+
+/* Hadoop任务状态样式 */
+.hadoop-status {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.status-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.task-id {
+  font-size: 14px;
+  color: var(--primary-blue);
+  background: rgba(0, 212, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: var(--radius-small);
+}
+
+.status-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.status-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.status-text {
+  font-weight: 500;
+}
+
+.status-detail {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* 模板下载 */
 .template-section {
   animation: fadeInUp 0.5s ease-out 0.5s both;
@@ -1295,6 +2043,29 @@ export default {
   
   .file-types {
     flex-direction: column;
+    gap: 10px;
+  }
+  
+  /* 文档知识库响应式 */
+  .kb-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Hadoop响应式样式 */
+  .hadoop-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .hadoop-btn {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .status-header {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 10px;
   }
 }

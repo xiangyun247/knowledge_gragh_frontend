@@ -7,10 +7,12 @@ const Home = () => import('../components/common/HomeView.vue')
 const Chat = () => import('../components/chat/ChatView.vue')
 const GraphView = () => import('../components/graph/GraphView.vue')
 const Search = () => import('../components/search/SearchView.vue')
+const KnowledgeBase = () => import('../components/knowledge-base/KnowledgeBaseView.vue')
 const DataUpload = () => import('../components/upload/DataUploadView.vue')
 const History = () => import('../components/history/HistoryView.vue')
 const FAQ = () => import('../components/common/FAQView.vue')
 const Login = () => import('../components/common/LoginView.vue')
+const ForgotPassword = () => import('../components/common/ForgotPasswordView.vue')
 const UserProfile = () => import('../components/common/UserProfileView.vue')
 
 // 使用路由插件
@@ -69,6 +71,14 @@ const routes = [
     }
   },
   {
+    path: '/knowledge-base',
+    name: 'KnowledgeBase',
+    component: KnowledgeBase,
+    meta: {
+      title: '医疗知识图谱系统 - 文档知识库'
+    }
+  },
+  {
     path: '/upload',
     name: 'DataUpload',
     component: DataUpload,
@@ -98,6 +108,14 @@ const routes = [
     component: Login,
     meta: {
       title: '医疗知识图谱系统 - 登录/注册'
+    }
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPassword,
+    meta: {
+      title: '医疗知识图谱系统 - 找回密码'
     }
   },
   // 个人中心页面
