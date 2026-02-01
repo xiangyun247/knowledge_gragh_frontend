@@ -56,9 +56,19 @@
             <i class="el-icon-back"></i>
             返回
           </el-button>
-          <el-button @click="clearGraph" title="清除图谱" type="danger">
+          <el-button
+            v-if="selectedGraphId"
+            @click="deleteCurrentGraph"
+            title="删除当前图谱"
+            type="danger"
+            plain
+          >
             <i class="el-icon-delete"></i>
-            清除
+            删除当前图谱
+          </el-button>
+          <el-button @click="clearGraph" title="清除全部图谱" type="danger">
+            <i class="el-icon-delete"></i>
+            清除全部
           </el-button>
           <el-dropdown @command="handleExport" trigger="click">
             <el-button title="导出图谱">
@@ -671,10 +681,31 @@ export default {
       this.$message.success('已恢复完整视图')
     },
     
-    // 清除图谱
+    // 删除当前选中的图谱
+    deleteCurrentGraph() {
+      if (!this.selectedGraphId) return
+      this.$confirm(`确定要删除当前图谱吗？此操作不可恢复。`, '删除图谱确认', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        try {
+          await graphApi.deleteGraph(this.selectedGraphId)
+          this.selectedGraphId = ''
+          await this.getGraphList()
+          await this.loadGraphData()
+          this.$message.success('当前图谱已删除')
+        } catch (error) {
+          console.error('删除图谱失败:', error)
+          this.$message.error('删除图谱失败，请稍后重试')
+        }
+      }).catch(() => {
+        this.$message.info('已取消')
+      })
+    },
+    // 清除全部图谱
     clearGraph() {
-      // 弹出确认对话框
-      this.$confirm('确定要清除所有节点和关系吗？此操作不可恢复。', '清除图谱确认', {
+      this.$confirm('确定要清除所有图谱（节点和关系）吗？此操作不可恢复。', '清除图谱确认', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -682,6 +713,8 @@ export default {
         try {
           // 调用后端API清除数据库中的数据
           await graphApi.clearGraphData()
+          this.selectedGraphId = ''
+          await this.getGraphList()
           // 更新图表数据，清空节点和边
           this.chart.setOption({
             series: [{
@@ -689,12 +722,7 @@ export default {
               links: []
             }]
           })
-          // 同时更新本地数据
-          this.graphData = {
-            nodes: [],
-            links: []
-          }
-          // 显示操作成功提示
+          this.graphData = { nodes: [], links: [] }
           this.$message.success('图谱已成功清除')
         } catch (error) {
           // 处理错误

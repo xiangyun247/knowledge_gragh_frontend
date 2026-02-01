@@ -533,7 +533,7 @@
 </template>
 
 <script>
-import { getAllHistory, clearAllHistory } from '../../utils/historyUtils'
+import { getAllHistory, clearAllHistory, batchDeleteHistoryRecord } from '../../utils/historyUtils'
 
 export default {
   name: 'HistoryPage',
@@ -798,12 +798,15 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
-        // 从localStorage删除记录
-        import('../../utils/historyUtils').then(({ deleteHistoryRecord }) => {
-          deleteHistoryRecord(id);
+      }).then(async () => {
+        const { deleteHistoryRecord } = await import('../../utils/historyUtils');
+        const success = await deleteHistoryRecord(id);
+        if (success) {
+          await this.loadHistory();
           this.$message.success('记录删除成功');
-        });
+        } else {
+          this.$message.error('删除失败，请稍后重试');
+        }
       }).catch(() => {
         this.$message.info('已取消删除');
       });
@@ -820,18 +823,21 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
-        this.historyRecords = this.historyRecords.filter(record => {
-          return !this.selectedRecords.includes(record.id);
-        });
-        this.filterHistory();
-        this.$message.success('选中记录删除成功');
+      }).then(async () => {
+        const success = await batchDeleteHistoryRecord(this.selectedRecords);
+        if (success) {
+          await this.loadHistory();
+          this.resetSelection();
+          this.$message.success('选中记录删除成功');
+        } else {
+          this.$message.error('批量删除失败，请稍后重试');
+        }
       }).catch(() => {
         this.$message.info('已取消删除');
       });
     },
     
-    // 删除所有记录
+    // 删除所有记录（当前筛选条件下）
     deleteAll() {
       if (this.filteredRecords.length === 0) {
         this.$message.warning('没有可删除的记录');
@@ -842,17 +848,16 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
-        clearAllHistory().then(success => {
-          if (success) {
-            this.historyRecords = [];
-            this.filteredRecords = [];
-            this.resetSelection();
-            this.$message.success('记录删除成功');
-          } else {
-            this.$message.error('清空历史记录失败，请稍后重试');
-          }
-        })
+      }).then(async () => {
+        const ids = this.filteredRecords.map(r => r.id);
+        const success = await batchDeleteHistoryRecord(ids);
+        if (success) {
+          await this.loadHistory();
+          this.resetSelection();
+          this.$message.success('记录删除成功');
+        } else {
+          this.$message.error('清空历史记录失败，请稍后重试');
+        }
       }).catch(() => {
         this.$message.info('已取消删除');
       });

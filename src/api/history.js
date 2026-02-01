@@ -45,12 +45,12 @@ const history = {
     });
   },
 
-  // 批量删除历史记录
+  // 批量删除历史记录（后端为 POST，请求体 history_ids 或 ids）
   batchDeleteHistory(historyIds) {
     return request({
       url: '/api/history/batch-delete',
-      method: 'DELETE',
-      data: { ids: historyIds }
+      method: 'POST',
+      data: { history_ids: historyIds, ids: historyIds }
     });
   },
 

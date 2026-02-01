@@ -780,13 +780,15 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(async () => {
-        const { deleteHistoryRecord } = await import('../utils/historyUtils');
-        for (const id of this.selectedRecords) {
-          await deleteHistoryRecord(id);
+        const { batchDeleteHistoryRecord } = await import('../utils/historyUtils');
+        const success = await batchDeleteHistoryRecord(this.selectedRecords);
+        if (success) {
+          this.loadHistory();
+          this.resetSelection();
+          this.$message.success('选中记录删除成功');
+        } else {
+          this.$message.error('批量删除失败，请稍后重试');
         }
-        this.loadHistory();
-        this.resetSelection();
-        this.$message.success('选中记录删除成功');
       }).catch(() => {
         this.$message.info('已取消删除');
       });
@@ -804,13 +806,15 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(async () => {
-        const { deleteHistoryRecord } = await import('../utils/historyUtils');
+        const { batchDeleteHistoryRecord } = await import('../utils/historyUtils');
         const ids = this.filteredRecords.map(record => record.id);
-        for (const id of ids) {
-          await deleteHistoryRecord(id);
+        const success = await batchDeleteHistoryRecord(ids);
+        if (success) {
+          this.loadHistory();
+          this.$message.success('记录删除成功');
+        } else {
+          this.$message.error('删除失败，请稍后重试');
         }
-        this.loadHistory();
-        this.$message.success('记录删除成功');
       }).catch(() => {
         this.$message.info('已取消删除');
       });

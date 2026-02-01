@@ -83,6 +83,19 @@ export async function deleteHistoryRecord(id) {
   }
 }
 
+// 批量删除历史记录
+export async function batchDeleteHistoryRecord(ids) {
+  if (!ids || ids.length === 0) return true
+  try {
+    await historyApi.batchDeleteHistory(ids)
+    window.dispatchEvent(new CustomEvent('historyUpdated', { detail: { deletedIds: ids } }))
+    return true
+  } catch (error) {
+    console.error('批量删除历史记录失败:', error)
+    return false
+  }
+}
+
 // 删除所有历史记录
 export async function clearAllHistory() {
   try {

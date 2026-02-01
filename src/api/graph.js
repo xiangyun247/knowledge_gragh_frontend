@@ -136,10 +136,18 @@ const graph = {
     });
   },
 
-  // 清空图谱数据
+  // 清空图谱数据（清空所有图谱）
   clearGraphData() {
     return request({
       url: '/api/graph/clear',
+      method: 'DELETE'
+    });
+  },
+
+  // 按 graph_id 删除单个图谱
+  deleteGraph(graphId) {
+    return request({
+      url: `/api/graph/${graphId}`,
       method: 'DELETE'
     });
   },
