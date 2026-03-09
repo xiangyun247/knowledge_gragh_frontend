@@ -173,6 +173,8 @@ import service from '../../utils/request'
 import { saveHistoryRecord, HISTORY_TYPES } from '../../utils/historyUtils'
 import graphApi from '../../api/graph'
 
+// 官方胰腺炎知识图谱的 graph_id（由后端构建脚本输出）
+const OFFICIAL_PANCREATITIS_GRAPH_ID = '5c716837-505e-41b5-b2db-5b6fdf3c0ea7'
 
 export default {
   name: 'GraphView',
@@ -204,7 +206,10 @@ export default {
       selectedGraphId: '',
       graphList: [],
       // 程序化缩放比例（用于放大/缩小按钮）
-      graphZoomScale: 1
+      graphZoomScale: 1,
+      // 生命周期标记，用于在异步回调中避免操作已销毁的 ECharts 实例（避免使用 _ 前缀以符合 vue/no-reserved-keys）
+      chartDestroyed: false,
+      animationTimeouts: []
     }
   },
   mounted() {
@@ -227,8 +232,14 @@ export default {
     }
   },
   beforeDestroy() {
+    this.chartDestroyed = true
+    this.animationTimeouts.forEach(id => clearTimeout(id))
+    this.animationTimeouts = []
     if (this.chart) {
-      this.chart.dispose()
+      try {
+        this.chart.dispose()
+      } catch (e) { /* 忽略已销毁实例 */ }
+      this.chart = null
     }
     window.removeEventListener('resize', this.handleResize)
   },
@@ -365,6 +376,23 @@ export default {
         if (response.data && response.data.status === 'success') {
           this.graphList = response.data.data.list || []
           console.log('获取图谱列表成功:', this.graphList.length, '个图谱')
+
+          // 如果当前路由没有指定 graphId，且尚未选择图谱，则优先选中官方胰腺炎图谱
+          const hasRouteGraph =
+            !!(this.$route?.params?.file_id) || !!(this.$route?.query?.graphId)
+          if (!hasRouteGraph && !this.selectedGraphId && this.graphList.length > 0) {
+            const official = this.graphList.find(g =>
+              g.graph_id === OFFICIAL_PANCREATITIS_GRAPH_ID ||
+              g.id === OFFICIAL_PANCREATITIS_GRAPH_ID
+            )
+            if (official) {
+              this.selectedGraphId = OFFICIAL_PANCREATITIS_GRAPH_ID
+              console.log(
+                '[GraphView] 自动选中官方胰腺炎图谱:',
+                OFFICIAL_PANCREATITIS_GRAPH_ID
+              )
+            }
+          }
         }
         return response
       } catch (error) {
@@ -470,21 +498,20 @@ export default {
         
         this.graphData = graphData
         this.graphZoomScale = 1
-        
-        // 更新图表数据
+        if (this.chartDestroyed || !this.chart) return
         this.chart.setOption({
           series: [{
             data: this.graphData.nodes,
             links: this.graphData.links
           }]
         })
-        this.$nextTick(() => this._applyGraphZoom())
-        
-        // 启动节点出现动画
+        this.$nextTick(() => {
+          if (!this.chartDestroyed && this.chart) this._applyGraphZoom()
+        })
         this.startNodeAnimation()
       } catch (error) {
         console.error('加载图谱数据失败:', error)
-        // 如果 API 请求失败，使用模拟数据作为后备
+        if (this.chartDestroyed || !this.chart) return
         this.graphData = this.generateMockGraphData()
         this.chart.setOption({
           series: [{
@@ -578,29 +605,32 @@ export default {
     
     // 启动节点出现动画
     startNodeAnimation() {
-      const nodes = this.graphData.nodes
-      const links = this.graphData.links
-      
-      // 清空现有数据
-      this.chart.setOption({
-        series: [{
-          data: [],
-          links: []
-        }]
-      })
-      
-      // 逐个添加节点，实现动画效果
+      if (this.chartDestroyed || !this.chart) return
+      const nodes = this.graphData?.nodes || []
+      const links = this.graphData?.links || []
+      this.animationTimeouts.forEach(id => clearTimeout(id))
+      this.animationTimeouts = []
+
+      try {
+        this.chart.setOption({
+          series: [{ data: [], links: [] }]
+        })
+      } catch (e) { /* 实例已销毁时忽略 */ }
+
       nodes.forEach((node, index) => {
-        setTimeout(() => {
-          // 获取当前已添加节点的ID集合
-          const addedNodeIds = new Set(nodes.slice(0, index + 1).map(n => n.id))
-          this.chart.setOption({
-            series: [{
-              data: nodes.slice(0, index + 1),
-              links: links.filter(link => addedNodeIds.has(link.source) && addedNodeIds.has(link.target))
-            }]
-          })
+        const id = setTimeout(() => {
+          if (this.chartDestroyed || !this.chart) return
+          try {
+            const addedNodeIds = new Set(nodes.slice(0, index + 1).map(n => n.id))
+            this.chart.setOption({
+              series: [{
+                data: nodes.slice(0, index + 1),
+                links: links.filter(link => addedNodeIds.has(link.source) && addedNodeIds.has(link.target))
+              }]
+            })
+          } catch (e) { /* 实例已销毁时忽略 */ }
         }, 200 * index)
+        this.animationTimeouts.push(id)
       })
     },
     
@@ -630,6 +660,7 @@ export default {
     
     // 应用当前缩放比例到画布
     _applyGraphZoom() {
+      if (this.chartDestroyed || !this.chart) return
       try {
         const roots = this._getZrRoots()
         if (!roots.length) return
@@ -1033,9 +1064,10 @@ export default {
     
     // 处理窗口大小变化
     handleResize() {
-      if (this.chart) {
+      if (this.chartDestroyed || !this.chart) return
+      try {
         this.chart.resize()
-      }
+      } catch (e) { /* 实例已销毁时忽略 */ }
     }
   }
 }

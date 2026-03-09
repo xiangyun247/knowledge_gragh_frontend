@@ -1,5 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import storage from '@/utils/storage'
+import { hasRole, ROLES } from '@/utils/role'
 
 // 导入页面组件
 const Cover = () => import('../components/common/CoverView.vue')
@@ -8,6 +10,7 @@ const Chat = () => import('../components/chat/ChatView.vue')
 const GraphView = () => import('../components/graph/GraphView.vue')
 const Search = () => import('../components/search/SearchView.vue')
 const KnowledgeBase = () => import('../components/knowledge-base/KnowledgeBaseView.vue')
+const PatientEducation = () => import('../components/education/PatientEducationView.vue')
 const DataUpload = () => import('../components/upload/DataUploadView.vue')
 const History = () => import('../components/history/HistoryView.vue')
 const FAQ = () => import('../components/common/FAQView.vue')
@@ -43,6 +46,7 @@ const routes = [
     component: Chat,
     meta: {
       title: '医疗知识图谱系统 - 聊天问答'
+      // 未登录也可访问，页面内操作时再校验登录
     }
   },
   {
@@ -51,6 +55,7 @@ const routes = [
     component: GraphView,
     meta: {
       title: '医疗知识图谱系统 - 图谱可视化'
+      // 未登录也可访问
     }
   },
   // 新增：支持通过file_id参数加载特定文件生成的知识图谱
@@ -60,6 +65,7 @@ const routes = [
     component: GraphView,
     meta: {
       title: '医疗知识图谱系统 - 图谱可视化'
+      // 未登录也可访问
     }
   },
   {
@@ -67,7 +73,8 @@ const routes = [
     name: 'Search',
     component: Search,
     meta: {
-      title: '医疗知识图谱系统 - 实体搜索'
+      title: '医疗知识图谱系统 - 实体搜索',
+      roles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]
     }
   },
   {
@@ -76,6 +83,15 @@ const routes = [
     component: KnowledgeBase,
     meta: {
       title: '医疗知识图谱系统 - 文档知识库'
+      // 未登录也可访问
+    }
+  },
+  {
+    path: '/patient-education',
+    name: 'PatientEducation',
+    component: PatientEducation,
+    meta: {
+      title: '医疗知识图谱系统 - 患者教育中心'
     }
   },
   {
@@ -83,7 +99,8 @@ const routes = [
     name: 'DataUpload',
     component: DataUpload,
     meta: {
-      title: '医疗知识图谱系统 - 数据上传'
+      title: '医疗知识图谱系统 - 数据上传',
+      roles: [ROLES.ADMIN, ROLES.DOCTOR] // 仅管理员、医生可访问
     }
   },
   {
@@ -91,7 +108,8 @@ const routes = [
     name: 'History',
     component: History,
     meta: {
-      title: '医疗知识图谱系统 - 历史记录'
+      title: '医疗知识图谱系统 - 历史记录',
+      roles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]
     }
   },
   {
@@ -144,25 +162,31 @@ const router = new VueRouter({
 
 // 路由守卫，设置页面标题和登录验证
 router.beforeEach((to, from, next) => {
-  // 设置页面标题
   if (to.meta.title) {
     document.title = to.meta.title
   }
-  
-  // 登录验证
-  const isLoggedIn = localStorage.getItem('token') // 检查是否有登录令牌
-  
-  // 需要登录的页面列表
-  const authPages = ['/profile', '/upload', '/history'] // 根据实际需求添加需要权限的页面
-  
+
+  const isLoggedIn = !!(storage.get('access_token') || storage.get('token'))
+  const authPages = ['/profile', '/upload', '/history']
+
   if (authPages.includes(to.path) && !isLoggedIn) {
-    // 未登录且访问需要权限的页面，重定向到登录页
     next('/login')
   } else if (to.path === '/login' && isLoggedIn) {
-    // 已登录且访问登录页，重定向到系统首页
     next('/home')
+  } else if (to.meta.roles && to.meta.roles.length > 0) {
+    // 按角色限制：需登录且角色在 meta.roles 中
+    if (!isLoggedIn) {
+      next('/login')
+    } else {
+      const userInfo = storage.get('userInfo') || {}
+      const userRole = userInfo.role || 'patient'
+      if (hasRole(userRole, to.meta.roles)) {
+        next()
+      } else {
+        next('/home') // 角色不足，跳转首页
+      }
+    }
   } else {
-    // 其他情况正常跳转
     next()
   }
 })

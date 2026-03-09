@@ -138,6 +138,7 @@
 import * as echarts from 'echarts'
 import dayjs from 'dayjs'
 import { mapGetters } from 'vuex'
+import { home } from '../../api'
 
 export default {
   name: 'HomeView',
@@ -192,6 +193,7 @@ export default {
   },
   mounted() {
     this.$nextTick(() => {
+      this.fetchOverview()
       this.initCharts()
       this.startClock()
     })
@@ -211,6 +213,31 @@ export default {
     Object.values(this.chartInstances).forEach(c => c && c.dispose && c.dispose())
   },
   methods: {
+    async fetchOverview() {
+      try {
+        const res = await home.overview()
+        const d = res.data
+        if (d && d.status === 'success' && d.data) {
+          const m = d.data
+          this.metrics = {
+            ...this.metrics,
+            totalEntities: m.totalEntities != null ? m.totalEntities : this.metrics.totalEntities,
+            totalRelations: m.totalRelations != null ? m.totalRelations : this.metrics.totalRelations,
+            graphCount: m.graphCount != null ? m.graphCount : this.metrics.graphCount,
+            docCount: m.docCount != null ? m.docCount : this.metrics.docCount,
+            searchCount: m.searchCount != null ? m.searchCount : this.metrics.searchCount,
+            accuracy: m.accuracy != null ? m.accuracy : this.metrics.accuracy,
+            searchFail: m.searchFail != null ? m.searchFail : this.metrics.searchFail,
+            searchRate: m.searchRate != null ? m.searchRate : this.metrics.searchRate,
+            storage: this.metrics.storage
+          }
+        }
+      } catch (e) {
+        // 首页统计失败不阻塞页面，仅记录控制台
+        // eslint-disable-next-line no-console
+        console.warn('获取首页概览失败', e)
+      }
+    },
     startClock() {
       this._clockTimer = setInterval(() => {
         this.$forceUpdate()

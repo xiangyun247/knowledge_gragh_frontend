@@ -22,6 +22,8 @@ const store = new Vuex.Store({
     userInfo: state => state.user.userInfo,
     // 获取登录状态
     isLoggedIn: state => state.user.isLoggedIn,
+    // 获取用户角色（admin / doctor / patient / guest）
+    userRole: state => (state.user.userInfo && state.user.userInfo.role) || 'patient',
     // 获取主题设置
     theme: state => state.app.theme,
     // 获取语言设置

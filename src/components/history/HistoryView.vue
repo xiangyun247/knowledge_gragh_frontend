@@ -97,7 +97,7 @@
                 type="danger"
                 icon="el-icon-delete"
                 @click="deleteAll"
-                :disabled="filteredRecords.length === 0"
+                :disabled="historyRecords.length === 0"
                 size="large"
                 class="batch-btn"
               >
@@ -837,29 +837,28 @@ export default {
       });
     },
     
-    // 删除所有记录（当前筛选条件下）
+    // 清空全部历史记录
     deleteAll() {
-      if (this.filteredRecords.length === 0) {
-        this.$message.warning('没有可删除的记录');
+      if (this.historyRecords.length === 0) {
+        this.$message.warning('没有可清空的历史记录');
         return;
       }
       
-      this.$confirm(`确定要删除当前筛选条件下的${this.filteredRecords.length}条历史记录吗？`, '提示', {
+      this.$confirm(`确定要清空全部 ${this.historyRecords.length} 条历史记录吗？此操作不可恢复。`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(async () => {
-        const ids = this.filteredRecords.map(r => r.id);
-        const success = await batchDeleteHistoryRecord(ids);
+        const success = await clearAllHistory();
         if (success) {
           await this.loadHistory();
           this.resetSelection();
-          this.$message.success('记录删除成功');
+          this.$message.success('已清空全部历史记录');
         } else {
           this.$message.error('清空历史记录失败，请稍后重试');
         }
       }).catch(() => {
-        this.$message.info('已取消删除');
+        this.$message.info('已取消清空');
       });
     },
     

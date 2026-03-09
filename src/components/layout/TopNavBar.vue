@@ -22,6 +22,10 @@
           <i class="el-icon-chat-dot-round"></i>
           <span>新对话</span>
         </router-link>
+        <router-link to="/patient-education" class="nav-item" active-class="active" @click="closeMenu">
+          <i class="el-icon-medal"></i>
+          <span>患者教育中心</span>
+        </router-link>
         <router-link to="/graph" class="nav-item" active-class="active" @click="closeMenu">
           <i class="el-icon-data-analysis"></i>
           <span>知识图谱</span>
@@ -30,15 +34,15 @@
           <i class="el-icon-document"></i>
           <span>知识库</span>
         </router-link>
-        <router-link to="/search" class="nav-item" active-class="active" @click="closeMenu">
+        <router-link v-if="canUseCore" to="/search" class="nav-item" active-class="active" @click="closeMenu">
           <i class="el-icon-search"></i>
           <span>实体搜索</span>
         </router-link>
-        <router-link to="/upload" class="nav-item" active-class="active" @click="closeMenu">
+        <router-link v-if="canUpload" to="/upload" class="nav-item" active-class="active" @click="closeMenu">
           <i class="el-icon-upload2"></i>
           <span>数据上传</span>
         </router-link>
-        <router-link to="/history" class="nav-item" active-class="active" @click="closeMenu">
+        <router-link v-if="canUseCore" to="/history" class="nav-item" active-class="active" @click="closeMenu">
           <i class="el-icon-document-copy"></i>
           <span>历史记录</span>
         </router-link>
@@ -68,10 +72,14 @@
           <span class="user-info">
             <el-avatar :src="userInfo.avatar || ''" :icon="avatarIcon" size="medium"></el-avatar>
             <span class="user-name">{{ userInfo.username || '用户' }}</span>
+            <span v-if="userRole" class="role-badge">{{ roleLabel }}</span>
             <i class="el-icon-arrow-down"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item @click.native="handleProfileClick">
+            <el-dropdown-item disabled>
+              <span class="dropdown-role">{{ roleLabel }}</span>
+            </el-dropdown-item>
+            <el-dropdown-item divided @click.native="handleProfileClick">
               <i class="el-icon-user"></i>
               个人中心
             </el-dropdown-item>
@@ -93,6 +101,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import ThemeSwitcher from '../common/ThemeSwitcher.vue'
+import { getRoleLabel, hasRole, ROLES } from '@/utils/role'
 
 export default {
   components: {
@@ -105,10 +114,20 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['isLoggedIn', 'userInfo']),
-    // ElAvatar 的 icon 必须是字符串，有头像时传空字符串，无头像时传图标类名
+    ...mapGetters(['isLoggedIn', 'userInfo', 'userRole']),
     avatarIcon() {
       return this.userInfo.avatar ? '' : 'el-icon-user'
+    },
+    roleLabel() {
+      return getRoleLabel(this.userRole)
+    },
+    // 仅 admin、doctor 可见数据上传入口
+    canUpload() {
+      return hasRole(this.userRole, [ROLES.ADMIN, ROLES.DOCTOR])
+    },
+    // 访客仅能浏览，admin/doctor/patient 可使用核心功能（未登录视为访客）
+    canUseCore() {
+      return this.isLoggedIn && hasRole(this.userRole, [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT])
     }
   },
   methods: {
@@ -320,6 +339,20 @@ export default {
 .user-name {
   font-size: 14px;
   font-weight: 500;
+}
+
+.role-badge {
+  font-size: 11px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(0, 245, 212, 0.1);
+  color: #00f5d4;
+  margin-left: 4px;
+}
+
+.dropdown-role {
+  font-size: 12px;
+  color: #909399;
 }
 
 /* 响应式：中屏改为仅图标，避免顶栏挤换行 */

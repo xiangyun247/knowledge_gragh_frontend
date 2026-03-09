@@ -51,6 +51,13 @@
             <el-form-item label="用户名" prop="username">
               <el-input v-model="localUserInfo.username" placeholder="请输入用户名" maxlength="20" />
             </el-form-item>
+            <el-form-item label="身份">
+              <el-select v-model="editingRole" placeholder="选择身份" size="medium" style="width: 100%">
+                <el-option label="管理员" value="admin" />
+                <el-option label="医生" value="doctor" />
+                <el-option label="患者" value="patient" />
+              </el-select>
+            </el-form-item>
             
             <el-form-item label="真实姓名" prop="realName">
               <el-input v-model="localUserInfo.realName" placeholder="请输入真实姓名" maxlength="10" />
@@ -110,6 +117,7 @@ export default {
   name: 'UserProfile',
   data() {
     return {
+      editingRole: 'patient',
       formRules: {
         username: [
           { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -127,9 +135,16 @@ export default {
       avatarUploading: false
     }
   },
+  watch: {
+    userRole: {
+      handler(val) {
+        this.editingRole = val || 'patient'
+      },
+      immediate: true
+    }
+  },
   computed: {
-    ...mapGetters(['userInfo']),
-    // 创建本地用户信息副本，用于表单编辑
+    ...mapGetters(['userInfo', 'userRole']),
     localUserInfo() {
       return {
         username: this.userInfo.username || '',
@@ -145,7 +160,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('user', ['updateUserInfo']),
+    ...mapActions('user', ['updateUserInfo', 'updateRole']),
 
     // 返回上一页或首页
     goBack() {
@@ -236,14 +251,18 @@ export default {
       this.$refs.userForm.validate(async (valid) => {
         if (valid) {
           this.isSubmitting = true
-          
+
           try {
-            // 更新用户信息到 Vuex store
+            // 若身份有变更，先调用后端更新角色并刷新 token
+            if (this.editingRole && this.editingRole !== this.userRole) {
+              await this.updateRole(this.editingRole)
+            }
+            // 更新其余用户信息到 Vuex store（本地）
             await this.updateUserInfo(this.localUserInfo)
             this.$message.success('个人信息更新成功')
           } catch (error) {
             console.error('更新失败:', error)
-            this.$message.error('个人信息更新失败，请重试')
+            this.$message.error(error.response?.data?.detail || error.message || '个人信息更新失败，请重试')
           } finally {
             this.isSubmitting = false
           }

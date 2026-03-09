@@ -1,0 +1,748 @@
+<template>
+  <div class="patient-edu-page">
+    <!-- 左侧：生成面板 -->
+    <div class="patient-edu-left">
+      <div class="panel-card">
+        <h3 class="panel-title">患者教育生成</h3>
+        <p class="panel-subtitle">
+          输入一个你关心的主题，如：
+          <span class="panel-example">“急性胰腺炎出院后注意事项”</span>
+        </p>
+        <el-input
+          v-model="topic"
+          type="textarea"
+          :rows="3"
+          placeholder="例如：急性胰腺炎出院后注意事项、慢性胰腺炎日常饮食指导……"
+          resize="none"
+        />
+
+        <div class="panel-options">
+          <el-checkbox v-model="enableImages">
+            为每个小节生成一张插图（GLM-Image）
+          </el-checkbox>
+        </div>
+
+        <div class="panel-actions">
+          <el-button
+            type="primary"
+            class="app-btn app-btn-primary panel-action-btn"
+            :disabled="!topic.trim() || loading"
+            :loading="loading"
+            @click="handleGenerate"
+          >
+            <i class="el-icon-magic-stick" v-if="!loading"></i>
+            <span v-if="!loading">生成患者教育</span>
+            <span v-else>生成中，请稍候...</span>
+          </el-button>
+          <el-button
+            type="success"
+            class="panel-action-btn save-btn"
+            :disabled="!patientEdu"
+            @click="handleSave"
+          >
+            <i class="el-icon-collection"></i>
+            保存到我的患者教育
+          </el-button>
+        </div>
+
+        <div class="panel-tips">
+          <p>说明：</p>
+          <ul>
+            <li>内容基于知识图谱 + 文献 + 大模型生成，仅供参考，请遵医嘱。</li>
+            <li>插图由 GLM-Image 生成，用于辅助理解，不代表真实病例。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 中间：当前患者教育预览 -->
+    <div class="patient-edu-main">
+      <div class="panel-card patient-edu-preview" v-if="patientEdu">
+        <h2 class="edu-title">{{ patientEdu.title }}</h2>
+
+        <div
+          v-for="(sec, idx) in patientEdu.sections"
+          :key="idx"
+          class="edu-section"
+        >
+          <h3 class="edu-heading">{{ sec.heading }}</h3>
+          <div class="edu-body">
+            <div class="edu-text" v-html="formatContent(sec.content)"></div>
+            <div
+              v-if="sectionImageMap[idx]"
+              class="edu-image-wrapper"
+            >
+              <img
+                :src="sectionImageMap[idx].url"
+                class="edu-image"
+                alt="患者教育插图"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="edu-summary" v-if="patientEdu.summary">
+          <div class="edu-summary-label">温馨提示</div>
+          <div class="edu-summary-text">{{ patientEdu.summary }}</div>
+        </div>
+
+        <div class="edu-share" v-if="shareText">
+          <div class="edu-share-label">分享文案</div>
+          <div class="edu-share-text">{{ shareText }}</div>
+        </div>
+
+        <div class="edu-actions">
+          <el-button size="small" @click="handleReadAloud" :disabled="!patientEdu" :loading="ttsLoading" :type="isTtsPlaying ? 'warning' : 'default'">
+            <i :class="isTtsPlaying ? 'el-icon-video-pause' : 'el-icon-headset'" v-if="!ttsLoading"></i>
+            {{ isTtsPlaying ? '停止' : '朗读' }}
+          </el-button>
+          <el-button size="small" @click="copyFullText">
+            <i class="el-icon-document-copy"></i> 复制全文
+          </el-button>
+          <el-button size="small" @click="copyShareText" :disabled="!shareText">
+            <i class="el-icon-tickets"></i> 复制分享文案
+          </el-button>
+          <el-button size="small" @click="printEducation" :disabled="!patientEdu">
+            <i class="el-icon-printer"></i> 打印 / 导出
+          </el-button>
+        </div>
+      </div>
+
+      <div v-else class="empty-preview">
+        <el-empty description="请输入上方主题并点击「生成患者教育」" />
+      </div>
+    </div>
+
+    <!-- 右侧：我的患者教育列表 -->
+    <div class="patient-edu-right">
+      <div class="panel-card">
+        <h3 class="panel-title">我的患者教育</h3>
+        <div class="edu-list-header">
+          <el-button type="text" size="mini" icon="el-icon-refresh" @click="loadMyEducations" :loading="listLoading">
+            刷新
+          </el-button>
+        </div>
+        <el-scrollbar class="edu-list-scroll">
+          <div
+            v-for="item in educationList"
+            :key="item.id"
+            :class="['edu-list-item', { active: item.id === selectedEducationId }]"
+            @click="handleSelectEducation(item)"
+          >
+            <div class="edu-list-title" :title="item.title">{{ item.title }}</div>
+            <div class="edu-list-meta">
+              <span class="edu-list-topic" v-if="item.topic">{{ item.topic }}</span>
+              <span class="edu-list-time">{{ formatTime(item.created_at) }}</span>
+              <span v-if="item.has_images" class="edu-list-tag">含配图</span>
+            </div>
+          </div>
+          <div v-if="!educationList.length && !listLoading" class="edu-list-empty">
+            暂无保存的患者教育
+          </div>
+        </el-scrollbar>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { mapState } from 'vuex'
+import dayjs from 'dayjs'
+import { sendMessageToBackend } from '@/api/chat'
+import { generatePatientEduImages, savePatientEducation, listPatientEducation, getPatientEducationDetail } from '@/api/patientEducation'
+import { synthesizeTTS } from '@/api/multimodal'
+
+export default {
+  name: 'PatientEducationView',
+  data() {
+    return {
+      topic: '',
+      enableImages: true,
+      loading: false,
+      patientEdu: null, // { title, sections, summary }
+      sectionImages: [], // [{ section_index, url, prompt }]
+      // 我的患者教育列表
+      educationList: [],
+      listLoading: false,
+      selectedEducationId: null,
+      ttsLoading: false,
+      ttsAudio: null,
+      ttsAudioUrl: null // 用于停止时释放
+    }
+  },
+  computed: {
+    ...mapState('user', ['isLoggedIn']),
+    sectionImageMap() {
+      const map = {}
+      ;(this.sectionImages || []).forEach(img => {
+        if (img && typeof img.section_index === 'number') {
+          map[img.section_index] = img
+        }
+      })
+      return map
+    },
+    shareText() {
+      return (this.patientEdu && (this.patientEdu.share_text || this.patientEdu.shareText)) || ''
+    },
+    isTtsPlaying() {
+      return this.ttsAudio && !this.ttsAudio.paused
+    }
+  },
+  created() {
+    if (this.isLoggedIn) {
+      this.loadMyEducations()
+    }
+  },
+  beforeDestroy() {
+    this.stopTts()
+  },
+  methods: {
+    ensureLoggedIn() {
+      if (this.isLoggedIn) return true
+      this.$message.warning('请先登录后再使用患者教育功能')
+      this.$router.push({ path: '/login', query: { redirect: this.$route.fullPath } })
+      return false
+    },
+    formatTime(ts) {
+      if (!ts) return ''
+      // 兼容时间戳 / 字符串
+      return dayjs(ts).format('MM-DD HH:mm')
+    },
+
+    async handleGenerate() {
+      if (!this.ensureLoggedIn()) return
+      if (!this.topic.trim()) return
+      this.loading = true
+      this.patientEdu = null
+      this.sectionImages = []
+      try {
+        // 1. 生成患者教育文字（调用已有 Agent 接口，intent=patient_education）
+        const res = await sendMessageToBackend({
+          question: this.topic.trim(),
+          session_id: null,
+          deep_think: false,
+          intent: 'patient_education'
+        })
+        const data = res.data || {}
+        const pe = data.patient_education || null
+        if (!pe || !pe.title || !Array.isArray(pe.sections)) {
+          this.$message.error('患者教育内容生成失败，请稍后重试。')
+          return
+        }
+        this.patientEdu = pe
+
+        // 2. 可选：为每个小节生成插图
+        if (this.enableImages) {
+          try {
+            const imgRes = await generatePatientEduImages({
+              title: pe.title,
+              sections: pe.sections.map(s => ({
+                heading: s.heading,
+                content: s.content
+              }))
+            })
+            const imgs = (imgRes.data && imgRes.data.images) || []
+            this.sectionImages = imgs
+          } catch (e) {
+            console.error('患者教育配图生成失败', e)
+            this.$message.warning('文字已生成，配图生成失败或暂不可用。')
+          }
+        }
+      } catch (e) {
+        console.error('患者教育生成失败', e)
+        this.$message.error(e?.message || '生成失败，请稍后重试。')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async handleSave() {
+      if (!this.ensureLoggedIn()) return
+      if (!this.patientEdu) return
+      try {
+        const res = await savePatientEducation({
+          topic: this.topic || this.patientEdu.title || '',
+          patient_education: this.patientEdu,
+          images: this.sectionImages
+        })
+        const data = res.data || {}
+        this.$message.success('已保存到我的患者教育')
+        // 简单刷新列表
+        this.loadMyEducations()
+        this.selectedEducationId = data.id || null
+      } catch (e) {
+        console.error('保存患者教育失败', e)
+        this.$message.error(e?.message || '保存失败，请稍后重试。')
+      }
+    },
+
+    async loadMyEducations() {
+      if (!this.isLoggedIn) {
+        this.educationList = []
+        return
+      }
+      this.listLoading = true
+      try {
+        const res = await listPatientEducation({ limit: 50, offset: 0 })
+        const items = (res.data && res.data.items) || []
+        this.educationList = items
+      } catch (e) {
+        console.error('获取患者教育列表失败', e)
+      } finally {
+        this.listLoading = false
+      }
+    },
+
+    async handleSelectEducation(item) {
+      if (!this.ensureLoggedIn()) return
+      if (!item || !item.id) return
+      this.selectedEducationId = item.id
+      try {
+        const res = await getPatientEducationDetail(item.id)
+        const data = res.data || {}
+        const pe = data.patient_education || data.patientEducation || null
+        if (pe && Array.isArray(pe.sections)) {
+          this.patientEdu = pe
+          this.topic = data.topic || pe.title || ''
+          this.sectionImages = data.images || []
+        } else {
+          this.$message.error('患者教育记录格式异常')
+        }
+      } catch (e) {
+        console.error('加载患者教育详情失败', e)
+        this.$message.error('加载详情失败，请稍后重试。')
+      }
+    },
+
+    formatContent(text) {
+      if (!text) return ''
+      const esc = s =>
+        String(s || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+      const lines = String(text).split('\n').map(esc)
+      return lines
+        .map(line => (line.trim() ? `<p class="edu-paragraph">${line}</p>` : '<p class="edu-paragraph">&nbsp;</p>'))
+        .join('')
+    },
+
+    getFullText() {
+      if (!this.patientEdu) return ''
+      const { title, sections, summary } = this.patientEdu
+      let text = title + '\n\n'
+      ;(sections || []).forEach(sec => {
+        if (sec.heading) text += sec.heading + '\n'
+        if (sec.content) text += sec.content + '\n\n'
+      })
+      if (summary) {
+        text += '【温馨提示】\n' + summary
+      }
+      return text
+    },
+
+    stopTts() {
+      if (this.ttsAudio) {
+        this.ttsAudio.pause()
+        this.ttsAudio.currentTime = 0
+        if (this.ttsAudioUrl) {
+          URL.revokeObjectURL(this.ttsAudioUrl)
+          this.ttsAudioUrl = null
+        }
+        this.ttsAudio = null
+        this.$message.info('已停止朗读')
+      }
+    },
+
+    async handleReadAloud() {
+      if (this.isTtsPlaying) {
+        this.stopTts()
+        return
+      }
+      const text = this.getFullText()
+      if (!text || !text.trim()) return
+      this.ttsLoading = true
+      try {
+        const blob = await synthesizeTTS({ text: text.trim() })
+        const url = URL.createObjectURL(blob)
+        this.ttsAudioUrl = url
+        if (this.ttsAudio) this.stopTts()
+        const audio = new Audio(url)
+        this.ttsAudio = audio
+        audio.onended = () => {
+          if (this.ttsAudioUrl) {
+            URL.revokeObjectURL(this.ttsAudioUrl)
+            this.ttsAudioUrl = null
+          }
+          this.ttsAudio = null
+        }
+        audio.onerror = () => {
+          this.$message.error('播放失败')
+          if (this.ttsAudioUrl) {
+            URL.revokeObjectURL(this.ttsAudioUrl)
+            this.ttsAudioUrl = null
+          }
+          this.ttsAudio = null
+        }
+        await audio.play()
+        this.$message.success('开始朗读')
+      } catch (e) {
+        this.$message.error(e?.message || '朗读失败，请稍后重试')
+      } finally {
+        this.ttsLoading = false
+      }
+    },
+
+    copyFullText() {
+      const text = this.getFullText()
+      if (!text) return
+      const ta = document.createElement('textarea')
+      ta.value = text
+      document.body.appendChild(ta)
+      ta.select()
+      try {
+        document.execCommand('copy')
+        this.$message.success('已复制到剪贴板')
+      } catch (_) {
+        this.$message.error('复制失败，请手动选择文本复制')
+      } finally {
+        document.body.removeChild(ta)
+      }
+    },
+
+    copyShareText() {
+      const text = this.shareText
+      if (!text) return
+      const ta = document.createElement('textarea')
+      ta.value = text
+      document.body.appendChild(ta)
+      ta.select()
+      try {
+        document.execCommand('copy')
+        this.$message.success('分享文案已复制')
+      } catch (_) {
+        this.$message.error('复制失败，请手动选择文本复制')
+      } finally {
+        document.body.removeChild(ta)
+      }
+    },
+
+    printEducation() {
+      if (!this.patientEdu) return
+      const main = this.$el.querySelector('.patient-edu-main')
+      if (!main) return
+      const html = main.innerHTML
+      const win = window.open('', '_blank')
+      if (!win) return
+      win.document.write(`
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <title>${this.patientEdu.title || '患者教育'}</title>
+            <style>
+              body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; padding: 24px; }
+              .panel-card { box-shadow: none; border: none; background: #fff; color: #000; }
+              .edu-image { max-width: 260px; }
+              h2,h3 { color: #000; }
+            </style>
+          </head>
+          <body>${html}</body>
+        </html>
+      `)
+      win.document.close()
+      win.focus()
+      win.print()
+      // 有的浏览器不允许立即关闭，这里不强制
+    }
+  }
+}
+</script>
+
+<style scoped>
+.patient-edu-page {
+  display: flex;
+  height: calc(100vh - 140px);
+  gap: 20px;
+}
+
+.patient-edu-left {
+  width: 340px;
+  flex-shrink: 0;
+}
+
+.patient-edu-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.patient-edu-right {
+  width: 320px;
+  flex-shrink: 0;
+}
+
+.panel-card {
+  background: rgba(10, 14, 39, 0.9);
+  border-radius: 16px;
+  padding: 20px 20px 16px;
+  border: 1px solid rgba(0, 245, 212, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 245, 212, 0.15);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.panel-subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 12px;
+}
+
+.panel-example {
+  color: #00f5d4;
+}
+
+.panel-options {
+  margin-top: 12px;
+}
+
+.panel-actions {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panel-action-btn {
+  width: 100%;
+}
+
+.save-btn {
+  margin-left: 0;
+}
+
+.panel-tips {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 16px;
+}
+
+.panel-tips ul {
+  padding-left: 18px;
+  margin: 4px 0 0;
+}
+
+.panel-tips li {
+  margin: 2px 0;
+}
+
+.patient-edu-preview {
+  overflow-y: auto;
+}
+
+.edu-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #00f5d4;
+  margin-bottom: 16px;
+}
+
+.edu-section {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed rgba(0, 245, 212, 0.25);
+}
+
+.edu-heading {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.edu-body {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.edu-text {
+  flex: 2;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.edu-paragraph {
+  margin: 0 0 4px;
+}
+
+.edu-image-wrapper {
+  flex: 1;
+  max-width: 220px;
+}
+
+.edu-image {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 245, 212, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 245, 212, 0.35);
+  object-fit: cover;
+}
+
+.edu-summary {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(0, 245, 212, 0.08);
+  border-left: 3px solid #00f5d4;
+}
+
+.edu-summary-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00f5d4;
+  margin-bottom: 4px;
+}
+
+.edu-summary-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.edu-share {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 3px solid rgba(0, 187, 249, 0.7);
+}
+
+.edu-share-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00bbf9;
+  margin-bottom: 4px;
+}
+
+.edu-share-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.edu-actions {
+  margin-top: 16px;
+}
+
+.empty-preview {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edu-list-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.edu-list-scroll {
+  flex: 1;
+}
+
+.edu-list-item {
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.edu-list-item:hover {
+  background: rgba(0, 245, 212, 0.08);
+}
+
+.edu-list-item.active {
+  background: linear-gradient(135deg, rgba(0, 245, 212, 0.3), rgba(0, 187, 249, 0.3));
+}
+
+.edu-list-title {
+  font-size: 14px;
+  color: #ffffff;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.edu-list-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.edu-list-topic {
+  flex: 1 1 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.edu-list-time {
+  opacity: 0.8;
+}
+
+.edu-list-tag {
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(0, 245, 212, 0.18);
+  color: #00f5d4;
+}
+
+.edu-list-empty {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+@media (max-width: 1024px) {
+  .patient-edu-page {
+    flex-direction: column;
+    height: auto;
+  }
+  .patient-edu-left {
+    width: 100%;
+  }
+  .patient-edu-main {
+    height: auto;
+  }
+  .patient-edu-right {
+    width: 100%;
+    margin-top: 10px;
+  }
+  .panel-card {
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .edu-body {
+    flex-direction: column;
+  }
+  .edu-image-wrapper {
+    max-width: 100%;
+  }
+}
+</style>
+

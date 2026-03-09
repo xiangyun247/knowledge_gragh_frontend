@@ -18,8 +18,28 @@ export function register(data) {
   })
 }
 
+// 刷新 Token（使用 refresh_token 换取新的 access_token、refresh_token）
+export function refresh(refreshToken) {
+  return request({
+    url: '/api/auth/refresh',
+    method: 'post',
+    data: { refresh_token: refreshToken }
+  })
+}
+
+// 个人中心修改身份（角色）
+export function updateRole(role) {
+  return request({
+    url: '/api/user/role',
+    method: 'put',
+    data: { role }
+  })
+}
+
 export default {
   login,
-  register
+  register,
+  refresh,
+  updateRole
 }
 

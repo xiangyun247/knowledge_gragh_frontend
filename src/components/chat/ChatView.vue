@@ -88,6 +88,11 @@
             </div>
             <div class="message-bubble">
               <div class="message-text" v-html="renderMessageContent(message)"></div>
+              <div class="message-actions" v-if="message.type === 'system' && message.content && index > 0 && messages[index - 1].type === 'user'">
+                <el-button size="mini" type="text" class="tweet-btn" @click="handleTweetVersion(index)" :loading="tweetLoadingIndex === index">
+                  <i class="el-icon-chat-line-square"></i> 推文版
+                </el-button>
+              </div>
               <div class="message-time">{{ formatTime(message.timestamp) }}</div>
             </div>
           </div>
@@ -107,15 +112,75 @@
       </div>
       <!-- 输入区域 -->
       <div class="chat-input">
-        <el-input
-          v-model="inputMessage"
-          type="textarea"
-          :rows="1"
-          placeholder="请输入您的问题..."
-          @keyup.enter.native="sendMessage"
-          resize="none"
-        ></el-input>
-        <el-checkbox v-model="enableDeepThink" size="small" class="stream-checkbox">深度思考</el-checkbox>
+        <div class="chat-input-body">
+          <div class="chat-input-row">
+            <el-input
+              v-model="inputMessage"
+              type="textarea"
+              :rows="1"
+              :placeholder="chatModePlaceholder"
+              @keyup.enter.native="sendMessage"
+              resize="none"
+            ></el-input>
+            <div class="chat-input-btns">
+              <el-tooltip content="语音输入" placement="top">
+                <span
+                  class="input-extra-btn"
+                  :class="{ recording: isRecording }"
+                  @click="toggleRecord"
+                >
+                  <i class="el-icon-microphone"></i>
+                </span>
+              </el-tooltip>
+              <el-tooltip content="图片解读" placement="top">
+                <label class="input-extra-btn" for="chat-image-input">
+                  <i class="el-icon-picture-outline"></i>
+                </label>
+              </el-tooltip>
+              <input
+                id="chat-image-input"
+                ref="imageInput"
+                type="file"
+                accept="image/*"
+                style="position:absolute;width:0;height:0;opacity:0;pointer-events:none"
+                @change="handleImageUpload"
+              />
+            </div>
+          </div>
+          <div class="chat-input-options">
+            <div class="model-selector" v-if="availableModels.length > 0">
+              <span class="mode-label">模型：</span>
+              <el-select
+                v-model="selectedModel"
+                size="small"
+                placeholder="选择模型"
+                class="model-select"
+                @change="onModelChange"
+              >
+                <el-option
+                  v-for="m in availableModels"
+                  :key="m.id"
+                  :label="m.configured ? m.name : (m.name + ' (未配置)')"
+                  :value="m.id"
+                  :class="{ 'model-option-unconfigured': !m.configured }"
+                />
+              </el-select>
+            </div>
+            <div class="mode-switch">
+              <span class="mode-label">模式：</span>
+              <el-radio-group v-model="chatMode" size="small" class="mode-radio">
+                <el-radio-button label="normal">普通问答</el-radio-button>
+                <el-radio-button label="patient_education">
+                  <i class="el-icon-document"></i> 患者教育
+                </el-radio-button>
+                <el-radio-button label="science_tweet">
+                  <i class="el-icon-chat-line-square"></i> 科普推文
+                </el-radio-button>
+              </el-radio-group>
+            </div>
+            <el-checkbox v-model="enableDeepThink" size="small" class="stream-checkbox" v-if="chatMode === 'normal'">深度思考</el-checkbox>
+          </div>
+        </div>
         <el-button 
           type="primary" 
           class="app-btn app-btn-primary chat-send-btn" 
@@ -124,7 +189,7 @@
           :loading="isTyping"
         >
           <i class="el-icon-send" v-if="!isTyping"></i>
-          <span v-if="!isTyping">发送</span>
+          <span v-if="!isTyping">{{ chatModeButtonText }}</span>
           <span v-else>发送中...</span>
         </el-button>
       </div>
@@ -218,8 +283,10 @@
 import { mapState } from 'vuex'
 import TypingIndicator from './TypingIndicator.vue'
 import dayjs from 'dayjs'
-import { sendMessageToBackend as apiSendMessage, sendMessageToBackendStream } from '../../api/chat'
+import { sendMessageToBackendStream, generateScienceTweet, getAvailableModels } from '../../api/chat'
+import { transcribeSTT, interpretOCR } from '../../api/multimodal'
 import { saveHistoryRecord, HISTORY_TYPES, getHistoryByType } from '../../utils/historyUtils'
+import storage from '../../utils/storage'
 
 export default {
   name: 'ChatView',
@@ -231,7 +298,13 @@ export default {
       inputMessage: '',
       isTyping: false,
       enableDeepThink: false,
+      chatMode: 'normal', // 'normal' | 'patient_education' | 'science_tweet'
       sidebarOpen: true,
+      tweetLoadingIndex: -1,
+      isRecording: false,
+      mediaRecorder: null,
+      recordChunks: [],
+      recordStartTime: null,
       leftSidebarOpen: true,
       analysisActiveNames: ['deep'],
        // 左侧「历史对话」列表
@@ -243,24 +316,40 @@ export default {
         '胰腺炎常见症状有哪些？',
         '胰腺炎需要做哪些检查？',
         '胰腺炎的常规治疗方案是什么？'
-      ]
+      ],
+      availableModels: [],
+      selectedModel: ''
     }
   },
   computed: {
-    ...mapState('chat', ['messages', 'sessionId', 'sourcesGraph', 'sourcesDoc', 'lastQuestionForSources', 'analysisTrace'])
+    ...mapState('chat', ['messages', 'sessionId', 'sourcesGraph', 'sourcesDoc', 'lastQuestionForSources', 'analysisTrace']),
+    ...mapState('user', ['isLoggedIn']),
+    chatModePlaceholder() {
+      if (this.chatMode === 'patient_education') return '输入主题，如：急性胰腺炎出院后注意事项'
+      if (this.chatMode === 'science_tweet') return '输入主题，如：急性胰腺炎出院后注意事项'
+      return '请输入您的问题...'
+    },
+    chatModeButtonText() {
+      if (this.chatMode === 'patient_education') return '生成患者教育'
+      if (this.chatMode === 'science_tweet') return '生成科普推文'
+      return '发送'
+    }
   },
   mounted() {
     if (!this.sessionId) {
       this.$store.commit('chat/SET_SESSION_ID', `s-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`)
     }
     this.loadChatSessions()
+    this.loadAvailableModels()
     window.addEventListener('historyUpdated', this.onHistoryUpdated)
     this.applyQuestionFromRoute()
+    this.applyModeFromRoute(this.$route)
   },
   watch: {
     '$route'(to) {
-      if (to.path === '/chat' && to.query.question && to.query.autoSend === '1') {
+        if (to.path === '/chat' && (to.query.question || to.query.mode)) {
         this.applyQuestionFromRoute()
+        this.applyModeFromRoute(to)
       }
     }
   },
@@ -268,6 +357,12 @@ export default {
     window.removeEventListener('historyUpdated', this.onHistoryUpdated)
   },
   methods: {
+    ensureLoggedIn() {
+      if (this.isLoggedIn) return true
+      this.$message.warning('请先登录后再使用问答功能')
+      this.$router.push({ path: '/login', query: { redirect: this.$route.fullPath } })
+      return false
+    },
     // 加载问答类型的历史记录，用于左侧列表
     async loadChatSessions() {
       this.sessionLoading = true
@@ -297,6 +392,37 @@ export default {
 
     onHistoryUpdated() {
       this.loadChatSessions()
+    },
+
+    async loadAvailableModels() {
+      try {
+        const res = await getAvailableModels()
+        const data = res.data || res
+        this.availableModels = data.data || []
+        const defaultId = data.default || (() => {
+          const configured = this.availableModels.find(m => m.configured)
+          return (configured && configured.id) || (this.availableModels[0] && this.availableModels[0].id)
+        })()
+        const saved = storage.get('chat_llm_model')
+        this.selectedModel = (saved && this.availableModels.some(m => m.id === saved))
+          ? saved
+          : (defaultId || '')
+      } catch (e) {
+        console.error('加载模型列表失败', e)
+      }
+    },
+
+    onModelChange(val) {
+      if (val) {
+        storage.set('chat_llm_model', val)
+        const m = this.availableModels.find(x => x.id === val)
+        if (m && !m.configured) {
+          this.$alert('未配置该模型，请在服务端 .env 中配置对应 API Key 后刷新页面。', '未配置该模型', {
+            confirmButtonText: '知道了',
+            type: 'warning'
+          })
+        }
+      }
     },
 
     // 新对话：清空当前会话内容并生成新的 sessionId
@@ -338,8 +464,18 @@ export default {
     
     // 发送消息
     sendMessage() {
+      if (!this.ensureLoggedIn()) return
       if (!this.inputMessage.trim()) return
-      
+      if (this.selectedModel) {
+        const m = this.availableModels.find(x => x.id === this.selectedModel)
+        if (m && !m.configured) {
+          this.$alert('未配置该模型，请在服务端 .env 中配置对应 API Key。', '未配置该模型', {
+            confirmButtonText: '知道了',
+            type: 'warning'
+          })
+          return
+        }
+      }
       // 添加用户消息
       const userMessage = {
         type: 'user',
@@ -360,6 +496,7 @@ export default {
     
     // 发送快速问题
     sendQuickQuestion(question) {
+      if (!this.ensureLoggedIn()) return
       this.inputMessage = question
       this.sendMessage()
     },
@@ -371,10 +508,19 @@ export default {
       this.$nextTick(() => {
         this.inputMessage = String(q).trim()
         if (autoSend) {
-          this.sendMessage()
+          if (this.ensureLoggedIn()) {
+            this.sendMessage()
+          }
           this.$router.replace({ path: '/chat', query: {} })
         }
       })
+    },
+    // 从路由 query 设置模式（如 /chat?mode=science_tweet）
+    applyModeFromRoute(route) {
+      const mode = route && route.query && route.query.mode
+      if (mode === 'science_tweet' || mode === 'patient_education') {
+        this.chatMode = mode
+      }
     },
     
     // 调用后端API发送消息（Agent 返回 answer、sources）。6.1 session_id 启用多轮；现在默认使用流式输出
@@ -385,15 +531,23 @@ export default {
       this.isTyping = true
       const idx = this.messages.length - 1
       this.$store.commit('chat/SET_ANALYSIS_TRACE', null)
+      const intent = this.chatMode === 'patient_education' ? 'patient_education' : this.chatMode === 'science_tweet' ? 'science_tweet' : undefined
       sendMessageToBackendStream(question, this.sessionId, {
         deepThink: this.enableDeepThink,
+        intent,
+        model: this.selectedModel || undefined,
         onChunk: (d) => {
           this.$store.commit('chat/APPEND_MESSAGE_CONTENT', { index: idx, chunk: d })
         },
-        onDone: ({ answer, sources, trace }) => {
+        onDone: ({ answer, sources, trace, patient_education, science_tweet }) => {
           const m = this.messages[idx]
-          if (m && m.type === 'system' && !(m.content || '').trim()) {
-            this.$store.commit('chat/UPDATE_MESSAGE_CONTENT', { index: idx, content: answer || '未获取到有效回答' })
+          if (m && m.type === 'system') {
+            this.$store.commit('chat/UPDATE_MESSAGE_CONTENT', {
+              index: idx,
+              content: answer || '未获取到有效回答',
+              patientEducation: patient_education || undefined,
+              scienceTweet: science_tweet || undefined
+            })
           }
           this.$store.commit('chat/SET_SOURCES', {
             sourcesGraph: (sources || []).filter(s => s && ['graph', 'entity'].includes(s.type)),
@@ -434,8 +588,13 @@ export default {
       return dayjs(timestamp).format('HH:mm')
     },
 
-    // 将少量 Markdown 样式（1. / - ）渲染成真正的列表 + 段落 HTML
+    // 将少量 Markdown 样式（1. / - ）渲染成真正的列表 + 段落 HTML；若有 patientEducation 则分节展示
     renderMessageContent(message) {
+      const pe = message && message.patientEducation
+      if (pe && pe.title) {
+        return this.renderPatientEducation(pe)
+      }
+
       const text = (message && message.content) || ''
       if (!text) return ''
 
@@ -492,6 +651,26 @@ export default {
       flushLists()
       return blocks.join('')
     },
+
+    // 患者教育结构化展示：标题 + 分节 + 温馨提示
+    renderPatientEducation(pe) {
+      const escapeHtml = (s) =>
+        String(s || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+      let html = `<div class="patient-edu-block"><h4 class="patient-edu-title">${escapeHtml(pe.title)}</h4>`
+      for (const sec of pe.sections || []) {
+        const h = escapeHtml(sec.heading || '')
+        const c = escapeHtml(sec.content || '').replace(/\n/g, '<br>')
+        html += `<div class="patient-edu-section"><h5 class="patient-edu-heading">${h}</h5><div class="patient-edu-content">${c}</div></div>`
+      }
+      if (pe.summary) {
+        html += `<div class="patient-edu-summary">${escapeHtml(pe.summary)}</div>`
+      }
+      html += '</div>'
+      return html
+    },
     
     // 滚动到底部
     scrollToBottom() {
@@ -508,6 +687,167 @@ export default {
     },
     toggleLeftSidebar() {
       this.leftSidebarOpen = !this.leftSidebarOpen
+    },
+
+    // 语音输入
+    toggleRecord() {
+      if (!this.ensureLoggedIn()) return
+      if (this.isRecording) {
+        this.stopRecord()
+      } else {
+        this.startRecord()
+      }
+    },
+
+    async startRecord() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        this.$message.error('您的浏览器不支持语音录制，请使用 Chrome 或 Edge')
+        return
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        this.recordChunks = []
+        const mr = new MediaRecorder(stream)
+        this.mediaRecorder = mr
+        this.recordStartTime = Date.now()
+        mr.ondataavailable = (e) => {
+          if (e.data.size) this.recordChunks.push(e.data)
+        }
+        mr.onstop = () => {
+          stream.getTracks().forEach(t => t.stop())
+          const durationSec = this.recordStartTime ? (Date.now() - this.recordStartTime) / 1000 : 0
+          this.finishRecord(durationSec)
+        }
+        mr.start()
+        this.isRecording = true
+        this.$message.success('开始录音，再次点击结束')
+      } catch (e) {
+        this.$message.error('无法访问麦克风，请检查权限')
+      }
+    },
+
+    async stopRecord() {
+      if (!this.mediaRecorder || !this.isRecording) return
+      this.mediaRecorder.stop()
+      this.isRecording = false
+    },
+
+    async finishRecord(durationSec) {
+      this.recordStartTime = null
+      const chunks = this.recordChunks || []
+      this.recordChunks = []
+      this.mediaRecorder = null
+      if (durationSec < 1.5 || !chunks.length) {
+        this.$message.warning('录音太短，请至少说 2 秒再试一次')
+        return
+      }
+      const blob = new Blob(chunks, { type: 'audio/webm' })
+      if (!blob || blob.size === 0) {
+        this.$message.error('录音数据为空，请重试')
+        return
+      }
+      const file = new File([blob], 'recording.webm', { type: 'audio/webm' })
+      this.isTyping = true
+      try {
+        const res = await transcribeSTT(file)
+        const text = (res.data && res.data.text) || res.text || ''
+        if (text) {
+          this.inputMessage = (this.inputMessage ? this.inputMessage + ' ' : '') + text
+          this.$message.success('识别完成')
+        } else {
+          this.$message.warning('未能识别出文字')
+        }
+      } catch (e) {
+        this.$message.error(e?.message || '语音识别失败')
+      } finally {
+        this.isTyping = false
+      }
+    },
+
+    // 图片解读
+    async handleImageUpload(e) {
+      if (!this.ensureLoggedIn()) return
+      const file = e.target.files && e.target.files[0]
+      if (e.target) e.target.value = ''
+      if (!file || !file.type.startsWith('image/')) return
+      this.isTyping = true
+      const sysIdx = this.messages.length
+      this.$store.commit('chat/ADD_MESSAGE', {
+        type: 'user',
+        content: `[图片解读] ${file.name}`,
+        timestamp: Date.now() - 500
+      })
+      this.$store.commit('chat/ADD_MESSAGE', {
+        type: 'system',
+        content: '正在识别并解读图片...',
+        timestamp: Date.now()
+      })
+      try {
+        const res = await interpretOCR(file)
+        const data = res.data || res
+        const interp = data.interpretation || ''
+        const ocrText = data.text || ''
+        let answer = interp
+        if (ocrText && !interp.includes(ocrText)) {
+          answer = `【识别文字】\n${ocrText}\n\n【通俗解读】\n${interp}`
+        }
+        this.$store.commit('chat/UPDATE_MESSAGE_CONTENT', {
+          index: sysIdx + 1,
+          content: answer || '未能生成解读'
+        })
+        saveHistoryRecord(HISTORY_TYPES.CHAT, {
+          question: `[图片解读] ${file.name}`,
+          answer,
+          messages: [this.messages[sysIdx], this.messages[sysIdx + 1]]
+        })
+      } catch (err) {
+        this.$store.commit('chat/UPDATE_MESSAGE_CONTENT', {
+          index: sysIdx + 1,
+          content: `图片解读失败: ${err?.message || '未知错误'}`
+        })
+      } finally {
+        this.isTyping = false
+        this.scrollToBottom()
+      }
+    },
+
+    // 「推文版」按钮：将当前问答转化为科普推文
+    async handleTweetVersion(msgIndex) {
+      if (!this.ensureLoggedIn()) return
+      if (msgIndex <= 0 || !this.messages[msgIndex] || !this.messages[msgIndex - 1]) return
+      const question = this.messages[msgIndex - 1].content || ''
+      const answer = this.messages[msgIndex].content || ''
+      if (!question.trim()) return
+      this.tweetLoadingIndex = msgIndex
+      try {
+        const res = await generateScienceTweet({
+          topic: question,
+          source_content: answer,
+          word_limit: 140,
+          style: '轻松'
+        })
+        const raw = res.data || {}
+        const data = raw.data || raw
+        const tweets = data.tweets || []
+        const hashtags = data.hashtags || []
+        let tweetText = ''
+        if (tweets.length) {
+          tweetText = tweets.map((t, i) => `推文 ${i + 1}：${t}`).join('\n')
+          if (hashtags.length) tweetText += `\n\n话题标签建议：${hashtags.join(' ')}`
+        } else {
+          tweetText = '未生成有效推文'
+        }
+        this.$store.commit('chat/ADD_MESSAGE', {
+          type: 'system',
+          content: `【推文版】\n\n${tweetText}`,
+          timestamp: Date.now()
+        })
+        this.scrollToBottom()
+      } catch (e) {
+        this.$message.error(e?.message || '推文生成失败')
+      } finally {
+        this.tweetLoadingIndex = -1
+      }
     }
   }
 }
@@ -856,6 +1196,19 @@ export default {
   margin: 2px 0;
 }
 
+.message-actions {
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+.tweet-btn {
+  color: #00bbf9 !important;
+  font-size: 12px;
+  padding: 2px 8px;
+}
+.tweet-btn:hover {
+  color: #00f5d4 !important;
+}
+
 .message-time {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.6);
@@ -878,6 +1231,50 @@ export default {
   border: 1px solid rgba(0, 245, 212, 0.2);
 }
 
+.chat-input-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.chat-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.chat-input-row .el-input {
+  flex: 1;
+}
+.chat-input-btns {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.input-extra-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 8px 10px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+  user-select: none;
+}
+.input-extra-btn:hover {
+  color: #00f5d4;
+  background: rgba(0, 245, 212, 0.1);
+}
+.input-extra-btn.recording {
+  color: #ef4444 !important;
+  animation: recordPulse 1s ease-in-out infinite;
+}
+@keyframes recordPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 .chat-input .el-input {
   flex: 1;
   background-color: rgba(255, 255, 255, 0.05);
@@ -896,10 +1293,99 @@ export default {
   box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.3);
 }
 
+/* 输入区模式切换 */
+.chat-input-options {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.model-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.model-select {
+  width: 160px;
+}
+.model-select .el-input__inner {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(0, 245, 212, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+}
+.model-option-unconfigured {
+  color: rgba(255, 255, 255, 0.5);
+}
+.mode-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mode-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+}
+.mode-radio .el-radio-button__inner {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(0, 245, 212, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+}
+.mode-radio .el-radio-button__inner:hover {
+  color: #00f5d4;
+}
+.mode-radio .el-radio-button__original-radio:checked + .el-radio-button__inner {
+  background: linear-gradient(135deg, rgba(0, 245, 212, 0.25), rgba(0, 187, 249, 0.25));
+  border-color: #00f5d4;
+  color: #00f5d4;
+  box-shadow: 0 0 8px rgba(0, 245, 212, 0.4);
+}
+.mode-radio .el-radio-button__inner i {
+  margin-right: 4px;
+}
+
 .stream-checkbox {
   color: rgba(255, 255, 255, 0.85);
 }
 .stream-checkbox .el-checkbox__label { color: inherit; }
+
+/* 患者教育结构化展示 */
+.patient-edu-block {
+  padding: 4px 0;
+}
+.patient-edu-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #00f5d4;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 245, 212, 0.3);
+}
+.patient-edu-section {
+  margin-bottom: 14px;
+}
+.patient-edu-heading {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 6px;
+}
+.patient-edu-content {
+  font-size: 13px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.88);
+  white-space: pre-wrap;
+}
+.patient-edu-summary {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(0, 245, 212, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid #00f5d4;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  font-style: italic;
+}
 
 /* 深度思考面板 */
 .analysis-panel {

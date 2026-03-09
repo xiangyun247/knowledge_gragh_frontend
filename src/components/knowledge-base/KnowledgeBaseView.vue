@@ -223,7 +223,13 @@
         class="kb-ask-input"
         @keyup.enter.native="goAsk"
       >
-        <el-button slot="append" type="primary" icon="el-icon-s-promotion" @click="goAsk">发送</el-button>
+        <el-button
+          slot="append"
+          type="primary"
+          icon="el-icon-s-promotion"
+          @click="goAsk"
+          :loading="askLoading"
+        >发送</el-button>
       </el-input>
       <p class="kb-ask-tip">内容由 AI 生成，仅供参考</p>
     </div>
@@ -270,11 +276,27 @@
         <div class="detail-text">{{ detailItem.text || '' }}</div>
       </div>
     </el-dialog>
+
+    <!-- 基于知识库问答的回答展示 -->
+    <el-dialog
+      :visible.sync="askDialogVisible"
+      title="基于知识库的回答"
+      width="720px"
+      class="kb-ask-dialog"
+    >
+      <div class="kb-ask-answer">
+        <pre class="kb-ask-answer-text">{{ askAnswer }}</pre>
+      </div>
+      <template slot="footer">
+        <el-button @click="askDialogVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { kb } from '../../api'
+import storage from '../../utils/storage'
 
 export default {
   name: 'KnowledgeBaseView',
@@ -294,6 +316,10 @@ export default {
       hits: [],
       docList: [],
       askQuery: '',
+      askLoading: false,
+      askDialogVisible: false,
+      askAnswer: '',
+      askSources: [],
       detailVisible: false,
       detailItem: null,
       exampleQueries: ['胰腺炎的症状与治疗', '糖尿病并发症', '高血压用药', '慢性肾病饮食'],
@@ -458,11 +484,33 @@ export default {
       this.detailItem = item
       this.detailVisible = true
     },
-    goAsk() {
+    async goAsk() {
       const q = (this.askQuery || '').trim()
       if (q) {
-        this.$router.push({ path: '/chat', query: { question: q, autoSend: '1' } })
-        this.askQuery = ''
+        this.askLoading = true
+        try {
+          const model = storage.get('chat_llm_model')
+          const opts = {
+            kb_id: this.activeBase === 'default' ? null : this.activeBase,
+            k: this.k || 5,
+            source_type: this.sourceType || null,
+            model: model || null
+          }
+          const res = await kb.ask(q, opts)
+          const d = res.data
+          if (d && d.status === 'success' && d.data) {
+            this.askAnswer = d.data.answer || ''
+            this.askSources = d.data.sources || []
+            this.askDialogVisible = true
+            this.askQuery = ''
+          } else {
+            this.$message.error(d?.message || '基于知识库的回答生成失败')
+          }
+        } catch (e) {
+          this.$message.error(e.response?.data?.detail || e.message || '基于知识库的回答生成失败')
+        } finally {
+          this.askLoading = false
+        }
       } else {
         this.$message.info('请输入问题后发送')
       }

@@ -95,77 +95,65 @@
           </div>
         </section>
       
-        <!-- 数据时间线 -->
+        <!-- 数据时间线：对齐后端的小数据卡片 -->
         <section class="data-dashboard-section timeline-section">
-          <h2 class="section-title">知识图谱概览</h2>
+          <h2 class="section-title">我的使用概览</h2>
 
           <div class="data-displays timeline-displays">
             <div class="timeline-line"></div>
 
             <div class="data-display timeline-item">
               <div class="timeline-node"></div>
-          <div class="display-header">
-            <span class="display-title">总实体数</span>
-            <span class="display-icon">📊</span>
-          </div>
-          <div class="display-body">
-            <span class="stat-number">10,500</span>
-            <span class="display-subtitle">个知识实体</span>
-          </div>
-          <div class="display-footer">
-            <span class="trend-up">+5.2%</span>
-            <span class="trend-label">较上月</span>
-          </div>
-        </div>
-        
+              <div class="display-header">
+                <span class="display-title">我的知识图谱</span>
+                <span class="display-icon">📊</span>
+              </div>
+              <div class="display-body">
+                <span class="stat-number">{{ overview.graphCount }}</span>
+                <span class="display-subtitle">个图谱</span>
+              </div>
+            </div>
+
             <div class="data-display timeline-item">
               <div class="timeline-node"></div>
-          <div class="display-header">
-            <span class="display-title">关系总数</span>
-            <span class="display-icon">🔗</span>
-          </div>
-          <div class="display-body">
-            <span class="stat-number">52,000</span>
-            <span class="display-subtitle">条知识关联</span>
-          </div>
-          <div class="display-footer">
-            <span class="trend-up">+8.7%</span>
-            <span class="trend-label">较上月</span>
-          </div>
-        </div>
-        
+              <div class="display-header">
+                <span class="display-title">知识库文档</span>
+                <span class="display-icon">📚</span>
+              </div>
+              <div class="display-body">
+                <span class="stat-number">{{ overview.docCount }}</span>
+                <span class="display-subtitle">篇文档</span>
+              </div>
+            </div>
+
             <div class="data-display timeline-item">
               <div class="timeline-node"></div>
-          <div class="display-header">
-            <span class="display-title">搜索量</span>
-            <span class="display-icon">🔍</span>
+              <div class="display-header">
+                <span class="display-title">本周已回答问题</span>
+                <span class="display-icon">💬</span>
+              </div>
+              <div class="display-body">
+                <span class="stat-number">{{ overview.answeredThisWeek }}</span>
+                <span class="display-subtitle">个问题</span>
+              </div>
+            </div>
           </div>
-          <div class="display-body">
-            <span class="stat-number">15,230</span>
-            <span class="display-subtitle">次搜索</span>
+
+          <!-- 最近活动列表 -->
+          <div class="recent-activity" v-if="overview.recentActivities && overview.recentActivities.length">
+            <h3 class="recent-title">最近活动</h3>
+            <ul class="recent-list">
+              <li
+                v-for="item in overview.recentActivities"
+                :key="item.id"
+                class="recent-item"
+              >
+                <span class="recent-type">{{ formatActivityType(item.type) }}</span>
+                <span class="recent-title-text">{{ item.title }}</span>
+                <span class="recent-time">{{ item.time }}</span>
+              </li>
+            </ul>
           </div>
-          <div class="display-footer">
-            <span class="trend-up">+12.3%</span>
-            <span class="trend-label">较上月</span>
-          </div>
-        </div>
-        
-            <div class="data-display timeline-item">
-              <div class="timeline-node"></div>
-          <div class="display-header">
-            <span class="display-title">用户活跃度</span>
-            <span class="display-icon">👥</span>
-          </div>
-          <div class="display-body">
-            <span class="stat-number">89.5%</span>
-            <span class="display-subtitle">活跃度</span>
-          </div>
-          <div class="display-footer">
-            <span class="trend-up">+3.2%</span>
-            <span class="trend-label">较上月</span>
-          </div>
-        </div>
-      </div>
         </section>
       </section>
       
@@ -220,20 +208,60 @@
 <script>
 import * as echarts from 'echarts'
 import anime from 'animejs/lib/anime.es.js'
+import { home } from '../api'
 
 export default {
   name: 'Home',
+  data() {
+    return {
+      overview: {
+        graphCount: 0,
+        docCount: 0,
+        answeredThisWeek: 0,
+        recentActivities: []
+      }
+    }
+  },
   mounted() {
     // 添加滚动动画效果
     this.addScrollAnimations()
     // 初始化图表 & 动画
     this.$nextTick(() => {
+      this.fetchOverview()
       this.initCharts()
       this.startNumberAnimation()
       this.initNeonCardsAnimation()
     })
   },
   methods: {
+    formatActivityType(t) {
+      const m = {
+        chat: '问答',
+        graph_build: '图谱构建',
+        graph_query: '图谱查询',
+        search: '实体搜索',
+        upload: '数据上传'
+      }
+      return m[t] || '活动'
+    },
+    async fetchOverview() {
+      try {
+        const res = await home.overview()
+        const d = res.data
+        if (d && d.status === 'success' && d.data) {
+          this.overview = {
+            graphCount: d.data.graphCount || 0,
+            docCount: d.data.docCount || 0,
+            answeredThisWeek: d.data.answeredThisWeek || 0,
+            recentActivities: d.data.recentActivities || []
+          }
+        }
+      } catch (e) {
+        // 首页统计失败不阻塞页面，仅在控制台提示
+        // eslint-disable-next-line no-console
+        console.warn('获取首页概览失败', e)
+      }
+    },
     addScrollAnimations() {
       const observerOptions = {
         threshold: 0.1,
@@ -737,6 +765,41 @@ export default {
   justify-content: center;
   flex-wrap: wrap;
   animation: fadeInUp 1s ease-out 0.4s both;
+}
+
+/* ================= 医疗主题适配 ================= */
+
+/* 医疗风下：欢迎区域改为简洁白蓝背景，去掉赛博霓虹感 */
+[data-theme="medical"] .welcome-section {
+  padding: 60px 0;
+  background: var(--gradient-bg);
+}
+
+[data-theme="medical"] .welcome-title {
+  font-size: 48px;
+  color: var(--text-primary);
+  text-shadow: none;
+  letter-spacing: 1px;
+}
+
+[data-theme="medical"] .title-line,
+[data-theme="medical"] .title-highlight {
+  background: none;
+  -webkit-background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+  background-clip: border-box;
+  color: var(--primary-blue);
+  text-shadow: none;
+  -webkit-text-stroke: 0;
+  animation: none;
+}
+
+[data-theme="medical"] .welcome-subtitle {
+  color: var(--text-muted);
+}
+
+[data-theme="medical"] .cta-buttons {
+  gap: 16px;
 }
 
 .btn-primary,

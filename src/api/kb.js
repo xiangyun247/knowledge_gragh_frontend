@@ -67,6 +67,22 @@ const kb = {
   },
 
   /**
+   * 基于知识库的问答（仅使用文档片段作为上下文）
+   * @param {string} question
+   * @param {{ kb_id?: string|null, k?: number, source_type?: string|null, model?: string|null }} [opts]
+   */
+  ask(question, opts = {}) {
+    const payload = {
+      question,
+      k: opts.k || 5,
+      kb_id: opts.kb_id || null,
+      source_type: opts.source_type || null,
+      model: opts.model || null
+    };
+    return request.post('/api/kb/ask', payload);
+  },
+
+  /**
    * 文档列表
    * @param {string} [kb_id] 知识库 id
    * @param {string} [source_type]

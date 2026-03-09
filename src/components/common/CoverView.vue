@@ -256,6 +256,33 @@ export default {
     linear-gradient(135deg, #020617 0%, #020617 40%, #020617 100%);
 }
 
+/* ================= 医疗主题适配（封面页） ================= */
+
+[data-theme="medical"] .cover-container {
+  background: var(--gradient-bg);
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .cover-title {
+  color: var(--text-primary);
+  text-shadow: none;
+}
+
+[data-theme="medical"] .cover-title .title-line,
+[data-theme="medical"] .cover-title .title-slogan,
+[data-theme="medical"] .cover-title .title-highlight {
+  background: none;
+  -webkit-background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+  background-clip: border-box;
+  color: var(--primary-blue);
+  text-shadow: none;
+}
+
+[data-theme="medical"] .cover-subtitle {
+  color: var(--text-muted);
+}
+
 /* 封面主内容区：左右布局 */
 .cover-hero {
   position: relative;

@@ -1,5 +1,7 @@
 // Vue CLI 配置文件
 module.exports = {
+  // 生产环境关闭 source map，减小体积并避免源码泄露
+  productionSourceMap: false,
   // 开发服务器配置
   devServer: {
     // 代理配置
@@ -20,7 +22,18 @@ module.exports = {
     open: true
   },
   // 构建配置
-  configureWebpack: {
-    // 其他配置...
+  configureWebpack: config => {
+    if (process.env.NODE_ENV === 'production') {
+      // 生产环境：代码分割，将 node_modules 打包为 vendors
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors'
+          }
+        }
+      };
+    }
   }
 };

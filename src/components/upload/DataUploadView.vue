@@ -358,6 +358,11 @@
             Hadoop批量操作
           </h3>
           <p class="hadoop-description">使用Hadoop和Celery进行批量文件处理和知识图谱构建。批量构建可直接使用已上传的文件，无需先上传到HDFS。</p>
+          <div class="hadoop-options" v-if="completedFiles.filter(f => f.success && f.fileId).length > 0">
+            <el-checkbox v-model="useHadoopForBuild">
+              对缺文本文件使用 MapReduce（仅当部分文件未做本地提取时生效）
+            </el-checkbox>
+          </div>
           <div class="hadoop-buttons">
             <el-button
               type="primary"
@@ -396,6 +401,10 @@
               <div class="status-info">
                 <span class="status-text">{{ getStatusText(hadoopStatus) }}</span>
                 <span class="progress-text">{{ hadoopProgress }}%</span>
+              </div>
+              <div class="mapreduce-hint" v-if="hadoopStatus && (hadoopStatus === 'completed' || hadoopStatus === 'failed') && hadoopUsedMapReduce !== null && hadoopUsedMapReduce !== undefined">
+                <span v-if="hadoopUsedMapReduce === true" class="hint-used">本次构建：已使用 MapReduce 预处理（对缺文本文件）</span>
+                <span v-else class="hint-local">本次构建：仅使用本地已提取文本</span>
               </div>
               <div class="status-detail" v-if="hadoopStatus">
                 <el-button
@@ -495,7 +504,9 @@ export default {
       hadoopTaskId: null,         // Hadoop任务ID
       hadoopProgress: 0,          // Hadoop任务进度
       hadoopStatus: '',           // Hadoop任务状态
-      progressInterval: null,     // 进度查询定时器
+      hadoopUsedMapReduce: null,  // 本次构建是否使用了 MapReduce（true/false/null）
+      useHadoopForBuild: true,    // 批量构建时是否对缺文本文件使用 MapReduce
+      progressInterval: null,    // 进度查询定时器
       refreshingStatus: false,    // 是否正在刷新状态
 
       // 文档知识库相关
@@ -1044,13 +1055,14 @@ export default {
           return;
         }
         
-        // 调用Hadoop API批量构建知识图谱
-        const response = await hadoop.batchBuildKG(fileIds, true);
+        // 调用Hadoop API批量构建知识图谱（use_hadoop 由勾选决定）
+        const response = await hadoop.batchBuildKG(fileIds, this.useHadoopForBuild);
         
         if (response.data && response.data.status === 'accepted' && response.data.task_id) {
           this.hadoopTaskId = response.data.task_id;
           this.hadoopProgress = 0;
           this.hadoopStatus = 'processing';
+          this.hadoopUsedMapReduce = null;
           this.$message.success(`批量构建任务已启动，任务ID: ${response.data.task_id}`);
           
           // 开始查询进度
@@ -1089,10 +1101,8 @@ export default {
           // 更新进度和状态
           this.hadoopProgress = task.progress || 0;
           this.hadoopStatus = task.status || '';
-          
-          // 更新状态文本显示
-          if (task.message) {
-            // 可以在这里更新更详细的状态信息
+          if (task.hadoop_result && typeof task.hadoop_result.used_mapreduce === 'boolean') {
+            this.hadoopUsedMapReduce = task.hadoop_result.used_mapreduce;
           }
           
           // 如果任务完成或失败，停止查询
@@ -1301,7 +1311,9 @@ export default {
           const task = taskData.task;
           this.hadoopProgress = task.progress || 0;
           this.hadoopStatus = task.status || '';
-          
+          if (task.hadoop_result && typeof task.hadoop_result.used_mapreduce === 'boolean') {
+            this.hadoopUsedMapReduce = task.hadoop_result.used_mapreduce;
+          }
           if (task.status === 'completed' || task.status === 'failed') {
             // 如果任务已完成或失败，停止自动查询
             if (this.progressInterval) {
@@ -1880,6 +1892,23 @@ export default {
   margin-top: 10px;
   display: flex;
   justify-content: flex-end;
+}
+
+.hadoop-options {
+  margin-bottom: 12px;
+}
+
+.mapreduce-hint {
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.mapreduce-hint .hint-used {
+  color: var(--primary-blue, #00d4ff);
+}
+
+.mapreduce-hint .hint-local {
+  color: var(--text-secondary);
 }
 
 /* 模板下载 */

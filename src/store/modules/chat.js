@@ -33,11 +33,15 @@ export default {
         state.messages.splice(index, 1, { ...m, content: next })
       }
     },
-    /** 更新某条消息的 content（流式结束、错误时用） */
-    UPDATE_MESSAGE_CONTENT(state, { index, content }) {
+    /** 更新某条消息的 content（流式结束、错误时用），可选附带 patientEducation / scienceTweet 结构化数据 */
+    UPDATE_MESSAGE_CONTENT(state, { index, content, patientEducation, scienceTweet }) {
       const m = state.messages[index]
       if (m) {
-        state.messages.splice(index, 1, { ...m, content: content || m.content })
+        const update = { ...m }
+        if (content !== undefined) update.content = content || m.content
+        if (patientEducation !== undefined) update.patientEducation = patientEducation
+        if (scienceTweet !== undefined) update.scienceTweet = scienceTweet
+        state.messages.splice(index, 1, update)
       }
     },
     /** 可选：清空当前会话，用于「新对话」等 */
