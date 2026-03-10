@@ -209,6 +209,7 @@
 import * as echarts from 'echarts'
 import anime from 'animejs/lib/anime.es.js'
 import { home } from '../api'
+import { ENTITY_TYPE_CONFIG, RELATION_TYPE_LABELS } from '../config/entityTypes'
 
 export default {
   name: 'Home',
@@ -350,13 +351,11 @@ export default {
             labelLine: {
               show: false
             },
-            data: [
-              { value: 2500, name: '疾病', itemStyle: { color: '#00f5d4' } },
-              { value: 3000, name: '症状', itemStyle: { color: '#00bbf9' } },
-              { value: 1500, name: '治疗方法', itemStyle: { color: '#38bdf8' } },
-              { value: 2000, name: '药物', itemStyle: { color: '#22c55e' } },
-              { value: 1000, name: '检查', itemStyle: { color: '#e2ff4f' } }
-            ]
+            data: ENTITY_TYPE_CONFIG.slice(0, 10).map((t, i) => ({
+              value: [2500, 3000, 1500, 2000, 1000, 800, 1200, 900, 600, 700][i] || 500,
+              name: t.label,
+              itemStyle: { color: t.color }
+            }))
           }
         ]
       }
@@ -393,7 +392,7 @@ export default {
         },
         xAxis: {
           type: 'category',
-          data: ['症状', '治疗方法', '药物', '检查', '发生部位'],
+          data: Object.values(RELATION_TYPE_LABELS).slice(0, 8),
           axisLine: {
             lineStyle: {
               color: '#ffffff'
@@ -424,7 +423,7 @@ export default {
             name: '关系数量',
             type: 'bar',
             barWidth: '60%',
-            data: [12000, 8000, 10000, 5000, 7000],
+            data: [12000, 8000, 10000, 5000, 7000, 6000, 4500, 5500],
             itemStyle: {
               color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                 { offset: 0, color: '#00f5d4' },

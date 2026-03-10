@@ -431,7 +431,7 @@
             <i class="el-icon-document"></i>
             数据模板
           </h3>
-          <p class="template-description">下载数据模板，按照格式准备您的知识图谱数据</p>
+          <p class="template-description">下载数据模板，按格式准备知识图谱数据。系统支持 28 种实体类型（如疾病、症状、药物、检查、解剖部位等）和 21 种关系类型（如症状或体征、用于治疗、并发症等）。</p>
           <div class="template-list">
             <el-button
               v-for="template in templates"
@@ -771,7 +771,7 @@ export default {
       // 每2秒查询一次进度
       file.progressInterval = setInterval(async () => {
         try {
-          const response = await this.$http.get(`/api/kg/build/progress/${file.taskId}`);
+          const response = await this.$http.get(`/api/kg/build/progress/${file.taskId}`, { timeout: 15000 });
           const progressData = response.data;
           
           // 更新文件进度和状态
@@ -785,8 +785,14 @@ export default {
           
           file.message = progressData.message || '正在生成知识图谱...';
           
-          // 如果任务完成或失败，停止查询
-          if (progressData.status === 'completed') {
+          // 如果任务完成、失败或不存在，停止查询
+          if (progressData.status === 'not_found') {
+            clearInterval(file.progressInterval);
+            file.progressInterval = null;
+            file.generatingKG = false;
+            file.message = '任务已丢失（服务可能已重启），请重新点击「生成知识图谱」';
+            this.$message.warning(`知识图谱任务已丢失: ${file.name}`);
+          } else if (progressData.status === 'completed') {
             clearInterval(file.progressInterval);
             file.progressInterval = null;
             file.generatingKG = false;
@@ -917,38 +923,59 @@ export default {
                 {
                   "id": "disease_001",
                   "name": "糖尿病",
-                  "type": "disease",
+                  "type": "Disease",
                   "properties": {
                     "description": "一种以高血糖为特征的代谢性疾病",
                     "symptoms": ["多饮", "多尿", "多食"],
                     "treatments": ["胰岛素", "饮食控制"]
                   }
+                },
+                {
+                  "id": "symptom_001",
+                  "name": "多饮",
+                  "type": "Symptom",
+                  "properties": {}
+                },
+                {
+                  "id": "medicine_001",
+                  "name": "胰岛素",
+                  "type": "Medicine",
+                  "properties": {}
                 }
               ],
               "relations": [
                 {
                   "source": "disease_001",
-                  "target": "drug_001",
-                  "type": "treated_by"
+                  "target": "symptom_001",
+                  "type": "HAS_SYMPTOM"
+                },
+                {
+                  "source": "disease_001",
+                  "target": "medicine_001",
+                  "type": "TREATED_BY"
                 }
               ]
             }, null, 2);
             break;
           case '.csv':
-            content = "id,name,type,description\ndisease_001,糖尿病,disease,一种以高血糖为特征的代谢性疾病\nsymptom_001,多饮,symptom,饮水量异常增加";            
+            content = "id,name,type,description\ndisease_001,糖尿病,Disease,一种以高血糖为特征的代谢性疾病\nsymptom_001,多饮,Symptom,饮水量异常增加\nmedicine_001,胰岛素,Medicine,降糖药物";            
             break;
           case '.xml':
             content = `<?xml version="1.0" encoding="UTF-8"?>
 <knowledge-graph>
   <entity id="disease_001">
     <name>糖尿病</name>
-    <type>disease</type>
+    <type>Disease</type>
     <description>一种以高血糖为特征的代谢性疾病</description>
+  </entity>
+  <entity id="symptom_001">
+    <name>多饮</name>
+    <type>Symptom</type>
   </entity>
   <relation>
     <source>disease_001</source>
-    <target>drug_001</target>
-    <type>treated_by</type>
+    <target>symptom_001</target>
+    <type>HAS_SYMPTOM</type>
   </relation>
 </knowledge-graph>`;
             break;

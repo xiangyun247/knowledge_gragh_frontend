@@ -24,13 +24,21 @@
           
           <!-- 搜索类型筛选 -->
           <div class="search-filters">
-            <el-radio-group v-model="searchType" class="filter-group">
-              <el-radio-button label="all">全部类型</el-radio-button>
-              <el-radio-button label="disease">疾病</el-radio-button>
-              <el-radio-button label="symptom">症状</el-radio-button>
-              <el-radio-button label="drug">药物</el-radio-button>
-              <el-radio-button label="treatment">治疗</el-radio-button>
-            </el-radio-group>
+            <el-select
+              v-model="searchType"
+              placeholder="选择实体类型"
+              class="filter-select"
+              clearable
+              filterable
+            >
+              <el-option label="全部类型" value="all"></el-option>
+              <el-option
+                v-for="t in ENTITY_TYPE_CONFIG"
+                :key="t.category"
+                :label="t.label"
+                :value="t.category"
+              ></el-option>
+            </el-select>
           </div>
         </div>
         
@@ -209,11 +217,13 @@
 <script>
 import searchApi from '@/api/search'
 import { saveHistoryRecord, HISTORY_TYPES } from '@/utils/historyUtils'
+import { ENTITY_TYPE_CONFIG, getEntityTypeLabel, normalizeEntityTypeForApi } from '@/config/entityTypes'
 
 export default {
   name: 'SearchPage',
   data() {
     return {
+      ENTITY_TYPE_CONFIG,
       searchQuery: '',
       searchType: 'all',
       searchResults: [],
@@ -266,9 +276,10 @@ export default {
       
       this.isLoading = true;
       try {
+        const typeParam = (this.searchType === 'all' || !this.searchType) ? '' : normalizeEntityTypeForApi(this.searchType)
         const params = {
           keyword: this.searchQuery.trim(),
-          type: this.searchType === 'all' ? '' : this.searchType,
+          type: typeParam,
           limit: this.pageSize
         }
         const resp = await searchApi.searchEntities(params)
@@ -333,26 +344,29 @@ export default {
       }
     },
     
-    // 获取类型名称
+    // 获取类型名称（使用 config）
     getTypeName(type) {
-      const typeMap = {
-        disease: '疾病',
-        symptom: '症状',
-        drug: '药物',
-        treatment: '治疗'
-      };
-      return typeMap[type] || type;
+      return getEntityTypeLabel(type)
     },
     
-    // 获取标签类型
+    // 获取标签类型（映射到 Element UI tag type，支持 28 种实体类型）
     getTagType(type) {
-      const typeMap = {
+      const tagMap = {
         disease: 'danger',
         symptom: 'warning',
-        drug: 'success',
-        treatment: 'info'
-      };
-      return typeMap[type] || 'info';
+        medicine: 'success',
+        drugtreatment: 'success',
+        tcmtreatment: 'success',
+        surgery: 'success',
+        laboratoryexamination: 'warning',
+        imagingexamination: 'warning',
+        physicalexamination: 'warning',
+        anatomicalsite: 'info',
+        hospital: 'info',
+        department: 'info'
+      }
+      const key = (type || '').toLowerCase()
+      return tagMap[key] || 'info'
     },
     
     // 分页大小改变
@@ -442,11 +456,11 @@ export default {
   margin-top: 20px;
 }
 
-.filter-group {
+.filter-select {
+  min-width: 180px;
   background: var(--bg-card);
-  padding: 5px;
-  border-radius: var(--radius-md);
   border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
 }
 
 /* 热门搜索 */
@@ -778,14 +792,8 @@ export default {
     font-size: 24px;
   }
   
-  .filter-group {
+  .filter-select {
     width: 100%;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-  
-  .el-radio-button {
-    flex-shrink: 0;
   }
   
   .hot-searches {

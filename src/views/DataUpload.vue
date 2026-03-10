@@ -574,7 +574,7 @@ export default {
       // 每2秒查询一次进度
       file.progressInterval = setInterval(async () => {
         try {
-          const response = await this.$http.get(`/api/kg/build/progress/${file.taskId}`);
+          const response = await this.$http.get(`/api/kg/build/progress/${file.taskId}`, { timeout: 15000 });
           const progressData = response.data;
           
           // 更新文件进度和状态
@@ -588,8 +588,14 @@ export default {
           
           file.message = progressData.message || '正在生成知识图谱...';
           
-          // 如果任务完成或失败，停止查询
-          if (progressData.status === 'completed') {
+          // 如果任务完成、失败或不存在，停止查询
+          if (progressData.status === 'not_found') {
+            clearInterval(file.progressInterval);
+            file.progressInterval = null;
+            file.generatingKG = false;
+            file.message = '任务已丢失（服务可能已重启），请重新点击「生成知识图谱」';
+            this.$message.warning(`知识图谱任务已丢失: ${file.name}`);
+          } else if (progressData.status === 'completed') {
             clearInterval(file.progressInterval);
             file.progressInterval = null;
             file.generatingKG = false;

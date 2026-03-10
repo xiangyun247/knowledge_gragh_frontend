@@ -90,14 +90,15 @@
             <i class="el-icon-filter"></i>
             筛选 <i class="el-icon-arrow-down el-icon--right"></i>
           </el-button>
-          <el-dropdown-menu slot="dropdown">
+          <el-dropdown-menu slot="dropdown" class="entity-filter-dropdown">
             <el-dropdown-item command="all">全部实体</el-dropdown-item>
-            <el-dropdown-item command="disease">疾病</el-dropdown-item>
-            <el-dropdown-item command="symptom">症状</el-dropdown-item>
-            <el-dropdown-item command="treatment">治疗方法</el-dropdown-item>
-            <el-dropdown-item command="medicine">药物</el-dropdown-item>
-            <el-dropdown-item command="examination">检查</el-dropdown-item>
-            <el-dropdown-item command="location">部位</el-dropdown-item>
+            <el-dropdown-item
+              v-for="t in ENTITY_TYPE_CONFIG"
+              :key="t.category"
+              :command="t.category"
+            >
+              {{ t.label }}
+            </el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
         
@@ -172,6 +173,7 @@ import * as echarts from 'echarts'
 import service from '../../utils/request'
 import { saveHistoryRecord, HISTORY_TYPES } from '../../utils/historyUtils'
 import graphApi from '../../api/graph'
+import { ENTITY_TYPE_CONFIG, getEntityTypeLabel, getEntityTypeColor } from '../../config/entityTypes'
 
 // 官方胰腺炎知识图谱的 graph_id（由后端构建脚本输出）
 const OFFICIAL_PANCREATITIS_GRAPH_ID = '5c716837-505e-41b5-b2db-5b6fdf3c0ea7'
@@ -181,6 +183,7 @@ export default {
   components: {},
   data() {
     return {
+      ENTITY_TYPE_CONFIG,
       chart: null,
       graphData: null,
       showLegend: false,
@@ -188,14 +191,7 @@ export default {
       selectedNode: null,
       searchKeyword: '',
       isFullscreen: false,
-      legendData: [
-        { name: '疾病', color: '#ff6b6b' },
-        { name: '症状', color: '#4ecdc4' },
-        { name: '治疗方法', color: '#45b7d1' },
-        { name: '药物', color: '#96ceb4' },
-        { name: '检查', color: '#ffeaa7' },
-        { name: '部位', color: '#dda0dd' }
-      ],
+      legendData: ENTITY_TYPE_CONFIG.map(t => ({ name: t.label, color: t.color })),
       // 懒加载相关数据
       loading: false,
       loadedCount: 0,
@@ -436,24 +432,15 @@ export default {
           params
         })
         
-        // 定义节点类型与颜色映射
-        const nodeTypes = [
-          { name: '疾病', category: 'disease', color: '#ff6b6b' },
-          { name: '症状', category: 'symptom', color: '#4ecdc4' },
-          { name: '治疗方法', category: 'treatment', color: '#45b7d1' },
-          { name: '药物', category: 'medicine', color: '#96ceb4' },
-          { name: '检查', category: 'examination', color: '#ffeaa7' },
-          { name: '部位', category: 'location', color: '#dda0dd' }
-        ]
-        
-        // 处理后端返回的数据格式，为节点添加颜色属性
+        // 使用 config 中的节点类型与颜色映射
         const nodesWithColor = (response.data.nodes || []).map(node => {
-          const typeInfo = nodeTypes.find(t => t.category === node.category)
+          const cat = (node.category || node.type || '').toLowerCase()
+          const typeInfo = ENTITY_TYPE_CONFIG.find(t => t.category === cat)
           return {
             ...node,
             id: node.id ?? node.name,
             name: node.name ?? node.id,
-            color: typeInfo ? typeInfo.color : '#9c27ff' // 默认颜色
+            color: typeInfo ? typeInfo.color : getEntityTypeColor(node.category || node.type)
           }
         })
         const rawEdges = response.data.edges || response.data.data?.relations || []
@@ -525,17 +512,6 @@ export default {
     
     // 生成模拟图谱数据
     generateMockGraphData() {
-      const nodeTypes = [
-        { name: '疾病', category: 'disease', color: '#ff6b6b' },
-        { name: '症状', category: 'symptom', color: '#4ecdc4' },
-        { name: '治疗方法', category: 'treatment', color: '#45b7d1' },
-        { name: '药物', category: 'medicine', color: '#96ceb4' },
-        { name: '检查', category: 'examination', color: '#ffeaa7' },
-        { name: '部位', category: 'location', color: '#dda0dd' }
-      ]
-      
-      // 生成节点
-      const nodes = []
       const nodeNames = [
         { name: '糖尿病', type: 'disease' },
         { name: '高血压', type: 'disease' },
@@ -543,33 +519,33 @@ export default {
         { name: '头晕', type: 'symptom' },
         { name: '口渴', type: 'symptom' },
         { name: '疲劳', type: 'symptom' },
-        { name: '药物治疗', type: 'treatment' },
-        { name: '饮食控制', type: 'treatment' },
+        { name: '药物治疗', type: 'drugtreatment' },
+        { name: '饮食控制', type: 'drugtreatment' },
         { name: '胰岛素', type: 'medicine' },
         { name: '降压药', type: 'medicine' },
-        { name: '血糖检查', type: 'examination' },
-        { name: '心脏超声', type: 'examination' },
-        { name: '胰腺', type: 'location' },
-        { name: '心脏', type: 'location' },
-        { name: '血管', type: 'location' }
+        { name: '血糖检查', type: 'laboratoryexamination' },
+        { name: '心脏超声', type: 'laboratoryexamination' },
+        { name: '胰腺', type: 'anatomicalsite' },
+        { name: '心脏', type: 'anatomicalsite' },
+        { name: '血管', type: 'anatomicalsite' }
       ]
-      
+
+      const nodes = []
       nodeNames.forEach((node, index) => {
-        const typeInfo = nodeTypes.find(t => t.category === node.type)
+        const typeInfo = ENTITY_TYPE_CONFIG.find(t => t.category === node.type)
         nodes.push({
           id: index,
           name: node.name,
           category: node.type,
           symbolSize: 40 + Math.random() * 20,
-          color: typeInfo.color,
+          color: typeInfo ? typeInfo.color : getEntityTypeColor(node.type),
           description: `这是${node.name}的详细描述信息，包含疾病的病因、症状、治疗方法等。`,
           relations: []
         })
       })
-      
-      // 生成关系
+
       const links = []
-      const relationTypes = ['症状', '治疗方法', '药物', '检查', '发生部位']
+      const relationTypes = ['症状或体征', '用于治疗', '药物', '用于检查', '发病部位']
       
       // 为每个节点生成随机关系
       nodes.forEach((node, index) => {
@@ -943,17 +919,9 @@ export default {
       this.showNodeDetail = false
     },
     
-    // 获取节点类型名称
+    // 获取节点类型名称（使用 config）
     getNodeTypeName(category) {
-      const typeMap = {
-        'disease': '疾病',
-        'symptom': '症状',
-        'treatment': '治疗方法',
-        'medicine': '药物',
-        'examination': '检查',
-        'location': '部位'
-      }
-      return typeMap[category] || '未知类型'
+      return getEntityTypeLabel(category)
     },
     
     // 检查是否需要懒加载更多数据
@@ -1074,6 +1042,12 @@ export default {
 </script>
 
 <style>
+/* 实体筛选下拉：28 种类型时限制高度 */
+.entity-filter-dropdown {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
 .graph-view-container {
   display: flex;
   flex-direction: column;
@@ -1189,6 +1163,8 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: 360px;
+  overflow-y: auto;
 }
 
 .legend-item {

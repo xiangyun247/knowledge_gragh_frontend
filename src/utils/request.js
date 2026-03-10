@@ -170,12 +170,15 @@ service.interceptors.response.use(
       message = '服务器无响应，请稍后重试';
     }
     
-    // 显示错误消息
-    Message({
-      message: message,
-      type: 'error',
-      duration: 5 * 1000
-    });
+    // 进度轮询等接口不弹出全局错误，由业务层自行处理
+    const isProgressPoll = config && config.url && String(config.url).includes('/api/kg/build/progress/');
+    if (!isProgressPoll) {
+      Message({
+        message: message,
+        type: 'error',
+        duration: 5 * 1000
+      });
+    }
     
     return Promise.reject(error);
   }
