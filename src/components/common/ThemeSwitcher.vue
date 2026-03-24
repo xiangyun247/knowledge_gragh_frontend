@@ -1,14 +1,21 @@
 <template>
   <div class="theme-switcher">
-    <el-tooltip content="切换风格" placement="bottom">
-      <div class="theme-toggle-btn" @click="toggleTheme">
+    <el-dropdown trigger="click" @command="setTheme">
+      <div class="theme-toggle-btn">
         <i class="el-icon-brush"></i>
+        <span class="theme-label">{{ themeLabel }}</span>
       </div>
-    </el-tooltip>
+      <el-dropdown-menu slot="dropdown">
+        <el-dropdown-item command="tech">科技风</el-dropdown-item>
+        <el-dropdown-item command="medical">医疗风</el-dropdown-item>
+        <el-dropdown-item command="elderly">适老模式</el-dropdown-item>
+      </el-dropdown-menu>
+    </el-dropdown>
   </div>
 </template>
 
 <script>
+const THEME_LABELS = { tech: '科技风', medical: '医疗风', elderly: '适老模式' }
 export default {
   name: 'ThemeSwitcher',
   data() {
@@ -16,18 +23,18 @@ export default {
       currentTheme: 'tech'
     }
   },
+  computed: {
+    themeLabel() {
+      return THEME_LABELS[this.currentTheme] || '主题'
+    }
+  },
   mounted() {
-    // 从localStorage读取当前主题，或从App.vue获取
     const savedTheme = localStorage.getItem('app-theme') || 'tech'
     this.currentTheme = savedTheme
-    
-    // 确保DOM元素有正确的主题属性
     if (document.documentElement.getAttribute('data-theme') !== savedTheme) {
       document.documentElement.setAttribute('data-theme', savedTheme)
       document.body.setAttribute('data-theme', savedTheme)
     }
-    
-    // 监听主题切换事件
     this.$root.$on('theme-changed', (theme) => {
       this.currentTheme = theme
     })
@@ -36,13 +43,11 @@ export default {
     this.$root.$off('theme-changed')
   },
   methods: {
-    toggleTheme() {
-      const newTheme = this.currentTheme === 'tech' ? 'medical' : 'tech'
-      this.currentTheme = newTheme
-
-      // 统一交给 App 根组件处理主题切换（设置 DOM、localStorage 并广播事件）
+    setTheme(theme) {
+      if (!theme || !THEME_LABELS[theme]) return
+      this.currentTheme = theme
       if (this.$root.$children[0] && this.$root.$children[0].setTheme) {
-        this.$root.$children[0].setTheme(newTheme)
+        this.$root.$children[0].setTheme(theme)
       }
     }
   }
@@ -59,25 +64,36 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
+  gap: 6px;
+  min-width: 36px;
   height: 36px;
+  padding: 0 10px;
   background: linear-gradient(135deg, #00f5d4, #22c55e);
   color: #ffffff;
-  border-radius: 50%;
+  border-radius: 18px;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 2px 10px rgba(0, 245, 212, 0.4);
   user-select: none;
   border: none;
 }
-
 .theme-toggle-btn:hover {
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-2px) scale(1.02);
   box-shadow: 0 4px 16px rgba(0, 245, 212, 0.5);
 }
-
 .theme-toggle-btn i {
   font-size: 18px;
+}
+.theme-label {
+  font-size: 13px;
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 768px) {
+  .theme-label { display: none; }
+  .theme-toggle-btn { padding: 0; width: 36px; border-radius: 50%; }
 }
 </style>
 

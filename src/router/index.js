@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import storage from '@/utils/storage'
-import { hasRole, ROLES } from '@/utils/role'
+import { hasRole, ROLES, ELDERLY_ALLOWED_ROUTES } from '@/utils/role'
 
 // 导入页面组件
 const Cover = () => import('../components/common/CoverView.vue')
@@ -11,8 +11,12 @@ const GraphView = () => import('../components/graph/GraphView.vue')
 const Search = () => import('../components/search/SearchView.vue')
 const KnowledgeBase = () => import('../components/knowledge-base/KnowledgeBaseView.vue')
 const PatientEducation = () => import('../components/education/PatientEducationView.vue')
+const MedicationReminder = () => import('../components/medication/MedicationReminderView.vue')
+const CognitiveDashboard = () => import('../components/admin/CognitiveDashboardView.vue')
+const FamilyReport = () => import('../components/family/FamilyReportView.vue')
 const DataUpload = () => import('../components/upload/DataUploadView.vue')
 const History = () => import('../components/history/HistoryView.vue')
+const CognitiveLoadAssessment = () => import('../components/assessment/CognitiveLoadAssessmentView.vue')
 const FAQ = () => import('../components/common/FAQView.vue')
 const Login = () => import('../components/common/LoginView.vue')
 const ForgotPassword = () => import('../components/common/ForgotPasswordView.vue')
@@ -28,7 +32,7 @@ const routes = [
     name: 'Cover',
     component: Cover,
     meta: {
-      title: '医疗知识图谱系统 - 欢迎',
+      title: '智护银龄 - 欢迎',
       hideLayout: true
     }
   },
@@ -37,7 +41,7 @@ const routes = [
     name: 'Home',
     component: Home,
     meta: {
-      title: '医疗知识图谱系统 - 首页'
+      title: '智护银龄 - 首页'
     }
   },
   {
@@ -45,7 +49,7 @@ const routes = [
     name: 'Chat',
     component: Chat,
     meta: {
-      title: '医疗知识图谱系统 - 聊天问答'
+      title: '智护银龄 - 聊天问答'
       // 未登录也可访问，页面内操作时再校验登录
     }
   },
@@ -54,7 +58,7 @@ const routes = [
     name: 'GraphView',
     component: GraphView,
     meta: {
-      title: '医疗知识图谱系统 - 图谱可视化'
+      title: '智护银龄 - 图谱可视化'
       // 未登录也可访问
     }
   },
@@ -64,7 +68,7 @@ const routes = [
     name: 'GraphViewWithFile',
     component: GraphView,
     meta: {
-      title: '医疗知识图谱系统 - 图谱可视化'
+      title: '智护银龄 - 图谱可视化'
       // 未登录也可访问
     }
   },
@@ -73,7 +77,7 @@ const routes = [
     name: 'Search',
     component: Search,
     meta: {
-      title: '医疗知识图谱系统 - 实体搜索',
+      title: '智护银龄 - 实体搜索',
       roles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]
     }
   },
@@ -82,7 +86,7 @@ const routes = [
     name: 'KnowledgeBase',
     component: KnowledgeBase,
     meta: {
-      title: '医疗知识图谱系统 - 文档知识库'
+      title: '智护银龄 - 文档知识库'
       // 未登录也可访问
     }
   },
@@ -91,7 +95,15 @@ const routes = [
     name: 'PatientEducation',
     component: PatientEducation,
     meta: {
-      title: '医疗知识图谱系统 - 患者教育中心'
+      title: '智护银龄 - 患者教育中心'
+    }
+  },
+  {
+    path: '/medication',
+    name: 'MedicationReminder',
+    component: MedicationReminder,
+    meta: {
+      title: '智护银龄 - 服药提醒'
     }
   },
   {
@@ -99,7 +111,7 @@ const routes = [
     name: 'DataUpload',
     component: DataUpload,
     meta: {
-      title: '医疗知识图谱系统 - 数据上传',
+      title: '智护银龄 - 数据上传',
       roles: [ROLES.ADMIN, ROLES.DOCTOR] // 仅管理员、医生可访问
     }
   },
@@ -108,8 +120,34 @@ const routes = [
     name: 'History',
     component: History,
     meta: {
-      title: '医疗知识图谱系统 - 历史记录',
+      title: '智护银龄 - 历史记录',
       roles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]
+    }
+  },
+  {
+    path: '/cognitive-load',
+    name: 'CognitiveLoadAssessment',
+    component: CognitiveLoadAssessment,
+    meta: {
+      title: '智护银龄 - 认知负荷评估',
+      roles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]
+    }
+  },
+  {
+    path: '/admin/dashboard',
+    name: 'CognitiveDashboard',
+    component: CognitiveDashboard,
+    meta: {
+      title: '智护银龄 - 机构看板',
+      roles: [ROLES.ADMIN, ROLES.DOCTOR]
+    }
+  },
+  {
+    path: '/family-report',
+    name: 'FamilyReport',
+    component: FamilyReport,
+    meta: {
+      title: '智护银龄 - 家属周报'
     }
   },
   {
@@ -117,7 +155,7 @@ const routes = [
     name: 'FAQ',
     component: FAQ,
     meta: {
-      title: '医疗知识图谱系统 - 常见问题'
+      title: '智护银龄 - 常见问题'
     }
   },
   {
@@ -125,7 +163,7 @@ const routes = [
     name: 'Login',
     component: Login,
     meta: {
-      title: '医疗知识图谱系统 - 登录/注册'
+      title: '智护银龄 - 登录/注册'
     }
   },
   {
@@ -133,7 +171,7 @@ const routes = [
     name: 'ForgotPassword',
     component: ForgotPassword,
     meta: {
-      title: '医疗知识图谱系统 - 找回密码'
+      title: '智护银龄 - 找回密码'
     }
   },
   // 个人中心页面
@@ -142,7 +180,7 @@ const routes = [
     name: 'UserProfile',
     component: UserProfile,
     meta: {
-      title: '医疗知识图谱系统 - 个人中心',
+      title: '智护银龄 - 个人中心',
       requiresAuth: true
     }
   },
@@ -167,23 +205,25 @@ router.beforeEach((to, from, next) => {
   }
 
   const isLoggedIn = !!(storage.get('access_token') || storage.get('token'))
-  const authPages = ['/profile', '/upload', '/history']
+  const authPages = ['/profile', '/upload', '/history', '/cognitive-load']
+
+  const userInfo = storage.get('userInfo') || {}
+  const userRole = userInfo.role || 'patient'
 
   if (authPages.includes(to.path) && !isLoggedIn) {
     next('/login')
   } else if (to.path === '/login' && isLoggedIn) {
     next('/home')
+  } else if (userRole === ROLES.ELDERLY && !ELDERLY_ALLOWED_ROUTES.includes(to.path)) {
+    next('/home')
   } else if (to.meta.roles && to.meta.roles.length > 0) {
-    // 按角色限制：需登录且角色在 meta.roles 中
     if (!isLoggedIn) {
       next('/login')
     } else {
-      const userInfo = storage.get('userInfo') || {}
-      const userRole = userInfo.role || 'patient'
       if (hasRole(userRole, to.meta.roles)) {
         next()
       } else {
-        next('/home') // 角色不足，跳转首页
+        next('/home')
       }
     }
   } else {

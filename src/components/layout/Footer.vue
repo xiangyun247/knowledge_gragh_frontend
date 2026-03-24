@@ -3,7 +3,7 @@
     <div class="container">
       <div class="footer-content">
         <div class="copyright-info">
-          <span>&copy; {{ new Date().getFullYear() }} 医疗知识图谱系统. All Rights Reserved.</span>
+          <span>&copy; {{ new Date().getFullYear() }} 智护银龄. All Rights Reserved.</span>
         </div>
         <div class="footer-links">
           <a href="#" class="footer-link">关于我们</a>
@@ -15,7 +15,7 @@
           <a href="#" class="footer-link">联系我们</a>
         </div>
         <div class="technical-support">
-          <span>技术支持：<span class="support-team">AI医疗技术团队</span></span>
+          <span>技术支持：<span class="support-team">银龄智辅创新团队</span></span>
         </div>
       </div>
     </div>

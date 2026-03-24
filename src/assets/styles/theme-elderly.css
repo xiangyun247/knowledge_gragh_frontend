@@ -1,0 +1,391 @@
+/* 适老模式（M14）：字号放大一档、行距与对比度提高，关键按钮与链接更易辨认 */
+/* 与科技风/医疗风并存，data-theme="elderly" 时生效 */
+
+[data-theme="elderly"] {
+  /* 沿用医疗风浅色高对比基底 */
+  --primary-dark: #ffffff;
+  --secondary-dark: #f5f9ff;
+  --tertiary-dark: #e8f4ff;
+  --primary-blue: #0052a3;
+  --accent-purple: #0052a3;
+  --accent-cyan: #0d6efd;
+  --text-primary: #111111;
+  --text-secondary: #222222;
+  --text-muted: #444444;
+  --border-primary: #0052a3;
+  --border-secondary: #0d6efd;
+  --success: #198754;
+  --warning: #d97706;
+  --error: #dc3545;
+  --info: #0052a3;
+  /* RGB 分量（用于 rgba(var(--error-rgb), alpha)） */
+  --error-rgb: 220, 53, 69;
+  --warning-rgb: 217, 119, 6;
+  /* RGB 分量（适老高对比蓝体系） */
+  --primary-blue-rgb: 0, 82, 163;
+  --accent-purple-rgb: 0, 82, 163;
+  --accent-cyan-rgb: 13, 110, 253;
+
+  /* 语义化组件背景 */
+  --bg-card: #ffffff;
+  --bg-popup: #ffffff;
+
+  /* 适老：全局字号放大一档（约 1.15–1.25 倍） */
+  --font-size-base: 18px;
+  --font-size-lg: 20px;
+  --font-size-xl: 22px;
+  --line-height-base: 1.65;
+  --line-height-relaxed: 1.8;
+}
+
+[data-theme="elderly"] body,
+[data-theme="elderly"] .app-container {
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--text-primary);
+  background-color: var(--primary-dark);
+}
+
+[data-theme="elderly"] .animated-background {
+  display: none;
+}
+
+/* 适老：正文与标题字号、行距 */
+[data-theme="elderly"] .panel-title,
+[data-theme="elderly"] .app-title,
+[data-theme="elderly"] .section-title,
+[data-theme="elderly"] .edu-title,
+[data-theme="elderly"] .edu-heading {
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-relaxed);
+  font-weight: 600;
+  color: var(--primary-blue);
+}
+
+[data-theme="elderly"] .edu-text,
+[data-theme="elderly"] .edu-summary-text,
+[data-theme="elderly"] .edu-card-content,
+[data-theme="elderly"] .edu-step-text {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-relaxed);
+}
+
+/* 适老：关键按钮更大、对比更强 */
+[data-theme="elderly"] .app-btn,
+[data-theme="elderly"] .el-button {
+  font-size: var(--font-size-base);
+  padding: 12px 24px;
+  min-height: 44px;
+  border-width: 2px;
+}
+
+[data-theme="elderly"] .btn-primary,
+[data-theme="elderly"] .el-button--primary,
+[data-theme="elderly"] .app-btn-primary {
+  background: linear-gradient(135deg, #0052a3 0%, #0d6efd 100%);
+  color: #fff;
+  border: 2px solid #004080;
+  font-weight: 600;
+}
+
+[data-theme="elderly"] .nav-item {
+  font-size: var(--font-size-base);
+  padding: 10px 16px;
+}
+
+/* 适老：输入框与卡片更易辨认 */
+[data-theme="elderly"] .el-input__inner,
+[data-theme="elderly"] .app-input {
+  font-size: var(--font-size-base);
+  min-height: 44px;
+  border-width: 2px;
+}
+
+[data-theme="elderly"] .app-card,
+[data-theme="elderly"] .panel-card,
+[data-theme="elderly"] .feature-card {
+  border-width: 2px;
+  border-color: var(--border-primary);
+  background: var(--primary-dark);
+  color: var(--text-primary);
+}
+
+/* 适老模式：导航按钮脉冲提示光圈 */
+[data-theme="elderly"] .nav-item-elderly {
+  position: relative;
+}
+[data-theme="elderly"] .nav-item-elderly::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 28px;
+  border: 2px solid var(--accent-cyan);
+  opacity: 0;
+  animation: elderlyNavPulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+[data-theme="elderly"] .nav-item-elderly:nth-child(1)::after { animation-delay: 0s; }
+[data-theme="elderly"] .nav-item-elderly:nth-child(2)::after { animation-delay: 0.6s; }
+[data-theme="elderly"] .nav-item-elderly:nth-child(3)::after { animation-delay: 1.2s; }
+[data-theme="elderly"] .nav-item-elderly:nth-child(4)::after { animation-delay: 1.8s; }
+[data-theme="elderly"] .nav-item-elderly.active::after {
+  animation: none;
+  opacity: 0;
+}
+
+@keyframes elderlyNavPulse {
+  0%, 100% { opacity: 0; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.04); }
+}
+
+/* 适老模式：SOS 和语音按钮更大 */
+[data-theme="elderly"] .sos-fab {
+  width: 64px;
+  height: 64px;
+  font-size: 26px;
+}
+[data-theme="elderly"] .sos-label {
+  font-size: 12px;
+}
+[data-theme="elderly"] .va-fab {
+  width: 58px;
+  height: 58px;
+  font-size: 24px;
+}
+
+/* 适老模式：返回条更高 */
+[data-theme="elderly"] .global-back-bar {
+  height: 52px;
+}
+[data-theme="elderly"] .back-btn-wrap {
+  font-size: 16px;
+  padding: 8px 18px;
+}
+[data-theme="elderly"] .breadcrumb-text {
+  font-size: 16px;
+}
+
+/* ===================================================================
+   适老模式：新增组件补充覆盖
+   =================================================================== */
+
+/* ---- 服药提醒 ---- */
+[data-theme="elderly"] .med-reminder-page .panel-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border-primary);
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="elderly"] .med-reminder-page .panel-title {
+  color: var(--primary-blue);
+  font-size: var(--font-size-xl);
+}
+
+[data-theme="elderly"] .med-reminder-page .med-task-card,
+[data-theme="elderly"] .med-reminder-page .med-step-card,
+[data-theme="elderly"] .med-reminder-page .med-card-item {
+  background: #f5f9ff !important;
+  border: 2px solid var(--border-secondary) !important;
+  min-height: 48px;
+}
+
+[data-theme="elderly"] .med-reminder-page .med-task-name,
+[data-theme="elderly"] .med-reminder-page .med-step-name,
+[data-theme="elderly"] .med-reminder-page .med-card-name {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+[data-theme="elderly"] .med-reminder-page .el-button {
+  min-height: 44px;
+  font-size: var(--font-size-base);
+}
+
+/* ---- 机构看板 ---- */
+[data-theme="elderly"] .dashboard-page .ov-card {
+  border: 2px solid var(--border-primary);
+}
+
+[data-theme="elderly"] .dashboard-page .ov-value {
+  font-size: var(--font-size-xl);
+}
+
+[data-theme="elderly"] .dashboard-page .chart-card {
+  border: 2px solid var(--border-primary);
+}
+
+/* ---- 家属报告 ---- */
+[data-theme="elderly"] .family-report .section-card {
+  border: 2px solid var(--border-primary);
+}
+
+[data-theme="elderly"] .family-report .status-text {
+  font-size: var(--font-size-xl);
+}
+
+[data-theme="elderly"] .family-report .med-ring-pct {
+  font-size: var(--font-size-xl);
+}
+
+[data-theme="elderly"] .family-report .cog-score-value {
+  font-size: var(--font-size-xl);
+}
+
+/* ---- 首页时间轴 ---- */
+[data-theme="elderly"] .timeline-section .tl-time {
+  font-size: var(--font-size-lg);
+}
+
+[data-theme="elderly"] .timeline-section .tl-label {
+  font-size: var(--font-size-lg);
+}
+
+[data-theme="elderly"] .timeline-section .tl-dot {
+  width: 18px;
+  height: 18px;
+  border-width: 3px;
+}
+
+[data-theme="elderly"] .timeline-section .tl-dot-done {
+  border-color: var(--success) !important;
+  background: var(--success) !important;
+}
+
+[data-theme="elderly"] .timeline-section .tl-dot-now {
+  border-color: var(--primary-blue) !important;
+  background: var(--primary-blue) !important;
+  box-shadow: 0 0 10px rgba(0, 82, 163, 0.5) !important;
+  animation: none !important;
+}
+
+[data-theme="elderly"] .timeline-section .tl-dot-missed {
+  border-color: var(--error) !important;
+  background: var(--error) !important;
+  box-shadow: 0 0 10px rgba(var(--error-rgb), 0.45) !important;
+}
+
+[data-theme="elderly"] .timeline-section .tl-item.missed {
+  background: rgba(var(--error-rgb), 0.06) !important;
+}
+
+[data-theme="elderly"] .timeline-section .tl-item.missed .tl-label {
+  color: var(--error) !important;
+}
+
+[data-theme="elderly"] .timeline-section .tl-go {
+  font-size: var(--font-size-base);
+  padding: 6px 14px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+[data-theme="elderly"] .timeline-section .tl-desc {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-relaxed);
+}
+
+[data-theme="elderly"] .timeline-section .tl-status {
+  font-size: var(--font-size-base);
+  padding: 4px 10px;
+}
+
+/* ---- 首页每日任务 ---- */
+[data-theme="elderly"] .daily-task-card {
+  min-height: 52px;
+  border: 2px solid var(--border-primary) !important;
+}
+
+[data-theme="elderly"] .engine-stage .stage-icon-wrap.active {
+  animation: none !important;
+}
+
+/* ---- 紧急求助面板 ---- */
+[data-theme="elderly"] .sos-panel {
+  background: var(--bg-popup) !important;
+  border: 2px solid rgba(220, 53, 69, 0.3) !important;
+}
+
+[data-theme="elderly"] .sos-contact-btn {
+  min-height: 52px;
+  border: 2px solid var(--border-primary) !important;
+  font-size: var(--font-size-base);
+}
+
+[data-theme="elderly"] .sos-emergency-btn {
+  min-height: 52px;
+  font-size: var(--font-size-lg);
+}
+
+/* ---- 引导教程 ---- */
+[data-theme="elderly"] .ob-card {
+  border: 2px solid var(--border-primary) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="elderly"] .ob-card-title {
+  font-size: var(--font-size-xl);
+}
+
+[data-theme="elderly"] .ob-card-desc {
+  font-size: var(--font-size-lg);
+}
+
+[data-theme="elderly"] .ob-next-btn {
+  min-height: 48px;
+  font-size: var(--font-size-lg);
+}
+
+[data-theme="elderly"] .ob-spotlight {
+  box-shadow:
+    0 0 0 4000px rgba(0, 0, 0, 0.55),
+    0 0 0 4px rgba(0, 82, 163, 0.6),
+    0 0 20px rgba(0, 82, 163, 0.3) !important;
+  animation: none !important;
+}
+
+/* ---- 情感反馈 ---- */
+[data-theme="elderly"] .ef-card {
+  border: 2px solid var(--border-primary) !important;
+}
+
+[data-theme="elderly"] .ef-title {
+  font-size: var(--font-size-xl);
+}
+
+[data-theme="elderly"] .ef-desc {
+  font-size: var(--font-size-lg);
+}
+
+[data-theme="elderly"] .ef-btn {
+  min-height: 48px;
+  font-size: var(--font-size-lg);
+}
+
+/* ---- 认知负荷评估 ---- */
+[data-theme="elderly"] .cognitive-assessment .chart-card {
+  border: 2px solid var(--border-primary) !important;
+}
+
+[data-theme="elderly"] .cognitive-assessment .report-card {
+  border: 2px solid var(--border-primary) !important;
+}
+
+[data-theme="elderly"] .cognitive-assessment .report-line {
+  font-size: var(--font-size-base);
+}
+
+/* ---- 全局返回条 ---- */
+[data-theme="elderly"] .global-back-bar {
+  border-top: 2px solid var(--border-primary);
+  backdrop-filter: none;
+}
+
+/* ---- 语音助手提示 ---- */
+[data-theme="elderly"] .va-tip {
+  border: 2px solid var(--border-primary) !important;
+}
+
+[data-theme="elderly"] .va-tip-text {
+  font-size: var(--font-size-base);
+}

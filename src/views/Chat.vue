@@ -2,6 +2,15 @@
   <div class="chat-container">
     <!-- 聊天主区域 -->
     <div class="chat-main">
+      <!-- 自适应调度提示横幅 -->
+      <div v-if="adaptiveTipVisible" class="chat-adaptive-banner">
+        <i class="el-icon-magic-stick"></i>
+        <span>{{ adaptiveTip }}</span>
+        <el-button type="text" size="mini" class="banner-go-btn" @click="$router.push('/patient-education')">
+          前往患者教育 <i class="el-icon-right"></i>
+        </el-button>
+        <i class="el-icon-close banner-close" @click="dismissAdaptiveTip"></i>
+      </div>
       <!-- 聊天消息区域 -->
       <div class="chat-messages" ref="messagesContainer">
         <!-- 欢迎消息 -->
@@ -117,6 +126,7 @@ import TypingIndicator from '../components/chat/TypingIndicator.vue'
 import dayjs from 'dayjs'
 import { sendMessageToBackend as apiSendMessage, sendMessageToBackendStream } from '../api/chat'
 import { saveHistoryRecord, HISTORY_TYPES } from '../utils/historyUtils'
+import { getRecommendedDisplayMode, getReasonLabel } from '../utils/cognitiveLoad'
 
 export default {
   name: 'Chat',
@@ -139,13 +149,16 @@ export default {
         '高血压的治疗方法有哪些？',
         '如何预防心脏病？',
         '感冒的症状是什么？'
-      ]
+      ],
+      adaptiveTip: '',
+      adaptiveTipVisible: false
     }
   },
   mounted() {
     this.sessionId = `s-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
     this.initChatHistory()
     this.applyQuestionFromRoute()
+    this.checkAdaptiveHint()
   },
   watch: {
     '$route': function (to) {
@@ -315,6 +328,24 @@ export default {
     // 切换侧边栏
     toggleSidebar() {
       this.sidebarOpen = !this.sidebarOpen
+    },
+    checkAdaptiveHint() {
+      const rec = getRecommendedDisplayMode()
+      if (rec.confidence === 'low') {
+        this.adaptiveTipVisible = false
+        return
+      }
+      const reasonLabel = getReasonLabel(rec.reason)
+      if (!reasonLabel) {
+        this.adaptiveTipVisible = false
+        return
+      }
+      const modeName = { long: '长文', step: '分步', card: '卡片' }[rec.mode] || rec.mode
+      this.adaptiveTip = `${reasonLabel}，建议在患者教育中使用「${modeName}」模式浏览内容`
+      this.adaptiveTipVisible = true
+    },
+    dismissAdaptiveTip() {
+      this.adaptiveTipVisible = false
     }
   }
 }
@@ -344,6 +375,44 @@ export default {
   border-radius: 12px;
   padding: 20px;
   border: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+/* 自适应调度提示横幅 */
+.chat-adaptive-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(0, 245, 212, 0.12), rgba(0, 187, 249, 0.12));
+  border: 1px solid rgba(0, 245, 212, 0.3);
+  font-size: 13px;
+  color: #00f5d4;
+  flex-shrink: 0;
+}
+.chat-adaptive-banner .el-icon-magic-stick {
+  font-size: 16px;
+}
+.chat-adaptive-banner span {
+  flex: 1;
+}
+.banner-go-btn {
+  color: #00bbf9 !important;
+  font-size: 13px !important;
+  padding: 0 !important;
+  white-space: nowrap;
+}
+.banner-go-btn:hover {
+  color: #00f5d4 !important;
+}
+.banner-close {
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  transition: color 0.2s;
+}
+.banner-close:hover {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* 聊天消息区域 */

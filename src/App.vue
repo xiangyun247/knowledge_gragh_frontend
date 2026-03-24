@@ -15,6 +15,21 @@
     
     <!-- 底部信息栏（封面页隐藏） -->
     <Footer v-if="showLayout" />
+
+    <!-- 老人新手引导 -->
+    <OnboardingGuide ref="onboarding" />
+
+    <!-- 情感化反馈 -->
+    <EmotionalFeedback />
+
+    <!-- 全局底部返回条 -->
+    <GlobalBackBar />
+
+    <!-- 全局语音助手 -->
+    <VoiceAssistant />
+
+    <!-- 全局紧急求助浮窗 -->
+    <EmergencySOS />
   </div>
 </template>
 
@@ -22,13 +37,23 @@
 import TopNavBar from './components/layout/TopNavBar.vue'
 import Footer from './components/layout/Footer.vue'
 import AnimatedBackground from './components/common/AnimatedBackground.vue'
+import OnboardingGuide from './components/common/OnboardingGuide.vue'
+import EmotionalFeedback from './components/common/EmotionalFeedback.vue'
+import GlobalBackBar from './components/common/GlobalBackBar.vue'
+import VoiceAssistant from './components/common/VoiceAssistant.vue'
+import EmergencySOS from './components/common/EmergencySOS.vue'
 
 export default {
   name: 'App',
   components: {
     TopNavBar,
     Footer,
-    AnimatedBackground
+    AnimatedBackground,
+    OnboardingGuide,
+    EmotionalFeedback,
+    GlobalBackBar,
+    VoiceAssistant,
+    EmergencySOS
   },
   data() {
     return {
@@ -40,6 +65,11 @@ export default {
       return !(this.$route && this.$route.meta && this.$route.meta.hideLayout)
     }
   },
+  watch: {
+    '$route'(to) {
+      this.tryOnboarding(to)
+    }
+  },
   mounted() {
     // 从localStorage读取保存的主题
     const savedTheme = localStorage.getItem('app-theme') || 'tech'
@@ -47,8 +77,19 @@ export default {
     
     // 确保 body 标签也有 data-theme 属性
     document.body.setAttribute('data-theme', savedTheme)
+
+    this.$nextTick(() => this.tryOnboarding(this.$route))
   },
   methods: {
+    tryOnboarding(route) {
+      if (!route || route.path !== '/home') return
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+      if (userInfo.role !== 'elderly') return
+      const guide = this.$refs.onboarding
+      if (guide && guide.shouldShow()) {
+        setTimeout(() => guide.start(), 600)
+      }
+    },
     setTheme(theme) {
       this.currentTheme = theme
       document.documentElement.setAttribute('data-theme', theme)

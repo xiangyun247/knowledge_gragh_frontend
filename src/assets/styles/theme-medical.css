@@ -23,6 +23,10 @@
   --warning: #ffc107;
   --error: #dc3545;
   --info: #0066cc;
+
+  /* RGB 分量（用于 rgba(var(--error-rgb), alpha)） */
+  --error-rgb: 220, 53, 69;
+  --warning-rgb: 255, 193, 7;
   
   /* 渐变色 - 简洁的医疗蓝渐变 */
   --gradient-main: linear-gradient(135deg, #0066cc 0%, #4a90e2 100%);
@@ -59,6 +63,15 @@
   --bg-lighter: #f0f7ff;
   --bg-hover: #e0efff;
   --bg-active: #cce5ff;
+
+  /* RGB 分量（医疗蓝体系） */
+  --primary-blue-rgb: 0, 102, 204;
+  --accent-purple-rgb: 74, 144, 226;
+  --accent-cyan-rgb: 93, 173, 226;
+
+  /* 语义化组件背景 */
+  --bg-card: #ffffff;
+  --bg-popup: #ffffff;
 }
 
 /* 医疗风下的特殊样式覆盖 */
@@ -1359,4 +1372,258 @@
 
 [data-theme="medical"] .patient-edu-page .edu-list-header .el-button--text:hover {
   color: var(--accent-purple);
+}
+
+/* ===================================================================
+   新增组件：医疗风覆盖样式
+   =================================================================== */
+
+/* ---- 服药提醒 MedicationReminderView ---- */
+[data-theme="medical"] .med-reminder-page .panel-card {
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="medical"] .med-reminder-page .med-task-card,
+[data-theme="medical"] .med-reminder-page .med-step-card,
+[data-theme="medical"] .med-reminder-page .med-card-item {
+  background: var(--bg-lighter) !important;
+  border-color: var(--border-primary) !important;
+}
+
+[data-theme="medical"] .med-reminder-page .med-task-card:hover,
+[data-theme="medical"] .med-reminder-page .med-step-card:hover,
+[data-theme="medical"] .med-reminder-page .med-card-item:hover {
+  background: var(--bg-hover) !important;
+}
+
+[data-theme="medical"] .med-reminder-page .med-task-card.done,
+[data-theme="medical"] .med-reminder-page .med-step-card.done,
+[data-theme="medical"] .med-reminder-page .med-card-item.done {
+  opacity: 0.65;
+}
+
+[data-theme="medical"] .med-reminder-page .med-progress-bar {
+  background: var(--border-light) !important;
+}
+
+[data-theme="medical"] .med-reminder-page .med-history-row {
+  border-bottom-color: var(--border-light);
+}
+
+/* ---- 机构看板 CognitiveDashboardView ---- */
+[data-theme="medical"] .dashboard-page .ov-card {
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="medical"] .dashboard-page .chart-card {
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="medical"] .dashboard-page .el-table {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+[data-theme="medical"] .dashboard-page .el-table th {
+  background: var(--bg-lighter) !important;
+  color: var(--text-secondary) !important;
+  border-bottom-color: var(--border-primary) !important;
+}
+
+[data-theme="medical"] .dashboard-page .el-table td {
+  border-bottom-color: var(--border-light) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="medical"] .dashboard-page .el-table tr:hover > td {
+  background: var(--bg-hover) !important;
+}
+
+[data-theme="medical"] .dashboard-page .el-table::before,
+[data-theme="medical"] .dashboard-page .el-table--border::after {
+  background-color: var(--border-light) !important;
+}
+
+/* ---- 家属报告 FamilyReportView ---- */
+[data-theme="medical"] .family-report .section-card {
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="medical"] .family-report .status-card.good {
+  background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05)) !important;
+  border-color: rgba(40, 167, 69, 0.3) !important;
+}
+
+[data-theme="medical"] .family-report .status-card.caution {
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05)) !important;
+  border-color: rgba(255, 193, 7, 0.3) !important;
+}
+
+[data-theme="medical"] .family-report .status-card.warn {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05)) !important;
+  border-color: rgba(220, 53, 69, 0.3) !important;
+}
+
+[data-theme="medical"] .family-report .tips-card {
+  background: rgba(0, 102, 204, 0.04) !important;
+  border-color: rgba(0, 102, 204, 0.2) !important;
+}
+
+/* ---- 首页时间轴 HomeView ---- */
+[data-theme="medical"] .timeline-section .tl-dot {
+  background: var(--bg-card);
+  border-color: var(--border-primary);
+}
+
+[data-theme="medical"] .timeline-section .tl-dot-done {
+  border-color: var(--success) !important;
+  background: var(--success) !important;
+}
+
+[data-theme="medical"] .timeline-section .tl-dot-now {
+  border-color: var(--primary-blue) !important;
+  background: var(--primary-blue) !important;
+  box-shadow: 0 0 8px rgba(0, 102, 204, 0.4) !important;
+  animation: none !important;
+}
+
+[data-theme="medical"] .timeline-section .tl-dot-missed {
+  border-color: var(--error) !important;
+  background: var(--error) !important;
+  box-shadow: 0 0 10px rgba(var(--error-rgb), 0.45) !important;
+}
+
+[data-theme="medical"] .timeline-section .tl-item.missed {
+  background: rgba(var(--error-rgb), 0.06) !important;
+}
+
+[data-theme="medical"] .timeline-section .tl-item.missed .tl-label {
+  color: var(--error) !important;
+}
+
+[data-theme="medical"] .timeline-section .tl-line {
+  background: var(--border-light);
+}
+
+[data-theme="medical"] .timeline-section .tl-item.current {
+  background: rgba(0, 102, 204, 0.06);
+}
+
+[data-theme="medical"] .timeline-section .tl-go {
+  color: var(--primary-blue);
+  border-color: var(--border-primary);
+}
+
+[data-theme="medical"] .timeline-section .tl-go:hover {
+  background: var(--bg-hover);
+}
+
+/* ---- 首页每日任务 & 引擎 ---- */
+[data-theme="medical"] .daily-task-card {
+  background: var(--bg-lighter) !important;
+  border-color: var(--border-primary) !important;
+}
+
+[data-theme="medical"] .daily-task-card:hover {
+  background: var(--bg-hover) !important;
+}
+
+[data-theme="medical"] .daily-task-card.done {
+  background: rgba(40, 167, 69, 0.06) !important;
+  border-color: rgba(40, 167, 69, 0.2) !important;
+}
+
+[data-theme="medical"] .engine-stage .stage-icon-wrap {
+  background: var(--bg-lighter) !important;
+  border-color: var(--border-primary) !important;
+}
+
+[data-theme="medical"] .engine-stage .stage-icon-wrap.active {
+  animation: none !important;
+}
+
+[data-theme="medical"] .engine-detail-card {
+  background: var(--bg-lighter) !important;
+  border-color: var(--border-primary) !important;
+}
+
+/* ---- 紧急求助 EmergencySOS ---- */
+[data-theme="medical"] .sos-panel {
+  background: var(--bg-popup) !important;
+  border-color: rgba(220, 53, 69, 0.25) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+[data-theme="medical"] .sos-contact-btn {
+  background: var(--bg-lighter) !important;
+  border-color: var(--border-primary) !important;
+}
+
+[data-theme="medical"] .sos-contact-btn:hover {
+  background: var(--bg-hover) !important;
+}
+
+[data-theme="medical"] .sos-contact-phone {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="medical"] .sos-setting-link {
+  color: var(--primary-blue) !important;
+}
+
+[data-theme="medical"] .sos-last-call {
+  color: var(--text-muted) !important;
+}
+
+/* ---- 全局返回条 GlobalBackBar ---- */
+[data-theme="medical"] .global-back-bar {
+  box-shadow: 0 -2px 8px rgba(0, 102, 204, 0.08);
+  backdrop-filter: none;
+}
+
+/* ---- 语音助手 VoiceAssistant ---- */
+[data-theme="medical"] .va-tip {
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* ---- 引导教程 OnboardingGuide ---- */
+[data-theme="medical"] .ob-card {
+  box-shadow: var(--shadow-lg) !important;
+}
+
+[data-theme="medical"] .ob-spotlight {
+  box-shadow:
+    0 0 0 4000px rgba(0, 0, 0, 0.5),
+    0 0 0 3px rgba(0, 102, 204, 0.5),
+    0 0 16px rgba(0, 102, 204, 0.25) !important;
+  animation: none !important;
+}
+
+/* ---- 情感反馈 EmotionalFeedback ---- */
+[data-theme="medical"] .ef-card {
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* ---- 认知负荷评估 CognitiveLoadAssessmentView ---- */
+[data-theme="medical"] .cognitive-assessment .chart-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-primary) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+[data-theme="medical"] .cognitive-assessment .report-card {
+  background: var(--bg-card) !important;
+  border-color: var(--border-primary) !important;
+}
+
+[data-theme="medical"] .cognitive-assessment .report-line.good {
+  color: var(--success) !important;
+}
+
+[data-theme="medical"] .cognitive-assessment .report-line.warn {
+  color: var(--error) !important;
+}
+
+[data-theme="medical"] .cognitive-assessment .report-line.info {
+  color: var(--primary-blue) !important;
 }

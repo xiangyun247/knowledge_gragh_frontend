@@ -3,7 +3,7 @@
     <!-- 页面标题 -->
     <div class="page-header">
       <h1 class="app-title">数据上传</h1>
-      <p class="page-subtitle">上传医疗知识图谱数据，支持JSON、CSV、XML等格式</p>
+      <p class="page-subtitle">上传忆路康知识图谱数据，支持JSON、CSV、XML等格式</p>
     </div>
     
     <!-- 上传区域 -->

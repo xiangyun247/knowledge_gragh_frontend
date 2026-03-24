@@ -6,29 +6,37 @@
         <!-- 左侧文案与按钮 -->
         <div class="hero-left">
           <div class="brand-chip">
-            <span class="brand-en">YIMING AGENT</span>
+            <span class="brand-en">YILUKANG</span>
             <span class="brand-sep">·</span>
-            <span class="brand-zh">胰明智能体</span>
+            <span class="brand-zh">忆路康</span>
           </div>
 
           <h1 class="cover-title">
-            <span class="title-line">胰明 · 医疗知识图谱智能体</span>
-            <span class="title-slogan">Pancreas-focused Medical Knowledge Graph &amp; AI Copilot</span>
-            <span class="title-highlight">从病例到决策，一步到位</span>
+            <span class="title-line">忆路康 · 智护银龄 认知辅助</span>
+            <span class="title-slogan">Low Cognitive Load Knowledge Assistant for Elderly with Cognitive Impairment</span>
+            <span class="title-highlight">低认知负荷，让记忆有守护</span>
           </h1>
 
           <p class="cover-subtitle">
-            基于大模型 + 知识图谱 + RAG，自动串联胰腺疾病相关的病史、影像与指南，为医生和研究者生成结构化分析与决策建议。
+            基于大模型 + 知识图谱 + RAG，面向老龄认知障碍人群提供低认知负荷的知识辅助与患者教育，为照护者与机构提供可溯源的智能支持。
           </p>
 
           <div class="cover-cta-buttons">
             <router-link to="/chat" class="btn-primary app-btn app-btn-primary" v-ripple>
               <i class="el-icon-chat-dot-round"></i>
-              启动智能体会话
+              问一问
+            </router-link>
+            <router-link to="/patient-education" class="btn-primary app-btn app-btn-primary" v-ripple>
+              <i class="el-icon-medal"></i>
+              患者教育
             </router-link>
             <router-link to="/graph" class="btn-secondary app-btn app-btn-secondary" v-ripple>
-              <i class="el-icon-s-data"></i>
-              打开知识图谱面板
+              <i class="el-icon-data-analysis"></i>
+              知识图谱
+            </router-link>
+            <router-link to="/home" class="btn-more app-btn" v-ripple>
+              <i class="el-icon-more"></i>
+              更多
             </router-link>
           </div>
 
@@ -45,31 +53,31 @@
             <img
               class="hero-image"
               src="@/assets/images/Cover.png"
-              alt="YiMing 胰明医疗知识图谱系统封面图"
+              alt="忆路康 智护银龄认知辅助系统封面图"
             />
 
             <!-- 叠加迷你图谱 + 问答卡片，增强“真实系统”感 -->
             <div class="hero-overlay hero-overlay-chat">
               <div class="overlay-header">
                 <span class="overlay-tag">实时问答</span>
-                <span class="overlay-status">在线 · 胰腺炎病例</span>
+                <span class="overlay-status">在线 · 认知照护</span>
               </div>
-              <div class="overlay-question">「这例急性胰腺炎患者的重症风险如何？」</div>
+              <div class="overlay-question">「轻度认知障碍老人居家要注意什么？」</div>
               <div class="overlay-answer">
-                系统综合血淀粉酶、CT 评分与既往病史，提示 <span class="risk-high">中高风险</span>，
-                建议 24 小时内重复影像并关注器官功能评分。
+                系统综合知识图谱与照护指南，建议 <span class="risk-high">规律作息、按时服药、防跌倒与走失</span>，
+                并尽量用分步、简化的方式呈现信息，降低认知负荷。
               </div>
             </div>
 
             <div class="hero-overlay hero-overlay-graph">
-              <div class="mini-graph-title">胰腺疾病知识图谱</div>
+              <div class="mini-graph-title">老年认知照护知识图谱</div>
               <div class="mini-graph-nodes">
-                <span class="mini-node mini-node-primary">急性胰腺炎</span>
-                <span class="mini-node">症状</span>
-                <span class="mini-node">实验室指标</span>
-                <span class="mini-node">影像征象</span>
-                <span class="mini-node">并发症</span>
-                <span class="mini-node">指南推荐</span>
+                <span class="mini-node mini-node-primary">轻度认知障碍</span>
+                <span class="mini-node">记忆减退</span>
+                <span class="mini-node">日常照护</span>
+                <span class="mini-node">服药提醒</span>
+                <span class="mini-node">认知负荷</span>
+                <span class="mini-node">患者教育</span>
               </div>
             </div>
           </div>
@@ -88,7 +96,7 @@
               <div class="patient-journey-header">
                 <div class="patient-journey-title">
                   <span class="patient-label">患者历程：</span>
-                  <span class="patient-disease">胰腺炎</span>
+                  <span class="patient-disease">老年认知障碍</span>
                 </div>
                 <div class="patient-case-meta">实时同步 · 病例 #AP-2026-018</div>
               </div>
@@ -482,6 +490,24 @@ export default {
   background: rgba(0, 245, 212, 0.12);
   border-color: rgba(0, 245, 212, 0.6);
   box-shadow: 0 5px 26px rgba(0, 245, 212, 0.35);
+}
+
+.btn-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+.btn-more:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 /* 右侧实景卡片 */

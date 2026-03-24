@@ -76,11 +76,11 @@
         <section class="welcome-section">
           <div class="welcome-content">
             <h1 class="welcome-title">
-              <span class="title-line">探索医疗知识的</span>
-              <span class="title-highlight">智能图谱</span>
+              <span class="title-line">智护银龄 ·</span>
+              <span class="title-highlight">低认知负荷知识辅助</span>
             </h1>
             <p class="welcome-subtitle">
-              利用人工智能技术构建的医疗知识图谱系统，为您提供专业、准确的医疗信息查询与可视化服务
+              面向老龄认知障碍人群的低认知负荷知识辅助系统，基于知识图谱与 AI 提供可溯源的照护与患者教育支持
             </p>
             <div class="cta-buttons">
               <router-link to="/chat" class="btn-primary" v-ripple>

@@ -71,8 +71,8 @@
           <div class="welcome-icon">
             <i class="el-icon-chat-dot-round"></i>
           </div>
-          <h3>欢迎使用「胰明」医疗知识图谱智能体</h3>
-          <p>我专注胰腺相关疾病，基于知识图谱与文献为你提供可溯源的智能分析（结果仅供参考，请遵医嘱）。</p>
+          <h3>欢迎使用「忆路康」智护银龄认知辅助</h3>
+          <p>我专注老年认知障碍与认知负荷，基于知识图谱与文献为你提供可溯源的照护与患者教育支持（结果仅供参考，请遵医嘱）。</p>
           <div class="quick-questions">
             <el-button size="small" v-for="(q, index) in quickQuestions" :key="index" @click="sendQuickQuestion(q)">
               {{ q }}
@@ -88,9 +88,12 @@
             </div>
             <div class="message-bubble">
               <div class="message-text" v-html="renderMessageContent(message)"></div>
-              <div class="message-actions" v-if="message.type === 'system' && message.content && index > 0 && messages[index - 1].type === 'user'">
+              <div class="message-actions" v-if="message.type === 'system' && (message.content || message.patientEducation) && index > 0 && messages[index - 1].type === 'user'">
                 <el-button size="mini" type="text" class="tweet-btn" @click="handleTweetVersion(index)" :loading="tweetLoadingIndex === index">
                   <i class="el-icon-chat-line-square"></i> 推文版
+                </el-button>
+                <el-button size="mini" type="text" class="read-aloud-btn" @click="handleReadAloudMessage(index)" :loading="chatTtsLoadingIndex === index">
+                  <i class="el-icon-headset"></i> 朗读
                 </el-button>
               </div>
               <div class="message-time">{{ formatTime(message.timestamp) }}</div>
@@ -179,6 +182,7 @@
               </el-radio-group>
             </div>
             <el-checkbox v-model="enableDeepThink" size="small" class="stream-checkbox" v-if="chatMode === 'normal'">深度思考</el-checkbox>
+            <el-checkbox v-model="enableConciseAnswer" size="small" class="stream-checkbox" v-if="chatMode === 'normal'">简洁回答（三步以内）</el-checkbox>
           </div>
         </div>
         <el-button 
@@ -235,6 +239,14 @@
           <el-empty description="暂无关联信息"></el-empty>
         </div>
 
+        <!-- 认知负荷简易问卷（M11）：一次问答完成后弹出 -->
+        <CognitiveLoadQuestionnaire
+          :visible.sync="showCognitiveQuestionnaire"
+          :task-id="currentChatTaskId"
+          :session-id="sessionId || ''"
+          source="chat"
+        />
+
         <!-- 深度思考：检索与推理折叠面板 -->
         <div v-if="analysisTrace && enableDeepThink" class="analysis-panel">
           <el-collapse v-model="analysisActiveNames">
@@ -283,21 +295,33 @@
 import { mapState } from 'vuex'
 import TypingIndicator from './TypingIndicator.vue'
 import dayjs from 'dayjs'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { sendMessageToBackendStream, generateScienceTweet, getAvailableModels } from '../../api/chat'
 import { transcribeSTT, interpretOCR } from '../../api/multimodal'
 import { saveHistoryRecord, HISTORY_TYPES, getHistoryByType } from '../../utils/historyUtils'
 import storage from '../../utils/storage'
+import { recordEvent, COGNITIVE_EVENT_TYPES, COGNITIVE_SOURCE } from '../../utils/cognitiveLoad'
+import CognitiveLoadQuestionnaire from '../assessment/CognitiveLoadQuestionnaire.vue'
+import { synthesizeTTS } from '../../api/multimodal'
+
+marked.setOptions({
+  breaks: true,
+  gfm: true
+})
 
 export default {
   name: 'ChatView',
   components: {
-    TypingIndicator
+    TypingIndicator,
+    CognitiveLoadQuestionnaire
   },
   data() {
     return {
       inputMessage: '',
       isTyping: false,
       enableDeepThink: false,
+      enableConciseAnswer: false, // M9：简洁回答（三步以内简要版）
       chatMode: 'normal', // 'normal' | 'patient_education' | 'science_tweet'
       sidebarOpen: true,
       tweetLoadingIndex: -1,
@@ -311,11 +335,18 @@ export default {
       chatSessions: [],
       sessionLoading: false,
       activeSessionId: null,
+      // M10/M11 认知负荷：当前问答任务 id、开始时间、问卷弹窗
+      currentChatTaskId: null,
+      chatTaskStartTime: null,
+      showCognitiveQuestionnaire: false,
+      chatTtsLoadingIndex: null,
+      chatTtsAudio: null,
+      chatTtsAudioUrl: null,
       quickQuestions: [
-        '什么是急性胰腺炎？',
-        '胰腺炎常见症状有哪些？',
-        '胰腺炎需要做哪些检查？',
-        '胰腺炎的常规治疗方案是什么？'
+        '什么是轻度认知障碍？',
+        '认知障碍老人日常要注意什么？',
+        '如何降低老人使用产品时的认知负荷？',
+        '记忆减退老人需要做哪些检查？'
       ],
       availableModels: [],
       selectedModel: ''
@@ -325,8 +356,8 @@ export default {
     ...mapState('chat', ['messages', 'sessionId', 'sourcesGraph', 'sourcesDoc', 'lastQuestionForSources', 'analysisTrace']),
     ...mapState('user', ['isLoggedIn']),
     chatModePlaceholder() {
-      if (this.chatMode === 'patient_education') return '输入主题，如：急性胰腺炎出院后注意事项'
-      if (this.chatMode === 'science_tweet') return '输入主题，如：急性胰腺炎出院后注意事项'
+      if (this.chatMode === 'patient_education') return '输入主题，如：轻度认知障碍老人居家注意事项'
+      if (this.chatMode === 'science_tweet') return '输入主题，如：轻度认知障碍老人居家注意事项'
       return '请输入您的问题...'
     },
     chatModeButtonText() {
@@ -355,6 +386,8 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener('historyUpdated', this.onHistoryUpdated)
+    if (this.chatTtsAudio && !this.chatTtsAudio.paused) this.chatTtsAudio.pause()
+    if (this.chatTtsAudioUrl) URL.revokeObjectURL(this.chatTtsAudioUrl)
   },
   methods: {
     ensureLoggedIn() {
@@ -425,8 +458,20 @@ export default {
       }
     },
 
-    // 新对话：清空当前会话内容并生成新的 sessionId
     handleNewConversation() {
+      if (this.messages && this.messages.length > 0) {
+        this.$confirm('开始新对话将清空当前聊天内容，确定继续吗？', '新对话', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'info'
+        }).then(() => {
+          this.doNewConversation()
+        }).catch(() => {})
+      } else {
+        this.doNewConversation()
+      }
+    },
+    doNewConversation() {
       this.$store.commit('chat/RESET_CHAT')
       this.$store.commit('chat/SET_SESSION_ID', `s-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`)
       this.inputMessage = ''
@@ -525,6 +570,14 @@ export default {
     
     // 调用后端API发送消息（Agent 返回 answer、sources）。6.1 session_id 启用多轮；现在默认使用流式输出
     sendMessageToBackend(question) {
+      this.currentChatTaskId = 'chat_' + Date.now()
+      this.chatTaskStartTime = Date.now()
+      recordEvent(COGNITIVE_EVENT_TYPES.TASK_START, {
+        task_id: this.currentChatTaskId,
+        session_id: this.sessionId || null,
+        source: COGNITIVE_SOURCE.CHAT,
+        question: question.slice(0, 200)
+      })
       this.$store.commit('chat/SET_SOURCES', { sourcesGraph: [], sourcesDoc: [] })
       const sys = { type: 'system', content: '', timestamp: Date.now() }
       this.$store.commit('chat/ADD_MESSAGE', sys)
@@ -536,10 +589,20 @@ export default {
         deepThink: this.enableDeepThink,
         intent,
         model: this.selectedModel || undefined,
+        answerStyle: this.enableConciseAnswer ? 'concise' : undefined,
         onChunk: (d) => {
           this.$store.commit('chat/APPEND_MESSAGE_CONTENT', { index: idx, chunk: d })
         },
         onDone: ({ answer, sources, trace, patient_education, science_tweet }) => {
+          if (this.currentChatTaskId && this.chatTaskStartTime) {
+            recordEvent(COGNITIVE_EVENT_TYPES.TASK_END, {
+              task_id: this.currentChatTaskId,
+              session_id: this.sessionId || null,
+              source: COGNITIVE_SOURCE.CHAT,
+              duration_ms: Date.now() - this.chatTaskStartTime
+            })
+            this.showCognitiveQuestionnaire = true
+          }
           const m = this.messages[idx]
           if (m && m.type === 'system') {
             this.$store.commit('chat/UPDATE_MESSAGE_CONTENT', {
@@ -588,7 +651,6 @@ export default {
       return dayjs(timestamp).format('HH:mm')
     },
 
-    // 将少量 Markdown 样式（1. / - ）渲染成真正的列表 + 段落 HTML；若有 patientEducation 则分节展示
     renderMessageContent(message) {
       const pe = message && message.patientEducation
       if (pe && pe.title) {
@@ -598,58 +660,12 @@ export default {
       const text = (message && message.content) || ''
       if (!text) return ''
 
-      // 先对 HTML 做转义，避免 XSS
-      const escapeHtml = (s) =>
-        s
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-      const lines = text.split('\n').map(escapeHtml)
-
-      const blocks = []
-      let ul = []
-      let ol = []
-
-      const flushLists = () => {
-        if (ul.length) {
-          blocks.push(`<ul class="msg-list msg-list-ul">${ul.join('')}</ul>`)
-          ul = []
-        }
-        if (ol.length) {
-          blocks.push(`<ol class="msg-list msg-list-ol">${ol.join('')}</ol>`)
-          ol = []
-        }
-      }
-
-      lines.forEach((line) => {
-        const trimmed = line.trim()
-        if (!trimmed) {
-          // 空行：先把列表收尾，再插入一个段落空行
-          flushLists()
-          blocks.push('<p class="msg-paragraph">&nbsp;</p>')
-          return
-        }
-
-        const mBullet = trimmed.match(/^[-*]\s+(.+)/)
-        const mNumber = trimmed.match(/^\d+[.)]\s+(.+)/)
-
-        if (mBullet) {
-          // 无序列表项
-          if (ol.length) flushLists()
-          ul.push(`<li class="msg-list-item">${mBullet[1]}</li>`)
-        } else if (mNumber) {
-          // 有序列表项
-          if (ul.length) flushLists()
-          ol.push(`<li class="msg-list-item">${mNumber[1]}</li>`)
-        } else {
-          // 普通段落：先结束列表，再渲染成 <p>
-          flushLists()
-          blocks.push(`<p class="msg-paragraph">${trimmed}</p>`)
-        }
+      const rawHtml = marked.parse(text)
+      return DOMPurify.sanitize(rawHtml, {
+        ADD_TAGS: ['iframe'],
+        ADD_ATTR: ['target'],
+        ALLOW_DATA_ATTR: false
       })
-
-      flushLists()
-      return blocks.join('')
     },
 
     // 患者教育结构化展示：标题 + 分节 + 温馨提示
@@ -812,6 +828,60 @@ export default {
     },
 
     // 「推文版」按钮：将当前问答转化为科普推文
+    getMessagePlainText(message) {
+      if (!message) return ''
+      const pe = message.patientEducation
+      if (pe && pe.title) {
+        let t = pe.title + '\n\n'
+        ;(pe.sections || []).forEach(s => { t += (s.heading || '') + '\n' + (s.content || '') + '\n\n' })
+        if (pe.summary) t += '温馨提示：' + pe.summary
+        return t.replace(/\n{3,}/g, '\n\n').trim()
+      }
+      const c = (message.content || '').trim()
+      return c.replace(/<[^>]+>/g, '').trim() || c
+    },
+
+    async handleReadAloudMessage(msgIndex) {
+      if (msgIndex < 0 || !this.messages[msgIndex]) return
+      const text = this.getMessagePlainText(this.messages[msgIndex])
+      if (!text) {
+        this.$message.warning('该条消息无文字可朗读')
+        return
+      }
+      if (this.chatTtsAudio && !this.chatTtsAudio.paused) {
+        this.chatTtsAudio.pause()
+        this.chatTtsAudio = null
+        if (this.chatTtsAudioUrl) URL.revokeObjectURL(this.chatTtsAudioUrl)
+        this.chatTtsAudioUrl = null
+      }
+      this.chatTtsLoadingIndex = msgIndex
+      try {
+        const blob = await synthesizeTTS({ text: text.slice(0, 3000) })
+        const url = URL.createObjectURL(blob)
+        this.chatTtsAudioUrl = url
+        const audio = new Audio(url)
+        this.chatTtsAudio = audio
+        audio.onended = () => {
+          this.chatTtsLoadingIndex = null
+          if (this.chatTtsAudioUrl) URL.revokeObjectURL(this.chatTtsAudioUrl)
+          this.chatTtsAudioUrl = null
+          this.chatTtsAudio = null
+        }
+        audio.onerror = () => {
+          this.chatTtsLoadingIndex = null
+          if (this.chatTtsAudioUrl) URL.revokeObjectURL(this.chatTtsAudioUrl)
+          this.chatTtsAudioUrl = null
+          this.chatTtsAudio = null
+          this.$message.error('播放失败')
+        }
+        await audio.play()
+        this.$message.success('开始朗读')
+      } catch (e) {
+        this.chatTtsLoadingIndex = null
+        this.$message.error(e?.message || '朗读失败')
+      }
+    },
+
     async handleTweetVersion(msgIndex) {
       if (!this.ensureLoggedIn()) return
       if (msgIndex <= 0 || !this.messages[msgIndex] || !this.messages[msgIndex - 1]) return
@@ -1183,17 +1253,124 @@ export default {
   word-break: break-word;
 }
 
-.msg-paragraph {
-  margin: 0 0 4px;
+/* ===== Markdown typography inside message bubbles ===== */
+.message-text h1,
+.message-text h2,
+.message-text h3,
+.message-text h4,
+.message-text h5,
+.message-text h6 {
+  margin: 14px 0 8px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #fff;
+}
+.message-text h1 { font-size: 1.35em; }
+.message-text h2 { font-size: 1.2em; color: #00f5d4; }
+.message-text h3 { font-size: 1.1em; color: rgba(0,245,212,0.85); }
+.message-text h4,
+.message-text h5,
+.message-text h6 { font-size: 1em; }
+.message-text h1:first-child,
+.message-text h2:first-child,
+.message-text h3:first-child { margin-top: 0; }
+
+.message-text p {
+  margin: 0 0 8px;
+  line-height: 1.7;
+}
+.message-text p:last-child { margin-bottom: 0; }
+
+.message-text strong { color: #00f5d4; font-weight: 600; }
+.message-text em { color: rgba(255,255,255,0.85); font-style: italic; }
+
+.message-text ul,
+.message-text ol {
+  margin: 4px 0 10px;
+  padding-left: 22px;
+}
+.message-text li {
+  margin: 3px 0;
+  line-height: 1.6;
+}
+.message-text li::marker { color: #00f5d4; }
+
+.message-text blockquote {
+  margin: 8px 0;
+  padding: 8px 14px;
+  border-left: 3px solid #00f5d4;
+  background: rgba(0,245,212,0.06);
+  border-radius: 0 8px 8px 0;
+  color: rgba(255,255,255,0.85);
+}
+.message-text blockquote p { margin-bottom: 4px; }
+
+.message-text code {
+  background: rgba(0,245,212,0.1);
+  color: #00f5d4;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
-.msg-list {
-  margin: 0 0 4px 20px;
-  padding-left: 18px;
+.message-text pre {
+  margin: 8px 0;
+  padding: 12px 14px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(0,245,212,0.15);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+.message-text pre code {
+  background: transparent;
+  color: rgba(255,255,255,0.9);
+  padding: 0;
+  font-size: 0.85em;
+  line-height: 1.55;
 }
 
-.msg-list-item {
-  margin: 2px 0;
+.message-text table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: 0.9em;
+}
+.message-text th,
+.message-text td {
+  padding: 6px 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  text-align: left;
+}
+.message-text th {
+  background: rgba(0,245,212,0.1);
+  color: #00f5d4;
+  font-weight: 600;
+}
+.message-text tr:nth-child(even) td {
+  background: rgba(255,255,255,0.02);
+}
+
+.message-text hr {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin: 12px 0;
+}
+
+.message-text a {
+  color: #00bbf9;
+  text-decoration: underline;
+  text-decoration-color: rgba(0,187,249,0.4);
+  transition: color 0.2s;
+}
+.message-text a:hover {
+  color: #00f5d4;
+}
+
+.message-text img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 6px 0;
 }
 
 .message-actions {
@@ -1206,6 +1383,14 @@ export default {
   padding: 2px 8px;
 }
 .tweet-btn:hover {
+  color: #00f5d4 !important;
+}
+.read-aloud-btn {
+  color: #00bbf9 !important;
+  font-size: 12px;
+  padding: 2px 8px;
+}
+.read-aloud-btn:hover {
   color: #00f5d4 !important;
 }
 

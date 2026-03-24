@@ -322,7 +322,7 @@ export default {
       askSources: [],
       detailVisible: false,
       detailItem: null,
-      exampleQueries: ['胰腺炎的症状与治疗', '糖尿病并发症', '高血压用药', '慢性肾病饮食'],
+      exampleQueries: ['认知障碍与记忆减退', '服药提醒与日常照护', '高血压用药', '慢性肾病饮食'],
       kbBases: [],
       activeBase: 'default',
       createDialogVisible: false,

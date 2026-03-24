@@ -174,8 +174,9 @@ import service from '../../utils/request'
 import { saveHistoryRecord, HISTORY_TYPES } from '../../utils/historyUtils'
 import graphApi from '../../api/graph'
 import { ENTITY_TYPE_CONFIG, getEntityTypeLabel, getEntityTypeColor } from '../../config/entityTypes'
+import { getEChartsTheme } from '@/utils/echartsTheme'
 
-// 官方胰腺炎知识图谱的 graph_id（由后端构建脚本输出）
+// 官方忆路康/认知照护知识图谱的 graph_id（由后端构建脚本 build_official_cognitive_graph.py 或 build_official_pancreatitis_graph.py 输出）
 const OFFICIAL_PANCREATITIS_GRAPH_ID = '5c716837-505e-41b5-b2db-5b6fdf3c0ea7'
 
 export default {
@@ -215,6 +216,7 @@ export default {
       this.loadGraphData()
     })
     window.addEventListener('resize', this.handleResize)
+    this.$root.$on('theme-changed', this.handleThemeChange)
   },
   watch: {
     '$route': function (to) {
@@ -238,10 +240,36 @@ export default {
       this.chart = null
     }
     window.removeEventListener('resize', this.handleResize)
+    this.$root.$off('theme-changed', this.handleThemeChange)
   },
   methods: {
+    handleThemeChange() {
+      // 主题切换后重建图表，使配色与主题一致
+      if (this.chart) {
+        try { this.chart.dispose() } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('[GraphView] dispose failed during theme change', e)
+        }
+        this.chart = null
+      }
+      this.$nextTick(() => {
+        this.initChart()
+        if (!this.chart || !this.graphData) return
+        try {
+          this.chart.setOption({
+            series: [{
+              data: this.graphData.nodes || [],
+              links: this.graphData.links || []
+            }]
+          })
+        } catch (e) {
+          // 忽略重绘失败，避免影响页面
+        }
+      })
+    },
     // 初始化ECharts图表
     initChart() {
+      const t = getEChartsTheme()
       this.chart = echarts.init(this.$refs.graphContainer)
       
       // 设置图表事件
@@ -304,10 +332,10 @@ export default {
             edgeLabel: {
               fontSize: 12,
               formatter: '{c}',
-              color: '#ffffff'
+              color: t.textPrimary
             },
             lineStyle: {
-              color: '#00d4ff',
+              color: t.primaryBlue,
               width: 2,
               opacity: 0.6,
               curveness: 0.3
@@ -315,27 +343,27 @@ export default {
             itemStyle: {
               // 使用节点自身的color属性
               color: function(params) {
-                return params.data.color || '#9c27ff';
+                return params.data.color || t.accentPurple
               },
-              borderColor: '#00d4ff',
+              borderColor: t.primaryBlue,
               borderWidth: 2,
-              shadowColor: 'rgba(0, 212, 255, 0.5)',
+              shadowColor: t.rgbaPrimary(0.5),
               shadowBlur: 10
             },
             label: {
               show: true,
               position: 'right',
-              color: '#ffffff',
+              color: t.textPrimary,
               fontSize: 14,
               formatter: '{b}'
             },
             emphasis: {
               lineStyle: {
                 width: 3,
-                color: '#00e5ff'
+                color: t.accentCyan
               },
               itemStyle: {
-                shadowColor: 'rgba(0, 229, 255, 0.8)',
+                shadowColor: t.rgbaAccentCyan(0.8),
                 shadowBlur: 15,
                 borderWidth: 3
               }
@@ -373,20 +401,21 @@ export default {
           this.graphList = response.data.data.list || []
           console.log('获取图谱列表成功:', this.graphList.length, '个图谱')
 
-          // 如果当前路由没有指定 graphId，且尚未选择图谱，则优先选中官方胰腺炎图谱
+          // M22：如果当前路由没有指定 graphId，且尚未选择图谱，则优先选中官方忆路康/认知照护知识图谱（先按 id，再按名称含「官方」「忆路康」「认知照护」）
           const hasRouteGraph =
             !!(this.$route?.params?.file_id) || !!(this.$route?.query?.graphId)
           if (!hasRouteGraph && !this.selectedGraphId && this.graphList.length > 0) {
-            const official = this.graphList.find(g =>
-              g.graph_id === OFFICIAL_PANCREATITIS_GRAPH_ID ||
-              g.id === OFFICIAL_PANCREATITIS_GRAPH_ID
+            const byId = this.graphList.find(g =>
+              g.graph_id === OFFICIAL_PANCREATITIS_GRAPH_ID || g.id === OFFICIAL_PANCREATITIS_GRAPH_ID
             )
+            const official = byId || this.graphList.find(g => {
+              const name = (g.graph_name || g.name || '').trim()
+              return /官方|忆路康|认知照护/.test(name)
+            })
             if (official) {
-              this.selectedGraphId = OFFICIAL_PANCREATITIS_GRAPH_ID
-              console.log(
-                '[GraphView] 自动选中官方胰腺炎图谱:',
-                OFFICIAL_PANCREATITIS_GRAPH_ID
-              )
+              const id = official.graph_id || official.id
+              this.selectedGraphId = id
+              console.log('[GraphView] 自动选中官方忆路康/认知照护知识图谱:', id)
             }
           }
         }

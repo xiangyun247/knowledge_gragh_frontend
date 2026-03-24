@@ -16,6 +16,17 @@
   --warning: #f59e0b;
   --error: #ef4444;
   --info: #3b82f6;
+
+  /* RGB 分量（用于 rgba(var(--xxx-rgb), alpha) 写法） */
+  --primary-blue-rgb: 0, 212, 255;
+  --accent-purple-rgb: 156, 39, 255;
+  --accent-cyan-rgb: 0, 229, 255;
+  --error-rgb: 239, 68, 68;
+  --warning-rgb: 245, 158, 11;
+
+  /* 语义化组件背景 */
+  --bg-card: rgba(10, 14, 39, 0.9);
+  --bg-popup: rgba(12, 18, 48, 0.97);
   
   /* 渐变色 */
   --gradient-main: linear-gradient(135deg, #00d4ff 0%, #9c27ff 100%);

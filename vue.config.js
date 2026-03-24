@@ -1,5 +1,12 @@
 // Vue CLI 配置文件
 module.exports = {
+  // 页面标题（index.html 中的 htmlWebpackPlugin.options.title）
+  chainWebpack: config => {
+    config.plugin('html').tap(args => {
+      if (args[0]) args[0].title = '智护银龄 - 忆路康'
+      return args
+    })
+  },
   // 生产环境关闭 source map，减小体积并避免源码泄露
   productionSourceMap: false,
   // 开发服务器配置

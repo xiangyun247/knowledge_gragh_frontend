@@ -7,6 +7,7 @@ export const ROLES = {
   ADMIN: 'admin',
   DOCTOR: 'doctor',
   PATIENT: 'patient',
+  ELDERLY: 'elderly',
   GUEST: 'guest'
 }
 
@@ -15,8 +16,15 @@ export const ROLE_LABELS = {
   [ROLES.ADMIN]: '管理员',
   [ROLES.DOCTOR]: '医生',
   [ROLES.PATIENT]: '患者',
+  [ROLES.ELDERLY]: '老人',
   [ROLES.GUEST]: '访客'
 }
+
+/** 老人身份可见的路由白名单 */
+export const ELDERLY_ALLOWED_ROUTES = [
+  '/', '/home', '/chat', '/medication', '/patient-education', '/family-report',
+  '/login', '/profile', '/faq', '/forgot-password'
+]
 
 /**
  * 判断当前角色是否在允许列表中

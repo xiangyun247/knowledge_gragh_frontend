@@ -14,7 +14,7 @@ export function getAvailableModels() {
 }
 
 // 发送消息到后端查询API（使用 LangGraph Agent：/api/agent/query）
-// 6.1 传入 session_id 可启用多轮记忆；body 支持 { question, session_id, model, deep_think, intent }
+// 6.1 传入 session_id 可启用多轮记忆；body 支持 { question, session_id, model, deep_think, intent, answer_style }
 export function sendMessageToBackend(data) {
   const body =
     typeof data === 'string'
@@ -24,7 +24,8 @@ export function sendMessageToBackend(data) {
           session_id: data.session_id,
           model: data.model || undefined,
           deep_think: !!data.deep_think,
-          intent: data.intent || undefined
+          intent: data.intent || undefined,
+          answer_style: data.answer_style || undefined
         }
   return request({
     url: '/api/agent/query',
@@ -37,11 +38,12 @@ export function sendMessageToBackend(data) {
  * 6.2 流式问答：POST /api/agent/query/stream，SSE 推送 chunk / done / error
  * @param {string} question
  * @param {string} [sessionId]
- * @param {{ onChunk, onDone, onError, deepThink?: boolean, intent?: string, model?: string }} handlers
+ * @param {{ onChunk, onDone, onError, deepThink?: boolean, intent?: string, model?: string, answerStyle?: string }} handlers
  *   model: 多 LLM 支持，如 deepseek-chat、qwen-plus
  *   intent: 'patient_education' 时直接生成患者教育，返回结构化 { title, sections, summary }
+ *   answerStyle: 'concise' 时返回三步以内简要版（M9）
  */
-export function sendMessageToBackendStream(question, sessionId, { onChunk, onDone, onError, deepThink = false, intent, model }) {
+export function sendMessageToBackendStream(question, sessionId, { onChunk, onDone, onError, deepThink = false, intent, model, answerStyle }) {
   const base = (API_BASE || '').replace(/\/$/, '')
   const url = base ? `${base}/api/agent/query/stream` : '/api/agent/query/stream'
   const token = storage.get('access_token') || storage.get('token')
@@ -55,6 +57,7 @@ export function sendMessageToBackendStream(question, sessionId, { onChunk, onDon
   }
   if (intent) body.intent = intent
   if (model) body.model = model
+  if (answerStyle) body.answer_style = answerStyle
 
   fetch(url, {
     method: 'POST',

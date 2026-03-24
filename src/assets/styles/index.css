@@ -12,6 +12,9 @@
 /* 4. 医疗风主题样式 */
 @import './theme-medical.css';
 
+/* 4.1 适老模式主题（M14） */
+@import './theme-elderly.css';
+
 /* 5. 动画效果 */
 @import './animations.css';
 

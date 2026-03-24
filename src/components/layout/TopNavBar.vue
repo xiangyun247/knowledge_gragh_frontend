@@ -4,7 +4,7 @@
       <!-- Logo 和系统名称 -->
       <div class="logo-section">
         <img src="@/assets/images/logo.png" alt="Logo" class="logo" />
-        <h1 class="system-name">医疗知识图谱系统</h1>
+        <h1 class="system-name">智护银龄</h1>
       </div>
       
       <!-- 移动端菜单按钮 -->
@@ -13,43 +13,82 @@
       </div>
       
       <!-- 功能按钮导航：首页 / 对话·图谱·知识库 / 搜索·上传 / 历史·FAQ -->
-      <nav :class="{ 'nav-menu': true, 'nav-menu-open': isMenuOpen }">
-        <router-link to="/" class="nav-item" active-class="active" @click="closeMenu">
-          <i class="el-icon-s-home"></i>
-          <span>首页</span>
-        </router-link>
-        <router-link to="/chat" class="nav-item" active-class="active" @click="closeMenu">
-          <i class="el-icon-chat-dot-round"></i>
-          <span>新对话</span>
-        </router-link>
-        <router-link to="/patient-education" class="nav-item" active-class="active" @click="closeMenu">
-          <i class="el-icon-medal"></i>
-          <span>患者教育中心</span>
-        </router-link>
-        <router-link to="/graph" class="nav-item" active-class="active" @click="closeMenu">
-          <i class="el-icon-data-analysis"></i>
-          <span>知识图谱</span>
-        </router-link>
-        <router-link to="/knowledge-base" class="nav-item" active-class="active" @click="closeMenu">
-          <i class="el-icon-document"></i>
-          <span>知识库</span>
-        </router-link>
-        <router-link v-if="canUseCore" to="/search" class="nav-item" active-class="active" @click="closeMenu">
-          <i class="el-icon-search"></i>
-          <span>实体搜索</span>
-        </router-link>
-        <router-link v-if="canUpload" to="/upload" class="nav-item" active-class="active" @click="closeMenu">
-          <i class="el-icon-upload2"></i>
-          <span>数据上传</span>
-        </router-link>
-        <router-link v-if="canUseCore" to="/history" class="nav-item" active-class="active" @click="closeMenu">
-          <i class="el-icon-document-copy"></i>
-          <span>历史记录</span>
-        </router-link>
-        <router-link to="/faq" class="nav-item" active-class="active" @click="closeMenu">
-          <i class="el-icon-question"></i>
-          <span>常见问题</span>
-        </router-link>
+      <nav :class="{ 'nav-menu': true, 'nav-menu-open': isMenuOpen, 'nav-elderly': isElderly }">
+        <!-- 老人模式：只显示 4 个核心入口 -->
+        <template v-if="isElderly">
+          <router-link to="/home" class="nav-item nav-item-elderly" active-class="active" @click="closeMenu">
+            <i class="el-icon-s-home"></i>
+            <span>首页</span>
+          </router-link>
+          <router-link to="/chat" class="nav-item nav-item-elderly" active-class="active" @click="closeMenu">
+            <i class="el-icon-chat-dot-round"></i>
+            <span>问一问</span>
+          </router-link>
+          <router-link to="/medication" class="nav-item nav-item-elderly" active-class="active" @click="closeMenu">
+            <i class="el-icon-first-aid-kit"></i>
+            <span>吃药</span>
+          </router-link>
+          <router-link to="/patient-education" class="nav-item nav-item-elderly" active-class="active" @click="closeMenu">
+            <i class="el-icon-medal"></i>
+            <span>学知识</span>
+          </router-link>
+        </template>
+
+        <!-- 其他身份：完整导航 -->
+        <template v-else>
+          <router-link to="/" class="nav-item" active-class="active" @click="closeMenu">
+            <i class="el-icon-s-home"></i>
+            <span>首页</span>
+          </router-link>
+          <router-link to="/chat" class="nav-item" active-class="active" @click="closeMenu">
+            <i class="el-icon-chat-dot-round"></i>
+            <span>新对话</span>
+          </router-link>
+          <router-link to="/patient-education" class="nav-item" active-class="active" @click="closeMenu">
+            <i class="el-icon-medal"></i>
+            <span>患者教育中心</span>
+          </router-link>
+          <router-link to="/medication" class="nav-item" active-class="active" @click="closeMenu">
+            <i class="el-icon-first-aid-kit"></i>
+            <span>服药提醒</span>
+          </router-link>
+          <router-link to="/graph" class="nav-item" active-class="active" @click="closeMenu">
+            <i class="el-icon-data-analysis"></i>
+            <span>知识图谱</span>
+          </router-link>
+          <router-link to="/knowledge-base" class="nav-item" active-class="active" @click="closeMenu">
+            <i class="el-icon-document"></i>
+            <span>知识库</span>
+          </router-link>
+          <router-link v-if="canUseCore" to="/search" class="nav-item" active-class="active" @click="closeMenu">
+            <i class="el-icon-search"></i>
+            <span>实体搜索</span>
+          </router-link>
+          <router-link v-if="canUpload" to="/upload" class="nav-item" active-class="active" @click="closeMenu">
+            <i class="el-icon-upload2"></i>
+            <span>数据上传</span>
+          </router-link>
+          <router-link v-if="canUseCore" to="/history" class="nav-item" active-class="active" @click="closeMenu">
+            <i class="el-icon-document-copy"></i>
+            <span>历史记录</span>
+          </router-link>
+          <router-link v-if="canUseCore" to="/cognitive-load" class="nav-item" active-class="active" @click="closeMenu">
+            <i class="el-icon-data-line"></i>
+            <span>认知负荷评估</span>
+          </router-link>
+          <router-link to="/family-report" class="nav-item" active-class="active" @click="closeMenu">
+            <i class="el-icon-notebook-2"></i>
+            <span>家属周报</span>
+          </router-link>
+          <router-link v-if="canUpload" to="/admin/dashboard" class="nav-item" active-class="active" @click="closeMenu">
+            <i class="el-icon-monitor"></i>
+            <span>机构看板</span>
+          </router-link>
+          <router-link to="/faq" class="nav-item" active-class="active" @click="closeMenu">
+            <i class="el-icon-question"></i>
+            <span>常见问题</span>
+          </router-link>
+        </template>
       </nav>
       
       <!-- 用户信息和设置 -->
@@ -101,7 +140,7 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import ThemeSwitcher from '../common/ThemeSwitcher.vue'
-import { getRoleLabel, hasRole, ROLES } from '@/utils/role'
+import { getRoleLabel, hasRole, ROLES, ELDERLY_ALLOWED_ROUTES } from '@/utils/role'
 
 export default {
   components: {
@@ -121,13 +160,17 @@ export default {
     roleLabel() {
       return getRoleLabel(this.userRole)
     },
-    // 仅 admin、doctor 可见数据上传入口
-    canUpload() {
-      return hasRole(this.userRole, [ROLES.ADMIN, ROLES.DOCTOR])
+    isElderly() {
+      return this.userRole === ROLES.ELDERLY
     },
-    // 访客仅能浏览，admin/doctor/patient 可使用核心功能（未登录视为访客）
+    canUpload() {
+      return !this.isElderly && hasRole(this.userRole, [ROLES.ADMIN, ROLES.DOCTOR])
+    },
     canUseCore() {
-      return this.isLoggedIn && hasRole(this.userRole, [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT])
+      return this.isLoggedIn && !this.isElderly && hasRole(this.userRole, [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT])
+    },
+    elderlyRoutes() {
+      return ELDERLY_ALLOWED_ROUTES
     }
   },
   methods: {
@@ -353,6 +396,47 @@ export default {
 .dropdown-role {
   font-size: 12px;
   color: #909399;
+}
+
+/* ===== 老人简化模式 ===== */
+.nav-elderly {
+  gap: 12px;
+}
+
+.nav-item-elderly {
+  padding: 10px 22px;
+  border-radius: 24px;
+  font-size: 17px;
+  gap: 8px;
+  border: 1.5px solid rgba(0, 245, 212, 0.3);
+  background: rgba(0, 245, 212, 0.06);
+}
+
+.nav-item-elderly i {
+  font-size: 22px;
+}
+
+.nav-item-elderly:hover {
+  background: rgba(0, 245, 212, 0.15);
+  border-color: rgba(0, 245, 212, 0.6);
+  box-shadow: 0 4px 20px rgba(0, 245, 212, 0.3);
+  transform: translateY(-2px);
+}
+
+.nav-item-elderly.active {
+  background: linear-gradient(135deg, #00f5d4, #00bbf9);
+  box-shadow: 0 4px 16px rgba(0, 245, 212, 0.5);
+  border-color: transparent;
+}
+
+@media (max-width: 1100px) {
+  .nav-item-elderly span {
+    display: inline !important;
+  }
+  .nav-item-elderly {
+    padding: 10px 18px;
+    border-radius: 24px;
+  }
 }
 
 /* 响应式：中屏改为仅图标，避免顶栏挤换行 */

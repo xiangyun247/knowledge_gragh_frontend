@@ -56,6 +56,7 @@
                 <el-option label="管理员" value="admin" />
                 <el-option label="医生" value="doctor" />
                 <el-option label="患者" value="patient" />
+                <el-option label="老人（简化模式）" value="elderly" />
               </el-select>
             </el-form-item>
             
@@ -105,6 +106,26 @@
             </el-form-item>
           </el-form>
         </div>
+
+        <!-- 紧急联系人设置 -->
+        <div class="info-section sos-section">
+          <h3 class="sos-section-title">
+            <i class="el-icon-phone-outline" style="color:#f56c6c"></i>
+            紧急联系人
+          </h3>
+          <p class="sos-section-desc">设置后可通过右下角红色按钮一键拨打</p>
+          <div class="sos-contact-list">
+            <div v-for="(c, idx) in sosContacts" :key="idx" class="sos-contact-row">
+              <el-input v-model="c.name" placeholder="称呼（如：女儿）" size="small" class="sos-input-name" />
+              <el-input v-model="c.phone" placeholder="电话号码" size="small" class="sos-input-phone" />
+              <el-button type="text" icon="el-icon-delete" class="sos-del-btn" @click="removeSosContact(idx)"></el-button>
+            </div>
+          </div>
+          <div class="sos-contact-actions">
+            <el-button size="small" icon="el-icon-plus" @click="addSosContact">添加联系人</el-button>
+            <el-button size="small" type="primary" @click="saveSosContacts">保存联系人</el-button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -118,6 +139,7 @@ export default {
   data() {
     return {
       editingRole: 'patient',
+      sosContacts: this.loadSosContacts(),
       formRules: {
         username: [
           { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -161,6 +183,40 @@ export default {
   },
   methods: {
     ...mapActions('user', ['updateUserInfo', 'updateRole']),
+
+    loadSosContacts() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('sos_emergency_contacts') || '[]')
+        if (saved.length) return saved.map(c => ({ name: c.name || '', phone: c.phone || '', icon: c.icon || 'el-icon-user' }))
+      } catch { /* noop */ }
+      return [{ name: '', phone: '', icon: 'el-icon-user' }]
+    },
+    addSosContact() {
+      if (this.sosContacts.length >= 5) {
+        this.$message.warning('最多添加 5 位紧急联系人')
+        return
+      }
+      this.sosContacts.push({ name: '', phone: '', icon: 'el-icon-user' })
+    },
+    removeSosContact(idx) {
+      const c = this.sosContacts[idx]
+      const name = (c && c.name) || '该联系人'
+      this.$confirm(`确定删除「${name}」吗？`, '删除确认', {
+        confirmButtonText: '删除', cancelButtonText: '取消', type: 'warning'
+      }).then(() => {
+        this.sosContacts.splice(idx, 1)
+      }).catch(() => {})
+    },
+    saveSosContacts() {
+      const valid = this.sosContacts.filter(c => c.name.trim() && c.phone.trim())
+      localStorage.setItem('sos_emergency_contacts', JSON.stringify(valid))
+      this.$message.success(`已保存 ${valid.length} 位紧急联系人`)
+    },
+    applyElderlyTheme() {
+      if (this.$root.$children[0] && this.$root.$children[0].setTheme) {
+        this.$root.$children[0].setTheme('elderly')
+      }
+    },
 
     // 返回上一页或首页
     goBack() {
@@ -256,6 +312,10 @@ export default {
             // 若身份有变更，先调用后端更新角色并刷新 token
             if (this.editingRole && this.editingRole !== this.userRole) {
               await this.updateRole(this.editingRole)
+              // 切换到老人身份时自动启用适老主题
+              if (this.editingRole === 'elderly') {
+                this.applyElderlyTheme()
+              }
             }
             // 更新其余用户信息到 Vuex store（本地）
             await this.updateUserInfo(this.localUserInfo)
@@ -519,6 +579,54 @@ export default {
   font-size: 16px;
   border-radius: var(--radius-md);
   transition: all 0.3s ease;
+}
+
+/* 紧急联系人 */
+.sos-section {
+  margin-top: 20px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(245, 108, 108, 0.15);
+}
+.sos-section-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+}
+.sos-section-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 14px;
+}
+.sos-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.sos-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sos-input-name {
+  width: 120px;
+  flex-shrink: 0;
+}
+.sos-input-phone {
+  flex: 1;
+}
+.sos-del-btn {
+  color: #f56c6c !important;
+  font-size: 16px;
+  padding: 4px;
+}
+.sos-contact-actions {
+  display: flex;
+  gap: 10px;
 }
 
 /* 响应式设计 */
