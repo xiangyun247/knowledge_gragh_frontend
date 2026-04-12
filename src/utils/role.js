@@ -22,8 +22,8 @@ export const ROLE_LABELS = {
 
 /** 老人身份可见的路由白名单 */
 export const ELDERLY_ALLOWED_ROUTES = [
-  '/', '/home', '/chat', '/medication', '/patient-education', '/family-report',
-  '/login', '/profile', '/faq', '/forgot-password'
+  '/', '/home', '/elderly-chat', '/elderly-test', '/medication', '/patient-education', '/family-report',
+  '/login', '/profile', '/faq', '/forgot-password', '/eeg-monitor', '/cognitive-load'
 ]
 
 /**

@@ -429,7 +429,7 @@ export default {
 .section-label {
   font-size: var(--font-size-base, 16px);
   font-weight: 600;
-  color: rgba(255,255,255,0.9);
+  color: var(--text-primary, #333);
   margin-bottom: 14px;
 }
 .section-empty {
@@ -502,7 +502,7 @@ export default {
   margin-top: 6px; flex-shrink: 0;
 }
 .activity-body { flex: 1; }
-.activity-text { font-size: var(--font-size-base, 14px); color: rgba(255,255,255,0.85); line-height: 1.5; }
+.activity-text { font-size: var(--font-size-base, 14px); color: var(--text-primary, #333); line-height: 1.5; }
 .activity-time { font-size: 12px; color: var(--text-disabled); margin-top: 2px; }
 
 /* 建议 */
@@ -514,7 +514,7 @@ export default {
 .tip-item {
   display: flex; align-items: flex-start; gap: 8px;
   font-size: var(--font-size-base, 14px);
-  color: rgba(255,255,255,0.85);
+  color: var(--text-primary, #333);
   line-height: 1.6;
 }
 .tip-item i { color: var(--accent-cyan); font-size: 16px; margin-top: 3px; flex-shrink: 0; }
@@ -525,7 +525,7 @@ export default {
   font-size: 12px;
   color: var(--text-disabled);
   padding-top: 12px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid rgba(var(--primary-blue-rgb), 0.12);
 }
 .report-footer p { margin: 2px 0; }
 

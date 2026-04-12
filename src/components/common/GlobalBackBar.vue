@@ -40,6 +40,7 @@ export default {
       const route = this.$route
       if (!route) return false
       if (route.meta && route.meta.hideLayout) return false
+      if (route.meta && route.meta.hideBackBar) return false
       return !HIDE_ON.includes(route.path)
     },
     pageLabel() {

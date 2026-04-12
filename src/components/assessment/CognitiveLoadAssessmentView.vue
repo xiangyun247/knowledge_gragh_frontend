@@ -401,12 +401,19 @@ export default {
         const events = this.events || []
         const questionnaires = this.questionnaires || []
         const eventPayload = events.map(e => ({
-          ts: e.ts, event_type: e.event_type, task_id: e.task_id || null,
-          session_id: e.session_id || null, source: e.source || null, params: e.params || {}
+          ts: parseInt(e.ts) || Date.now(),
+          event_type: String(e.event_type || ''),
+          task_id: String(e.task_id || ''),
+          session_id: e.session_id != null ? String(e.session_id) : null,
+          source: e.source != null ? String(e.source) : null,
+          params: e.params || {}
         }))
         const questionnairePayload = questionnaires.map(q => ({
-          ts: q.ts, task_id: q.task_id, session_id: q.session_id || null,
-          source: q.source || null, answers: (q.answers || []).map(a => ({ qid: a.qid, value: a.value }))
+          ts: parseInt(q.ts) || Date.now(),
+          task_id: String(q.task_id || ''),
+          session_id: q.session_id != null ? String(q.session_id) : null,
+          source: q.source != null ? String(q.source) : null,
+          answers: (q.answers || []).map(a => ({ qid: String(a.qid), value: parseInt(a.value) }))
         }))
         const reqs = []
         if (eventPayload.length) reqs.push(uploadCognitiveEvents(eventPayload))
@@ -416,7 +423,30 @@ export default {
         this.$message.success('评估数据已上传到服务器')
       } catch (e) {
         console.error('上传认知负荷数据失败', e)
-        this.$message.error('上传认知负荷数据失败，请稍后重试')
+        // 展示详细校验错误（422时detail是数组）
+        const detail = e?.response?.data?.detail
+        if (Array.isArray(detail)) {
+          const msgs = detail.map(d => d?.msg ? `${d?.loc?.join('.') || 'field'}: ${d.msg}` : JSON.stringify(d))
+          this.$message.error(`数据格式错误 (${msgs.length}处):\n${msgs.slice(0,5).join('\n')}`)
+          console.error('[cognitive-load] 校验详情(完整):', JSON.stringify(detail, null, 2))
+          // 同时打印导致问题的原始数据（定位到第几个事件）
+          if (Array.isArray(detail) && detail.length > 0) {
+            const badIndices = new Set()
+            detail.forEach(d => {
+              const idx = d?.loc?.find(l => typeof l === 'number')
+              if (idx !== undefined) badIndices.add(idx)
+            })
+            if (badIndices.size > 0) {
+              console.error(`[cognitive-load] 问题事件索引: ${[...badIndices].join(', ')}`)
+              const evts = this.events || []
+              ;[...badIndices].forEach(i => {
+                console.error(`  事件[${i}]:`, JSON.stringify(evts[i], null, 2))
+              })
+            }
+          }
+        } else {
+          this.$message.error('上传认知负荷数据失败：' + (e.message || '未知错误'))
+        }
       }
     },
 
@@ -529,7 +559,7 @@ export default {
 .page-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
 .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .stats-card { margin-bottom: 20px; }
-.section-title { font-size: var(--font-size-base, 16px); color: rgba(255,255,255,0.9); margin-bottom: 12px; }
+.section-title { font-size: var(--font-size-base, 16px); color: var(--text-primary, #333); margin-bottom: 12px; }
 .section-title i { color: var(--primary-blue); margin-right: 6px; }
 
 .stats-grid {
@@ -570,19 +600,19 @@ export default {
 .report-line.info {
   background: rgba(var(--accent-cyan-rgb), 0.08);
   border: 1px solid rgba(var(--accent-cyan-rgb), 0.2);
-  color: rgba(255,255,255,0.9);
+  color: var(--text-primary, #333);
 }
 .report-line.info i { color: var(--accent-cyan); }
 .report-line.good {
   background: rgba(var(--primary-blue-rgb), 0.08);
   border: 1px solid rgba(var(--primary-blue-rgb), 0.2);
-  color: rgba(255,255,255,0.9);
+  color: var(--text-primary, #333);
 }
 .report-line.good i { color: var(--primary-blue); }
 .report-line.warn {
   background: rgba(245,108,108,0.08);
   border: 1px solid rgba(245,108,108,0.2);
-  color: rgba(255,255,255,0.9);
+  color: var(--text-primary, #333);
 }
 .report-line.warn i { color: #f56c6c; }
 

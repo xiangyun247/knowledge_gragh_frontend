@@ -2,9 +2,14 @@
   <div class="dashboard-page">
     <div class="dashboard-header">
       <h2 class="dashboard-title"><i class="el-icon-monitor"></i> 机构认知负荷看板</h2>
-      <el-button type="primary" size="small" @click="loadData" :loading="loading" icon="el-icon-refresh">
-        刷新数据
-      </el-button>
+      <div class="header-actions">
+        <el-button type="success" size="small" @click="exportAllCSV" :disabled="!dashData" icon="el-icon-download">
+          导出全部数据
+        </el-button>
+        <el-button type="primary" size="small" @click="loadData" :loading="loading" icon="el-icon-refresh">
+          刷新数据
+        </el-button>
+      </div>
     </div>
 
     <!-- 概览卡片 -->
@@ -118,7 +123,7 @@ export default {
       this.loading = true
       try {
         const res = await fetchCognitiveDashboard()
-        this.dashData = res.data || {}
+        this.dashData = (res.data && res.data.data) || {}
         this.$nextTick(() => this.renderCharts())
       } catch (e) {
         console.error('加载看板数据失败', e)
@@ -129,6 +134,85 @@ export default {
     },
     handleThemeChange() {
       this.$nextTick(() => this.renderCharts())
+    },
+
+    // ===== 导出全部数据为CSV（事件+问卷+排行）=====
+    exportAllCSV() {
+      if (!this.dashData) return
+      const d = this.dashData
+      const rows = []
+      const BOM = '\uFEFF'
+      let csv = ''
+
+      // Sheet 1: 概览汇总
+      const ov = d.overview || {}
+      csv += '===== 认知负荷看板数据导出 =====\n'
+      csv += '导出时间,' + new Date().toLocaleString() + '\n\n'
+      csv += '【概览】\n'
+      csv += '指标,数值\n'
+      csv += '总事件数,' + (ov.total_events || 0) + '\n'
+      csv += '总用户数,' + (ov.total_users || 0) + '\n'
+      csv += '总任务数,' + (ov.total_tasks || 0) + '\n'
+      csv += '问卷数,' + (ov.total_questionnaires || 0) + '\n'
+      csv += '活跃天数,' + (ov.active_days || 0) + '\n\n'
+
+      // Sheet 2: 日趋势
+      const trend = d.daily_trend || []
+      if (trend.length) {
+        csv += '【近14日活跃趋势】\n'
+        csv += '日期,事件数,用户数\n'
+        trend.forEach(r => { csv += `${r.day},${r.events},${r.users}\n` })
+        csv += '\n'
+      }
+
+      // Sheet 3: 来源分布
+      const sources = d.by_source || []
+      if (sources.length) {
+        csv += '【事件来源分布】\n'
+        csv += '来源,数量,占比\n'
+        const totalSrc = sources.reduce((s, x) => s + x.count, 0)
+        sources.forEach(r => {
+          csv += `${SOURCE_LABELS[r.source] || r.source},${r.count},${totalSrc ? ((r.count / totalSrc) * 100).toFixed(1) + '%' : '-'}\n`
+        })
+        csv += '\n'
+      }
+
+      // Sheet 4: 事件类型分布
+      const types = d.by_event_type || []
+      if (types.length) {
+        csv += '【事件类型分布】\n'
+        csv += '类型,数量\n'
+        types.forEach(r => { csv += `${EVENT_LABELS[r.event_type] || r.event_type},${r.count}\n` })
+        csv += '\n'
+      }
+
+      // Sheet 5: 来源得分明细
+      const scores = d.by_source_scores || []
+      if (scores.length) {
+        csv += '【问卷得分与时长(按来源)】\n'
+        csv += '来源,平均得分,平均时长(秒),问卷份数\n'
+        scores.forEach(r => {
+          csv += `${SOURCE_LABELS[r.source] || r.source},${r.avg_score || '-'},${r.avg_duration || '-'},${r.count || '-'}\n`
+        })
+        csv += '\n'
+      }
+
+      // Sheet 6: 用户排行
+      const users = d.top_users || []
+      if (users.length) {
+        csv += '【用户活跃排行 Top10】\n'
+        csv += '用户ID,事件数,任务数\n'
+        users.forEach(u => { csv += `${u.user_id},${u.events},${u.tasks}\n` })
+      }
+
+      // 下载
+      const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' })
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = `认知负荷看板_${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(a.href)
+      this.$message.success('已导出全部看板数据 CSV')
     },
     renderCharts() {
       this.renderDailyTrend()
@@ -287,6 +371,10 @@ export default {
 .dashboard-title i {
   color: var(--primary-blue);
   margin-right: 8px;
+}
+.header-actions {
+  display: flex;
+  gap: 8px;
 }
 
 /* 概览卡片 */

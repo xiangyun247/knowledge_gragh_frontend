@@ -429,9 +429,9 @@ export default {
 .welcome-message {
   text-align: center;
   padding: 40px 20px;
-  background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(156, 39, 255, 0.1));
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(0, 119, 182, 0.06));
   border-radius: 16px;
-  border: 1px solid rgba(0, 212, 255, 0.2);
+  border: 1px solid rgba(0, 212, 255, 0.15);
   margin-bottom: 20px;
 }
 
@@ -507,7 +507,7 @@ export default {
 }
 
 .user-message .message-avatar {
-  background: linear-gradient(135deg, #00d4ff, #9c27ff);
+  background: linear-gradient(135deg, #00d4ff, #0077b6);
 }
 
 .user-message .message-bubble {
@@ -518,7 +518,7 @@ export default {
 
 /* 系统消息 */
 .system-message .message-avatar {
-  background: linear-gradient(135deg, #9c27ff, #00d4ff);
+  background: linear-gradient(135deg, #00bbf9, #00d4ff);
 }
 
 .system-message .message-bubble {
@@ -641,13 +641,9 @@ export default {
 }
 
 .sidebar-header h3 {
-  color: #ffffff;
+  color: #00d4ff;
   font-size: 16px;
   font-weight: 600;
-  background: var(--gradient-glow);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .sidebar-header .el-button {
@@ -710,14 +706,14 @@ export default {
 }
 
 .source-item--doc {
-  background-color: rgba(156, 39, 255, 0.08);
-  border-color: rgba(156, 39, 255, 0.25);
+  background-color: rgba(0, 119, 182, 0.08);
+  border-color: rgba(0, 119, 182, 0.25);
 }
 
 .source-item--doc:hover {
-  background-color: rgba(156, 39, 255, 0.15);
-  border-color: rgba(156, 39, 255, 0.4);
-  box-shadow: 0 2px 8px rgba(156, 39, 255, 0.2);
+  background-color: rgba(0, 119, 182, 0.15);
+  border-color: rgba(0, 119, 182, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 119, 182, 0.2);
 }
 
 /* 迷你图谱 */

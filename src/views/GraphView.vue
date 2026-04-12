@@ -828,13 +828,9 @@ export default {
 }
 
 .graph-toolbar h3 {
-  color: #ffffff;
+  color: #00d4ff;
   font-size: 18px;
   font-weight: 600;
-  background: var(--gradient-glow);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .toolbar-right {
@@ -872,7 +868,7 @@ export default {
 .graph-container {
   flex: 1;
   position: relative;
-  background: linear-gradient(135deg, rgba(10, 14, 39, 0.95) 0%, rgba(156, 39, 255, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(10, 14, 39, 0.95) 0%, rgba(0, 119, 182, 0.08) 100%);
 }
 
 /* 右侧图例 */

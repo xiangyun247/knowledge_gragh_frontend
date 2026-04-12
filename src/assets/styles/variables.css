@@ -28,13 +28,13 @@
   --bg-card: rgba(10, 14, 39, 0.9);
   --bg-popup: rgba(12, 18, 48, 0.97);
   
-  /* 渐变色 */
-  --gradient-main: linear-gradient(135deg, #00d4ff 0%, #9c27ff 100%);
-  --gradient-glow: linear-gradient(45deg, #00d4ff, #9c27ff, #ff2d95);
-  --gradient-bg: linear-gradient(135deg, rgba(10, 14, 39, 0.95) 0%, rgba(156, 39, 255, 0.1) 50%, rgba(0, 212, 255, 0.05) 100%);
+  /* 渐变色 - 统一使用蓝色系，去掉紫色/粉色 */
+  --gradient-main: linear-gradient(135deg, #00d4ff 0%, #0077b6 100%);
+  --gradient-glow: linear-gradient(135deg, #00d4ff 0%, #00bbf9 100%);
+  --gradient-bg: linear-gradient(135deg, rgba(10, 14, 39, 0.95) 0%, rgba(0, 180, 216, 0.08) 50%, rgba(0, 212, 255, 0.04) 100%);
   --gradient-card: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
   --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
-  --gradient-border: linear-gradient(45deg, #00d4ff, #9c27ff, #ff2d95);
+  --gradient-border: linear-gradient(135deg, #00d4ff, #00bbf9);
   
   /* 文本色 */
   --text-primary: #ffffff;
@@ -44,7 +44,7 @@
   
   /* 边框色 */
   --border-primary: rgba(0, 212, 255, 0.3);
-  --border-secondary: rgba(156, 39, 255, 0.4);
+  --border-secondary: rgba(0, 119, 182, 0.4);
   --border-light: rgba(255, 255, 255, 0.1);
   --border-glow: rgba(0, 212, 255, 0.5);
   --border-glass: rgba(255, 255, 255, 0.1);
@@ -53,10 +53,10 @@
   --shadow-sm: 0 2px 8px rgba(0, 212, 255, 0.1), 0 0 10px rgba(0, 212, 255, 0.05);
   --shadow-md: 0 4px 16px rgba(0, 212, 255, 0.2), 0 0 20px rgba(0, 212, 255, 0.1);
   --shadow-lg: 0 8px 32px rgba(0, 212, 255, 0.3), 0 0 40px rgba(0, 212, 255, 0.15);
-  --shadow-glow: 0 0 20px rgba(0, 212, 255, 0.5), 0 0 40px rgba(156, 39, 255, 0.3);
+  --shadow-glow: 0 0 20px rgba(0, 212, 255, 0.5), 0 0 40px rgba(0, 119, 182, 0.3);
   --shadow-card: 0 4px 20px rgba(0, 212, 255, 0.15), 0 0 30px rgba(0, 212, 255, 0.05), 0 0 0 1px rgba(0, 212, 255, 0.1);
-  --shadow-glow-purple: 0 0 20px rgba(156, 39, 255, 0.5), 0 0 40px rgba(156, 39, 255, 0.3);
-  --shadow-glow-pink: 0 0 20px rgba(255, 45, 149, 0.5), 0 0 40px rgba(255, 45, 149, 0.3);
+  --shadow-glow-purple: 0 0 20px rgba(0, 119, 182, 0.5), 0 0 40px rgba(0, 119, 182, 0.3);
+  --shadow-glow-pink: 0 0 20px rgba(0, 187, 249, 0.5), 0 0 40px rgba(0, 187, 249, 0.3);
   
   /* 间距 */
   --spacing-xs: 4px;

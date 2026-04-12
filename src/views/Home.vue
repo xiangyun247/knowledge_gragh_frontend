@@ -1,1526 +1,255 @@
 <template>
-  <div class="home-container">
-    <div class="home-layout">
-      <!-- 左侧：功能导航翼 -->
-      <section class="home-column home-left">
-        <h2 class="section-title side-title">系统能力</h2>
-        <div class="features-section">
-          <div class="feature-timeline"></div>
-          <div class="features-grid vertical">
-        <router-link to="/chat" class="feature-card">
-          <div class="feature-icon chat-icon">
-            <i class="el-icon-chat-dot-round"></i>
-          </div>
-          <h3 class="feature-title">智能问答</h3>
-          <p class="feature-description">
-            基于医疗知识图谱的智能问答系统，为您解答各类医疗问题
-          </p>
-        </router-link>
-        
-        <router-link to="/graph" class="feature-card">
-          <div class="feature-icon graph-icon">
-            <i class="el-icon-s-data"></i>
-          </div>
-          <h3 class="feature-title">图谱可视化</h3>
-          <p class="feature-description">
-            直观展示医疗实体之间的关系，让知识结构一目了然
-          </p>
-        </router-link>
-        
-        <router-link to="/search" class="feature-card">
-          <div class="feature-icon search-icon">
-            <i class="el-icon-search"></i>
-          </div>
-          <h3 class="feature-title">实体搜索</h3>
-          <p class="feature-description">
-            快速查找医疗实体信息，支持多条件筛选和精确匹配
-          </p>
-        </router-link>
-        
-        <router-link to="/upload" class="feature-card">
-          <div class="feature-icon upload-icon">
-            <i class="el-icon-upload2"></i>
-          </div>
-          <h3 class="feature-title">数据上传</h3>
-          <p class="feature-description">
-            支持批量上传医疗数据，自动构建和扩展知识图谱
-          </p>
-        </router-link>
-        
-        <router-link to="/history" class="feature-card">
-          <div class="feature-icon history-icon">
-            <i class="el-icon-document-copy"></i>
-          </div>
-          <h3 class="feature-title">历史记录</h3>
-          <p class="feature-description">
-            完整保存您的查询历史，方便随时回顾和管理
-          </p>
-        </router-link>
-        
-        <router-link to="/faq" class="feature-card">
-          <div class="feature-icon faq-icon">
-            <i class="el-icon-question"></i>
-          </div>
-          <h3 class="feature-title">常见问题</h3>
-          <p class="feature-description">
-            解答使用过程中可能遇到的各类问题，提供操作指南
-          </p>
-        </router-link>
-          </div>
-      </div>
-    </section>
+  <div class="landing">
+    <!-- 背景层 -->
+    <div class="landing-bg"></div>
 
-      <!-- 中间：主时间线舞台 -->
-      <section class="home-column home-center">
-        <!-- 欢迎区域 -->
-        <section class="welcome-section">
-          <div class="welcome-content">
-            <h1 class="welcome-title">
-              <span class="title-line">智护银龄 ·</span>
-              <span class="title-highlight">低认知负荷知识辅助</span>
-            </h1>
-            <p class="welcome-subtitle">
-              面向老龄认知障碍人群的低认知负荷知识辅助系统，基于知识图谱与 AI 提供可溯源的照护与患者教育支持
-            </p>
-            <div class="cta-buttons">
-              <router-link to="/chat" class="btn-primary" v-ripple>
-                <i class="el-icon-chat-dot-round"></i>
-                开始问答
-              </router-link>
-              <router-link to="/graph" class="btn-secondary" v-ripple>
-                <i class="el-icon-s-data"></i>
-                查看图谱
-              </router-link>
-            </div>
-          </div>
-        </section>
-      
-        <!-- 数据时间线：对齐后端的小数据卡片 -->
-        <section class="data-dashboard-section timeline-section">
-          <h2 class="section-title">我的使用概览</h2>
+    <!-- 主内容区 -->
+    <main class="landing-main">
+      <!-- 品牌 -->
+      <header class="brand">
+        <div class="brand-logo">
+          <span class="logo-icon">🧠</span>
+          <h1 class="brand-name">忆路康</h1>
+        </div>
+        <p class="brand-tagline">面向认知障碍老年人的智能辅助系统</p>
+      </header>
 
-          <div class="data-displays timeline-displays">
-            <div class="timeline-line"></div>
-
-            <div class="data-display timeline-item">
-              <div class="timeline-node"></div>
-              <div class="display-header">
-                <span class="display-title">我的知识图谱</span>
-                <span class="display-icon">📊</span>
-              </div>
-              <div class="display-body">
-                <span class="stat-number">{{ overview.graphCount }}</span>
-                <span class="display-subtitle">个图谱</span>
-              </div>
-            </div>
-
-            <div class="data-display timeline-item">
-              <div class="timeline-node"></div>
-              <div class="display-header">
-                <span class="display-title">知识库文档</span>
-                <span class="display-icon">📚</span>
-              </div>
-              <div class="display-body">
-                <span class="stat-number">{{ overview.docCount }}</span>
-                <span class="display-subtitle">篇文档</span>
-              </div>
-            </div>
-
-            <div class="data-display timeline-item">
-              <div class="timeline-node"></div>
-              <div class="display-header">
-                <span class="display-title">本周已回答问题</span>
-                <span class="display-icon">💬</span>
-              </div>
-              <div class="display-body">
-                <span class="stat-number">{{ overview.answeredThisWeek }}</span>
-                <span class="display-subtitle">个问题</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 最近活动列表 -->
-          <div class="recent-activity" v-if="overview.recentActivities && overview.recentActivities.length">
-            <h3 class="recent-title">最近活动</h3>
-            <ul class="recent-list">
-              <li
-                v-for="item in overview.recentActivities"
-                :key="item.id"
-                class="recent-item"
-              >
-                <span class="recent-type">{{ formatActivityType(item.type) }}</span>
-                <span class="recent-title-text">{{ item.title }}</span>
-                <span class="recent-time">{{ item.time }}</span>
-              </li>
-            </ul>
-          </div>
-        </section>
+      <!-- 核心行动区 -->
+      <section class="actions">
+        <router-link to="/chat" class="action-btn primary">
+          <i class="el-icon-chat-dot-round"></i>
+          开始使用
+        </router-link>
+        <router-link to="/graph" class="action-btn ghost">
+          知识图谱
+        </router-link>
       </section>
-      
-      <!-- 右侧：数据监控翼 -->
-      <section class="home-column home-right">
-        <h2 class="section-title side-title">实时监控</h2>
 
-        <section class="charts-section">
-      <div class="charts-grid">
-        <div class="chart-container">
-          <h3 class="chart-title">实体类型分布</h3>
-          <div id="entityTypeChart" class="chart"></div>
-        </div>
-        
-        <div class="chart-container">
-          <h3 class="chart-title">关系类型分布</h3>
-          <div id="relationTypeChart" class="chart"></div>
-        </div>
-        
-        <div class="chart-container full-width">
-          <h3 class="chart-title">知识增长趋势</h3>
-          <div id="growthChart" class="chart"></div>
-        </div>
-      </div>
-    </section>
-    
-        <section class="stats-section compact">
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-number">10,000+</div>
-          <div class="stat-label">医疗实体</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-number">50,000+</div>
-          <div class="stat-label">关系连接</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-number">99.9%</div>
-          <div class="stat-label">数据准确率</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-number">24/7</div>
-          <div class="stat-label">持续更新</div>
-        </div>
-      </div>
-        </section>
-    </section>
-    </div>
+      <!-- 底部导航链接 -->
+      <nav class="quick-nav">
+        <router-link to="/assessment/cognitive-load" class="nav-item">认知评估</router-link>
+        <span class="nav-sep">·</span>
+        <router-link to="/search" class="nav-item">知识搜索</router-link>
+        <span class="nav-sep">·</span>
+        <a href="#" class="nav-item">使用指南</a>
+      </nav>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="landing-footer">
+      <span>智护银龄 · 认知辅助系统</span>
+      <span class="footer-dot">·</span>
+      <span>基于知识图谱与多模态融合技术</span>
+    </footer>
   </div>
 </template>
 
 <script>
-import * as echarts from 'echarts'
-import anime from 'animejs/lib/anime.es.js'
-import { home } from '../api'
-import { ENTITY_TYPE_CONFIG, RELATION_TYPE_LABELS } from '../config/entityTypes'
-
 export default {
-  name: 'Home',
-  data() {
-    return {
-      overview: {
-        graphCount: 0,
-        docCount: 0,
-        answeredThisWeek: 0,
-        recentActivities: []
-      }
-    }
-  },
-  mounted() {
-    // 添加滚动动画效果
-    this.addScrollAnimations()
-    // 初始化图表 & 动画
-    this.$nextTick(() => {
-      this.fetchOverview()
-      this.initCharts()
-      this.startNumberAnimation()
-      this.initNeonCardsAnimation()
-    })
-  },
-  methods: {
-    formatActivityType(t) {
-      const m = {
-        chat: '问答',
-        graph_build: '图谱构建',
-        graph_query: '图谱查询',
-        search: '实体搜索',
-        upload: '数据上传'
-      }
-      return m[t] || '活动'
-    },
-    async fetchOverview() {
-      try {
-        const res = await home.overview()
-        const d = res.data
-        if (d && d.status === 'success' && d.data) {
-          this.overview = {
-            graphCount: d.data.graphCount || 0,
-            docCount: d.data.docCount || 0,
-            answeredThisWeek: d.data.answeredThisWeek || 0,
-            recentActivities: d.data.recentActivities || []
-          }
-        }
-      } catch (e) {
-        // 首页统计失败不阻塞页面，仅在控制台提示
-        // eslint-disable-next-line no-console
-        console.warn('获取首页概览失败', e)
-      }
-    },
-    addScrollAnimations() {
-      const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-      }
-      
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.style.opacity = '1'
-            entry.target.style.transform = 'translateY(0)'
-          }
-        })
-      }, observerOptions)
-      
-      // 观察需要滚动出现动画的元素（数据卡片使用 anime.js 单独处理）
-      document.querySelectorAll('.feature-card, .stat-item, .chart-container').forEach(el => {
-        el.style.opacity = '0'
-        el.style.transform = 'translateY(30px)'
-        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease'
-        observer.observe(el)
-      })
-    },
-    
-    // 初始化图表
-    initCharts() {
-      // 实体类型分布饼图
-      this.initEntityTypeChart()
-      // 关系类型分布柱状图
-      this.initRelationTypeChart()
-      // 知识增长趋势图
-      this.initGrowthChart()
-    },
-    
-    // 实体类型分布饼图
-    initEntityTypeChart() {
-      const chartDom = document.getElementById('entityTypeChart')
-      if (!chartDom) return
-      
-      const chart = echarts.init(chartDom)
-      const option = {
-        tooltip: {
-          trigger: 'item',
-          formatter: '{a} <br/>{b}: {c} ({d}%)',
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          borderColor: '#00d4ff',
-          textStyle: {
-            color: '#ffffff'
-          }
-        },
-        legend: {
-          orient: 'vertical',
-          right: 10,
-          top: 'center',
-          textStyle: {
-            color: '#ffffff'
-          }
-        },
-        series: [
-          {
-            name: '实体类型',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            center: ['35%', '50%'],
-            avoidLabelOverlap: false,
-            itemStyle: {
-              borderRadius: 10,
-              borderColor: '#050b18',
-              borderWidth: 2,
-              shadowBlur: 12,
-              shadowOffsetX: 0,
-              shadowColor: 'rgba(0, 245, 212, 0.55)'
-            },
-            label: {
-              show: false,
-              position: 'center'
-            },
-            emphasis: {
-              label: {
-                show: true,
-                fontSize: '18',
-                fontWeight: 'bold',
-                color: '#ffffff'
-              }
-            },
-            labelLine: {
-              show: false
-            },
-            data: ENTITY_TYPE_CONFIG.slice(0, 10).map((t, i) => ({
-              value: [2500, 3000, 1500, 2000, 1000, 800, 1200, 900, 600, 700][i] || 500,
-              name: t.label,
-              itemStyle: { color: t.color }
-            }))
-          }
-        ]
-      }
-      
-      chart.setOption(option)
-      
-      // 添加窗口大小变化监听
-      window.addEventListener('resize', () => chart.resize())
-    },
-    
-    // 关系类型分布柱状图
-    initRelationTypeChart() {
-      const chartDom = document.getElementById('relationTypeChart')
-      if (!chartDom) return
-      
-      const chart = echarts.init(chartDom)
-      const option = {
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-            type: 'shadow'
-          },
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          borderColor: '#00d4ff',
-          textStyle: {
-            color: '#ffffff'
-          }
-        },
-        grid: {
-          left: '3%',
-          right: '4%',
-          bottom: '3%',
-          containLabel: true
-        },
-        xAxis: {
-          type: 'category',
-          data: Object.values(RELATION_TYPE_LABELS).slice(0, 8),
-          axisLine: {
-            lineStyle: {
-              color: '#ffffff'
-            }
-          },
-          axisLabel: {
-            color: '#ffffff'
-          }
-        },
-        yAxis: {
-          type: 'value',
-          axisLine: {
-            lineStyle: {
-              color: '#ffffff'
-            }
-          },
-          axisLabel: {
-            color: '#ffffff'
-          },
-          splitLine: {
-            lineStyle: {
-              color: 'rgba(255, 255, 255, 0.1)'
-            }
-          }
-        },
-        series: [
-          {
-            name: '关系数量',
-            type: 'bar',
-            barWidth: '60%',
-            data: [12000, 8000, 10000, 5000, 7000, 6000, 4500, 5500],
-            itemStyle: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#00f5d4' },
-                { offset: 1, color: '#00bbf9' }
-              ]),
-              borderRadius: [10, 10, 0, 0],
-              shadowBlur: 12,
-              shadowOffsetX: 0,
-              shadowColor: 'rgba(0, 245, 212, 0.55)'
-            },
-            emphasis: {
-              itemStyle: {
-                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                  { offset: 0, color: '#00e5ff' },
-                  { offset: 1, color: '#a832ff' }
-                ])
-              }
-            },
-            animationDelay: function (idx) {
-              return idx * 100
-            }
-          }
-        ],
-        animationEasing: 'elasticOut'
-      }
-      
-      chart.setOption(option)
-      
-      // 添加窗口大小变化监听
-      window.addEventListener('resize', () => chart.resize())
-    },
-    
-    // 知识增长趋势图
-    initGrowthChart() {
-      const chartDom = document.getElementById('growthChart')
-      if (!chartDom) return
-      
-      const chart = echarts.init(chartDom)
-      const option = {
-        tooltip: {
-          trigger: 'axis',
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          borderColor: '#00d4ff',
-          textStyle: {
-            color: '#ffffff'
-          }
-        },
-        legend: {
-          data: ['实体数量', '关系数量'],
-          textStyle: {
-            color: '#ffffff'
-          }
-        },
-        grid: {
-          left: '3%',
-          right: '4%',
-          bottom: '3%',
-          containLabel: true
-        },
-        xAxis: {
-          type: 'category',
-          boundaryGap: false,
-          data: ['1月', '2月', '3月', '4月', '5月', '6月'],
-          axisLine: {
-            lineStyle: {
-              color: '#ffffff'
-            }
-          },
-          axisLabel: {
-            color: '#ffffff'
-          }
-        },
-        yAxis: {
-          type: 'value',
-          axisLine: {
-            lineStyle: {
-              color: '#ffffff'
-            }
-          },
-          axisLabel: {
-            color: '#ffffff'
-          },
-          splitLine: {
-            lineStyle: {
-              color: 'rgba(255, 255, 255, 0.1)'
-            }
-          }
-        },
-        series: [
-          {
-            name: '实体数量',
-            type: 'line',
-            stack: 'Total',
-            smooth: true,
-            lineStyle: {
-              width: 4,
-              color: '#00f5d4'
-            },
-            areaStyle: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: 'rgba(0, 245, 212, 0.5)' },
-                { offset: 1, color: 'rgba(0, 245, 212, 0.08)' }
-              ])
-            },
-            emphasis: {
-              focus: 'series'
-            },
-            data: [6000, 7000, 8500, 9500, 10000, 10500]
-          },
-          {
-            name: '关系数量',
-            type: 'line',
-            stack: 'Total',
-            smooth: true,
-            lineStyle: {
-              width: 4,
-              color: '#00bbf9'
-            },
-            areaStyle: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: 'rgba(0, 187, 249, 0.5)' },
-                { offset: 1, color: 'rgba(0, 187, 249, 0.08)' }
-              ])
-            },
-            emphasis: {
-              focus: 'series'
-            },
-            data: [25000, 30000, 38000, 45000, 50000, 52000]
-          }
-        ]
-      }
-      
-      chart.setOption(option)
-      
-      // 添加窗口大小变化监听
-      window.addEventListener('resize', () => chart.resize())
-    },
-    
-    // 数字增长动画
-    startNumberAnimation() {
-      const numbers = document.querySelectorAll('.stat-number')
-      numbers.forEach(number => {
-        const target = number.innerText.replace(/[+,%]/g, '')
-        const isPercentage = number.innerText.includes('%')
-        const isPlus = number.innerText.includes('+')
-        
-        let current = 0
-        const increment = parseFloat(target) / 100
-        const timer = setInterval(() => {
-          current += increment
-          if (current >= parseFloat(target)) {
-            current = parseFloat(target)
-            clearInterval(timer)
-          }
-          
-          let displayText = ''
-          if (target.includes(',')) {
-            displayText = Math.floor(current).toLocaleString()
-          } else {
-            displayText = current.toFixed(1)
-          }
-          
-          if (isPercentage) {
-            displayText += '%'
-          } else if (isPlus) {
-            displayText += '+'
-          }
-          
-          number.innerText = displayText
-        }, 20)
-      })
-    },
-    
-    // 主页大屏数据卡片霓虹进场动画
-    initNeonCardsAnimation() {
-      const cards = document.querySelectorAll('.data-display')
-      if (!cards.length) return
-
-      anime({
-        targets: cards,
-        opacity: [0, 1],
-        translateY: [24, 0],
-        scale: [0.96, 1],
-        delay: anime.stagger(120, { start: 300 }),
-        duration: 700,
-        easing: 'easeOutCubic'
-      })
-    }
-  }
+  name: 'Home'
 }
 </script>
 
-<style>
-.home-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 20px;
-  position: relative;
-  overflow-x: hidden;
-}
-
-/* 三列布局 */
-.home-layout {
-  display: grid;
-  grid-template-columns: 1.1fr 1.4fr 1.2fr;
-  gap: 32px;
-  align-items: flex-start;
-}
-
-.home-column {
-  position: relative;
-}
-
-.home-left,
-.home-right {
-  padding-top: 12px;
-}
-
-.side-title {
-  font-size: 18px;
-  text-align: left;
-  margin-bottom: 18px;
-}
-
-/* 欢迎区域（中间列顶部） */
-.welcome-section {
-  text-align: center;
-  padding: 80px 0;
+<style scoped>
+/* ===== 容器 & 布局 ===== */
+.landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   position: relative;
   overflow: hidden;
-  border-radius: 24px;
+}
+
+/* 背景：极简渐变 */
+.landing-bg {
+  position: absolute;
+  inset: 0;
   background:
-    radial-gradient(circle at top, rgba(0, 245, 212, 0.16), transparent 55%),
-    radial-gradient(circle at 20% 120%, rgba(0, 187, 249, 0.12), transparent 55%);
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0, 119, 182, 0.12) 0%, transparent 70%),
+    linear-gradient(180deg, var(--bg-deep, #080e1c) 0%, var(--bg-base, #0b1224) 100%);
+  z-index: 0;
 }
 
-.welcome-content {
-  max-width: 800px;
-  margin: 0 auto;
+/* ===== 主内容 ===== */
+.landing-main {
   position: relative;
-  z-index: 2;
-}
-
-.welcome-title {
-  font-size: 64px;
-  font-weight: 800;
-  margin-bottom: 20px;
-  line-height: 1.2;
-  animation: fadeInUp 1s ease-out;
-  letter-spacing: 2px;
-  position: relative;
-}
-
-.title-line {
-  display: block;
-  background: linear-gradient(135deg, rgba(0, 255, 255, 1), rgba(255, 0, 255, 1));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 
-    0 0 10px rgba(0, 255, 255, 1),
-    0 0 20px rgba(0, 255, 255, 0.8),
-    0 0 30px rgba(0, 255, 255, 0.6),
-    0 0 40px rgba(255, 0, 255, 0.6),
-    0 0 60px rgba(255, 0, 255, 0.4),
-    0 0 80px rgba(255, 0, 255, 0.2);
-  -webkit-text-stroke: 1px rgba(0, 255, 255, 0.5);
-  opacity: 1;
-  animation: 
-    breathe 3s ease-in-out infinite,
-    float 4s ease-in-out infinite;
-}
-
-.title-highlight {
-  display: block;
-  background: linear-gradient(135deg, rgba(0, 255, 255, 1), rgba(255, 0, 255, 1));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 
-    0 0 10px rgba(0, 255, 255, 1),
-    0 0 20px rgba(0, 255, 255, 0.8),
-    0 0 30px rgba(0, 255, 255, 0.6),
-    0 0 40px rgba(255, 0, 255, 0.6),
-    0 0 60px rgba(255, 0, 255, 0.4),
-    0 0 80px rgba(255, 0, 255, 0.2);
-  -webkit-text-stroke: 1px rgba(0, 255, 255, 0.5);
-  opacity: 1;
-  animation: 
-    breathe 3s ease-in-out infinite 0.5s,
-    float 4s ease-in-out infinite 0.5s;
-}
-
-/* 呼吸效果 */
-@keyframes breathe {
-  0%, 100% {
-    opacity: 0.8;
-    text-shadow: 
-      0 0 10px rgba(0, 255, 255, 0.8),
-      0 0 20px rgba(0, 255, 255, 0.6),
-      0 0 30px rgba(0, 255, 255, 0.4),
-      0 0 40px rgba(255, 0, 255, 0.4),
-      0 0 60px rgba(255, 0, 255, 0.3);
-  }
-  50% {
-    opacity: 1;
-    text-shadow: 
-      0 0 15px rgba(0, 255, 255, 1),
-      0 0 30px rgba(0, 255, 255, 0.8),
-      0 0 45px rgba(0, 255, 255, 0.6),
-      0 0 60px rgba(255, 0, 255, 0.6),
-      0 0 90px rgba(255, 0, 255, 0.5),
-      0 0 120px rgba(255, 0, 255, 0.4);
-  }
-}
-
-/* 悬浮动画 */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.welcome-subtitle {
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 40px;
-  line-height: 1.6;
-  animation: fadeInUp 1s ease-out 0.2s both;
-}
-
-.cta-buttons {
+  z-index: 1;
   display: flex;
-  gap: 20px;
-  justify-content: center;
-  flex-wrap: wrap;
-  animation: fadeInUp 1s ease-out 0.4s both;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding: 40px 24px;
+  animation: fadeIn 0.8s ease-out;
 }
 
-/* ================= 医疗主题适配 ================= */
-
-/* 医疗风下：欢迎区域改为简洁白蓝背景，去掉赛博霓虹感 */
-[data-theme="medical"] .welcome-section {
-  padding: 60px 0;
-  background: var(--gradient-bg);
+/* ===== 品牌 ===== */
+.brand {
+  text-align: center;
 }
 
-[data-theme="medical"] .welcome-title {
-  font-size: 48px;
-  color: var(--text-primary);
-  text-shadow: none;
-  letter-spacing: 1px;
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
-[data-theme="medical"] .title-line,
-[data-theme="medical"] .title-highlight {
-  background: none;
-  -webkit-background-clip: border-box;
-  -webkit-text-fill-color: currentColor;
-  background-clip: border-box;
-  color: var(--primary-blue);
-  text-shadow: none;
-  -webkit-text-stroke: 0;
-  animation: none;
+.logo-icon {
+  font-size: 42px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 8px rgba(0, 187, 249, 0.25));
 }
 
-[data-theme="medical"] .welcome-subtitle {
-  color: var(--text-muted);
+.brand-name {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+  letter-spacing: 3px;
+  margin: 0;
 }
 
-[data-theme="medical"] .cta-buttons {
+.brand-tagline {
+  font-size: 17px;
+  color: var(--text-muted, rgba(255,255,255,0.55));
+  max-width: 380px;
+  margin: 0 auto;
+  line-height: 1.7;
+  letter-spacing: 0.5px;
+}
+
+/* ===== 行动按钮 ===== */
+.actions {
+  display: flex;
   gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
 }
 
-.btn-primary,
-.btn-secondary {
+.action-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 30px;
-  border-radius: 30px;
+  padding: 14px 36px;
+  border-radius: 10px;
   font-size: 16px;
   font-weight: 600;
   text-decoration: none;
-  transition: all 0.3s ease;
-  border: none;
+  transition: all 0.22s ease;
   cursor: pointer;
-  overflow: hidden;
-  position: relative;
+  letter-spacing: 0.5px;
 }
 
-.btn-primary::before,
-.btn-secondary::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: all 0.3s ease;
+.action-btn.primary {
+  background: linear-gradient(135deg, #0077b6, #00a8e8);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 119, 182, 0.35), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
-.btn-primary:hover::before,
-.btn-secondary:hover::before {
-  left: 100%;
-}
-
-.btn-primary {
-  background: var(--gradient-glow);
-  color: #ffffff;
-  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
-}
-
-.btn-primary:hover {
+.action-btn.primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 30px rgba(0, 212, 255, 0.6);
+  box-shadow: 0 8px 30px rgba(0, 119, 182, 0.5), inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
-.btn-secondary {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: var(--primary-blue);
-  border: 2px solid rgba(0, 212, 255, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2);
+.action-btn.primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(0, 119, 182, 0.35);
 }
 
-.btn-secondary:hover {
-  transform: translateY(-2px);
-  background-color: rgba(0, 212, 255, 0.1);
-  box-shadow: 0 6px 30px rgba(0, 212, 255, 0.4);
+.action-btn.ghost {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted, rgba(255,255,255,0.7));
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-/* 功能快速入口 */
-.features-section {
-  padding: 0;
+.action-btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
-.section-title {
-  text-align: center;
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 50px;
-  background: linear-gradient(135deg, #00f5d4, #00bbf9);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  position: relative;
+/* ===== 快捷导航 ===== */
+.quick-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
 }
 
-.section-title::after {
-  content: '';
-  display: block;
-  width: 80px;
-  height: 3px;
-  background: linear-gradient(135deg, #00f5d4, #00bbf9);
-  margin: 20px auto;
-  border-radius: 2px;
-  box-shadow: 0 0 10px rgba(0, 245, 212, 0.5);
-}
-
-.features-grid {
-  display: grid;
-  gap: 18px;
-  margin-bottom: 10px;
-}
-
-.features-grid.vertical .feature-card {
-  margin-left: 18px;
-}
-
-.feature-timeline {
-  position: absolute;
-  top: 40px;
-  left: 10px;
-  bottom: 20px;
-  width: 2px;
-  background: linear-gradient(to bottom, rgba(0, 245, 212, 0.2), rgba(0, 187, 249, 0.8));
-  box-shadow: 0 0 15px rgba(0, 245, 212, 0.5);
-  opacity: 0.9;
-}
-
-.feature-card {
-  background: radial-gradient(circle at top left, rgba(0, 245, 212, 0.12), rgba(5, 11, 24, 0.96));
-  border: 1px solid rgba(0, 245, 212, 0.28);
-  border-radius: 16px;
-  padding: 30px;
+.nav-item {
+  color: var(--text-muted, rgba(255,255,255,0.45));
   text-decoration: none;
-  color: #ffffff;
-  transition: all 0.3s ease;
+  transition: color 0.2s ease;
+  letter-spacing: 0.3px;
+}
+
+.nav-item:hover {
+  color: var(--text-primary, #ffffff);
+}
+
+.nav-sep {
+  color: rgba(255, 255, 255, 0.15);
+  user-select: none;
+}
+
+/* ===== 页脚 ===== */
+.landing-footer {
   position: relative;
-  overflow: hidden;
-}
-
-.feature-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(0, 245, 212, 0.12), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.feature-card::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #00f5d4, #00bbf9);
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
-}
-
-.feature-card:hover {
-  transform: translateY(-8px);
-  border-color: var(--primary-blue);
-  box-shadow: 0 12px 40px rgba(0, 245, 212, 0.34), 0 0 30px rgba(0, 187, 249, 0.4);
-}
-
-.feature-card:hover::before {
-  opacity: 1;
-}
-
-.feature-card:hover::after {
-  transform: scaleX(1);
-}
-
-.feature-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+  z-index: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  margin-bottom: 20px;
-  position: relative;
-  z-index: 1;
-  transition: transform 0.3s ease;
-}
-
-.feature-card:hover .feature-icon {
-  transform: scale(1.1);
-}
-
-.chat-icon {
-  background: linear-gradient(135deg, #00f5d4, #00bbf9);
-  box-shadow: 0 0 20px rgba(0, 245, 212, 0.6);
-}
-
-.graph-icon {
-  background: linear-gradient(135deg, #00bbf9, #00f5d4);
-  box-shadow: 0 0 20px rgba(0, 187, 249, 0.6);
-}
-
-.search-icon {
-  background: linear-gradient(135deg, #22c55e, #00f5d4);
-  box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
-}
-
-.upload-icon {
-  background: linear-gradient(135deg, #e2ff4f, #00f5d4);
-  box-shadow: 0 0 20px rgba(226, 255, 79, 0.6);
-}
-
-.history-icon {
-  background: linear-gradient(135deg, #00bbf9, #22c55e);
-  box-shadow: 0 0 20px rgba(0, 187, 249, 0.6);
-}
-
-.faq-icon {
-  background: linear-gradient(135deg, #00f5d4, #e2ff4f);
-  box-shadow: 0 0 20px rgba(0, 245, 212, 0.6);
-}
-
-.feature-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  position: relative;
-  z-index: 1;
-}
-
-.feature-description {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1.6;
-  position: relative;
-  z-index: 1;
-}
-
-/* 大数据显示屏区域 */
-.data-dashboard-section {
-  padding: 60px 0;
-  background: rgba(255, 255, 255, 0.02);
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 60px;
-  border-radius: 20px;
-}
-
-.data-dashboard-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(0, 245, 212, 0.08) 0%, rgba(0, 187, 249, 0.08) 100%);
-  opacity: 0.6;
-}
-
-/* 垂直数据流线条，增强大屏未来感 */
-.data-dashboard-section::after {
-  content: '';
-  position: absolute;
-  top: 10%;
-  right: 40px;
-  width: 2px;
-  height: 65%;
-  background: linear-gradient(to bottom, transparent, rgba(0, 245, 212, 0.9), rgba(0, 187, 249, 0.9), transparent);
-  opacity: 0.8;
-  mix-blend-mode: screen;
-  animation: dataStreamMove 1.6s linear infinite;
-}
-
-.data-displays {
-  position: relative;
-  margin: 0 auto 10px;
-  padding: 30px 0 10px;
-  z-index: 1;
-}
-
-.timeline-displays {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
-
-.timeline-line {
-  position: absolute;
-  top: 10px;
-  bottom: 10px;
-  left: 50%;
-  width: 2px;
-  transform: translateX(-50%);
-  background: linear-gradient(to bottom, rgba(0, 245, 212, 0.1), rgba(0, 245, 212, 0.85));
-  box-shadow: 0 0 18px rgba(0, 245, 212, 0.6);
-}
-
-.data-display {
-  background: radial-gradient(circle at top, rgba(0, 245, 212, 0.14), rgba(5, 11, 24, 0.98));
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 15px;
-  padding: 25px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.data-display::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #00f5d4, #00bbf9);
-}
-
-.data-display:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 30px rgba(0, 187, 249, 0.4), 0 0 30px rgba(0, 245, 212, 0.6);
-  border-color: rgba(0, 245, 212, 0.7);
-}
-
-.timeline-item {
-  width: 52%;
-  position: relative;
-}
-
-.timeline-item:nth-child(2n+1) {
-  align-self: flex-start;
-  margin-left: 0;
-}
-
-.timeline-item:nth-child(2n) {
-  align-self: flex-end;
-  margin-right: 0;
-}
-
-.timeline-node {
-  position: absolute;
-  top: 28px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #00f5d4;
-  box-shadow: 0 0 15px rgba(0, 245, 212, 0.9);
-}
-
-.timeline-item:nth-child(2n+1) .timeline-node {
-  right: -6px;
-}
-
-.timeline-item:nth-child(2n) .timeline-node {
-  left: -6px;
-}
-
-.display-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.display-title {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 500;
-}
-
-.display-icon {
-  font-size: 24px;
-}
-
-.display-body {
-  margin-bottom: 20px;
-}
-
-.display-subtitle {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
-  margin-top: 5px;
-}
-
-.display-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.trend-up {
-  color: #00ff9d;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.trend-down {
-  color: #ff4757;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.trend-label {
-  color: rgba(255, 255, 255, 0.6);
+  gap: 8px;
   font-size: 13px;
+  color: rgba(255, 255, 255, 0.25);
+  margin-top: auto;
+  padding-bottom: 28px;
+  letter-spacing: 0.5px;
 }
 
-/* 图表区域 */
-.charts-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 18px;
-  position: relative;
-  z-index: 1;
+.footer-dot {
+  opacity: 0.4;
 }
 
-.chart-container {
-  background: radial-gradient(circle at top, rgba(0, 245, 212, 0.1), rgba(5, 11, 24, 0.98));
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  border-radius: 15px;
-  padding: 25px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
+/* ===== 动画 ===== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.chart-container:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 30px rgba(0, 187, 249, 0.32), 0 0 25px rgba(0, 245, 212, 0.5);
-}
-
-.chart-container.full-width {
-  grid-column: 1 / -1;
-}
-
-.chart-title {
-  font-size: 18px;
-  margin-bottom: 20px;
-  color: #ffffff;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-}
-
-.chart-title::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  background: linear-gradient(135deg, #00f5d4, #00bbf9);
-  border-radius: 50%;
-  margin-right: 10px;
-  box-shadow: 0 0 10px rgba(0, 245, 212, 0.5);
-}
-
-.chart {
-  width: 100%;
-  height: 300px;
-}
-
-.chart-container.full-width .chart {
-  height: 350px;
-}
-
-/* 统计信息 */
-.stats-section {
-  padding: 40px 0;
-  background-color: rgba(5, 11, 24, 0.95);
-  border-radius: 20px;
-  margin-bottom: 60px;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 30px;
-  text-align: center;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.stat-item {
-  padding: 20px;
-  position: relative;
-  z-index: 1;
-}
-
-.stat-number {
-  font-size: 36px;
-  font-weight: 800;
-  background: var(--gradient-glow);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 8px;
-  animation: countUp 2s ease-out;
-  display: block;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-/* 动画效果 */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
+/* ===== 响应式 ===== */
+@media (max-width: 640px) {
+  .logo-icon {
+    font-size: 36px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .brand-name {
+    font-size: 26px;
+    letter-spacing: 2px;
   }
-}
-
-@keyframes countUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+  .brand-tagline {
+    font-size: 15px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.02);
-  }
-}
-
-@keyframes dataStreamMove {
-  0% {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-}
-
-/* 响应式设计 */
-@media (max-width: 1024px) {
-  .home-layout {
-    grid-template-columns: 1fr 1.2fr;
-    grid-template-rows: auto auto;
-  }
-
-  .home-right {
-    grid-column: 1 / -1;
-  }
-
-  .welcome-title {
-    font-size: 40px;
-  }
-  
-  .features-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 25px;
-  }
-  
-  .charts-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .chart-container.full-width {
-    grid-column: 1;
-  }
-}
-
-@media (max-width: 768px) {
-  .home-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .welcome-section {
-    padding: 60px 0;
-  }
-  
-  .welcome-title {
-    font-size: 32px;
-  }
-  
-  .welcome-subtitle {
-    font-size: 16px;
-    padding: 0 20px;
-  }
-  
-  .cta-buttons {
+  .actions {
     flex-direction: column;
-    align-items: center;
-    gap: 15px;
-  }
-  
-  .btn-primary, .btn-secondary {
-    width: 200px;
-    justify-content: center;
-  }
-  
-  .features-section {
-    padding: 40px 0;
-  }
-  
-  .section-title {
-    font-size: 28px;
-  }
-  
-  .features-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  
-  .feature-card {
-    padding: 25px;
-  }
-  
-  .stats-section {
-    padding: 30px 0;
-  }
-  
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-  }
-  
-  .stat-number {
-    font-size: 28px;
-  }
-  
-  .stat-label {
-    font-size: 12px;
-  }
-  
-  .data-dashboard-section {
-    padding: 40px 0;
-  }
-  
-  .data-displays {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  
-  .chart {
-    height: 250px;
-  }
-  
-  .chart-container.full-width .chart {
-    height: 300px;
-  }
-}
-
-@media (max-width: 576px) {
-  .home-container {
-    padding: 0 10px;
-  }
-  
-  .welcome-section {
-    padding: 40px 0;
-  }
-  
-  .welcome-title {
-    font-size: 28px;
-  }
-  
-  .welcome-subtitle {
-    font-size: 14px;
-    padding: 0 10px;
-  }
-  
-  .btn-primary, .btn-secondary {
-    width: 180px;
-    padding: 10px 20px;
-    font-size: 14px;
-  }
-  
-  .section-title {
-    font-size: 24px;
-  }
-  
-  .feature-card {
-    padding: 20px;
-  }
-  
-  .feature-icon {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
-  }
-  
-  .feature-title {
-    font-size: 18px;
-  }
-  
-  .feature-description {
-    font-size: 13px;
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .stat-item {
-    padding: 15px;
-  }
-}
-
-@media (max-width: 420px) {
-  .welcome-title {
-    font-size: 24px;
-  }
-  
-  .welcome-subtitle {
-    font-size: 13px;
-  }
-  
-  .btn-primary, .btn-secondary {
     width: 100%;
-    max-width: 200px;
+    max-width: 280px;
+  }
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 24px;
+  }
+  .quick-nav {
+    font-size: 13px;
+    gap: 10px;
+  }
+  .landing-footer {
+    font-size: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0 24px 24px;
   }
 }
 </style>

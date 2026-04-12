@@ -385,60 +385,15 @@
   }
 }
 
-/* 线条动画 - 霓虹流光效果 */
+/* 线条装饰 - 简洁风格（原霓虹流光已移除） */
 .line-animation {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.3), transparent);
-  height: 2px;
+  height: 1px;
+  background: rgba(0, 212, 255, 0.15);
 }
 
-.line-animation::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.8), transparent);
-  animation: lineSlide 2s infinite;
-}
-
-@keyframes lineSlide {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
-}
-
-/* 双重线条动画 */
 .double-line-animation {
-  position: relative;
-  overflow: hidden;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(176, 58, 255, 0.2), transparent);
-}
-
-.double-line-animation::before,
-.double-line-animation::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.8), transparent);
-}
-
-.double-line-animation::before {
-  left: -100%;
-  animation: lineSlide 2.5s infinite;
-}
-
-.double-line-animation::after {
-  left: -100%;
-  animation: lineSlide 2.5s infinite 1.25s;
+  height: 1px;
+  background: rgba(0, 212, 255, 0.12);
 }
 
 /* 消息发送动画 - 3D 滑入效果 */

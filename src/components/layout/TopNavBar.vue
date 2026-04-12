@@ -14,23 +14,19 @@
       
       <!-- 功能按钮导航：首页 / 对话·图谱·知识库 / 搜索·上传 / 历史·FAQ -->
       <nav :class="{ 'nav-menu': true, 'nav-menu-open': isMenuOpen, 'nav-elderly': isElderly }">
-        <!-- 老人模式：只显示 4 个核心入口 -->
+        <!-- 老人模式：只显示 3 个核心入口（首页就是聊天） -->
         <template v-if="isElderly">
-          <router-link to="/home" class="nav-item nav-item-elderly" active-class="active" @click="closeMenu">
+          <router-link to="/elderly-chat" class="nav-item nav-item-elderly" active-class="active" @click="closeMenu">
             <i class="el-icon-s-home"></i>
             <span>首页</span>
-          </router-link>
-          <router-link to="/chat" class="nav-item nav-item-elderly" active-class="active" @click="closeMenu">
-            <i class="el-icon-chat-dot-round"></i>
-            <span>问一问</span>
           </router-link>
           <router-link to="/medication" class="nav-item nav-item-elderly" active-class="active" @click="closeMenu">
             <i class="el-icon-first-aid-kit"></i>
             <span>吃药</span>
           </router-link>
-          <router-link to="/patient-education" class="nav-item nav-item-elderly" active-class="active" @click="closeMenu">
-            <i class="el-icon-medal"></i>
-            <span>学知识</span>
+          <router-link to="/family-report" class="nav-item nav-item-elderly" active-class="active" @click="closeMenu">
+            <i class="el-icon-phone-outline"></i>
+            <span>家人</span>
           </router-link>
         </template>
 

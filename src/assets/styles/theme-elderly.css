@@ -36,6 +36,18 @@
   --font-size-xl: 22px;
   --line-height-base: 1.65;
   --line-height-relaxed: 1.8;
+
+  /* 老人陪伴模式暖色系 */
+  --elderly-bg: #FFF8F0;
+  --elderly-bg-warm: #FFF1E6;
+  --elderly-primary: #E8734A;
+  --elderly-primary-light: #F5A882;
+  --elderly-primary-dark: #C85A35;
+  --elderly-accent: #4CAF82;
+  --elderly-text: #3D3229;
+  --elderly-text-light: #7A7067;
+  --elderly-border: #F0E6DB;
+  --elderly-radius: 20px;
 }
 
 [data-theme="elderly"] body,
@@ -388,4 +400,62 @@
 
 [data-theme="elderly"] .va-tip-text {
   font-size: var(--font-size-base);
+}
+
+/* ===================================================================
+   老人陪伴聊天页（ElderlyChatView）暖色覆盖
+   =================================================================== */
+
+/* 老人聊天页面不需要科技风顶栏背景 */
+[data-theme="elderly"] .top-navbar {
+  background-color: #FFFFFF !important;
+  border-bottom: 1px solid #F0E6DB !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="elderly"] .top-navbar .system-name {
+  background: linear-gradient(135deg, #E8734A, #D4623D) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+[data-theme="elderly"] .top-navbar .logo {
+  background: none !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+/* 老人导航按钮暖色化 */
+[data-theme="elderly"] .nav-item-elderly {
+  border: 1.5px solid rgba(232, 115, 74, 0.3) !important;
+  background: rgba(232, 115, 74, 0.06) !important;
+  color: #5D4E3C !important;
+}
+
+[data-theme="elderly"] .nav-item-elderly:hover {
+  background: rgba(232, 115, 74, 0.12) !important;
+  border-color: rgba(232, 115, 74, 0.5) !important;
+  box-shadow: 0 4px 16px rgba(232, 115, 74, 0.15) !important;
+}
+
+[data-theme="elderly"] .nav-item-elderly.active {
+  background: linear-gradient(135deg, #E8734A, #D4623D) !important;
+  color: #FFFFFF !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 16px rgba(232, 115, 74, 0.35) !important;
+}
+
+[data-theme="elderly"] .nav-item-elderly i {
+  color: inherit !important;
+}
+
+/* 去掉脉冲光圈（暖色模式下不需要） */
+[data-theme="elderly"] .nav-item-elderly::after {
+  display: none !important;
+}
+
+/* 老人聊天页面背景 */
+[data-theme="elderly"] .app-container {
+  background-color: #FFF8F0 !important;
 }
