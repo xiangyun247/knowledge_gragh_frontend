@@ -236,6 +236,153 @@ export function getReasonLabel(reason) {
 }
 
 /**
+ * 行为指标评分（用于适老测试流程的三模态融合）
+ *
+ * 基于该 session 内的行为事件计算行为认知负荷分数 (20-100)。
+ * 信号：
+ *   1. 平均操作间隔 > 30s → 犹豫，+认知负荷
+ *   2. back / error_or_repeat 占比高 → 迷惑/困难，+认知负荷
+ *   3. 交互过密（< 3s/次）→ 急躁/焦虑，+认知负荷
+ *   4. 交互适中 → 认知负荷正常
+ *
+ * @param {string} sessionId - 测试会话 ID
+ * @param {number} [durationSec] - 聊天阶段总时长（秒），可选
+ * @returns {{ score: number, details: object }}
+ */
+export function calcBehavioralScore(sessionId, durationSec) {
+  const allEvents = getCognitiveEvents()
+  const sessionEvents = sessionId
+    ? allEvents.filter(e => e.session_id === sessionId)
+    : allEvents
+
+  // 只关注 task_start 到 test_complete 之间的聊天阶段事件
+  const taskStartIdx = sessionEvents.findIndex(e => e.event_type === 'task_start')
+  const events = taskStartIdx >= 0 ? sessionEvents.slice(taskStartIdx) : sessionEvents
+
+  const clicks = events.filter(e => e.event_type === 'click')
+  const backs = events.filter(e => e.event_type === 'back')
+  const errors = events.filter(e => e.event_type === 'error_or_repeat')
+  const taskEnd = events.find(e => e.event_type === 'task_end' || e.event_type === 'test_complete')
+
+  // 时间范围
+  const startTs = events[0] ? events[0].ts : 0
+  const endTs = taskEnd ? taskEnd.ts : (durationSec ? startTs + durationSec * 1000 : (events.length > 0 ? events[events.length - 1].ts : startTs))
+  const totalMs = endTs - startTs
+  const totalSec = Math.max(totalMs / 1000, 1)
+
+  // 信号1：平均操作间隔
+  let avgIntervalScore = 50 // 基线50分
+  if (clicks.length >= 2) {
+    const intervals = []
+    for (let i = 1; i < clicks.length; i++) {
+      intervals.push((clicks[i].ts - clicks[i - 1].ts) / 1000)
+    }
+    const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length
+    if (avgInterval > 30) {
+      avgIntervalScore = 50 + Math.min((avgInterval - 30) / 20 * 30, 30) // 50-80
+    } else if (avgInterval > 15) {
+      avgIntervalScore = 50 // 正常
+    } else if (avgInterval > 3) {
+      avgIntervalScore = 50 // 正常
+    } else {
+      avgIntervalScore = 50 + Math.min((3 - avgInterval) / 3 * 30, 30) // 过密→50-80
+    }
+  }
+
+  // 信号2：错误/后退比例
+  const interactionTotal = clicks.length + backs.length + errors.length
+  let errorRateScore = 50
+  if (interactionTotal >= 3) {
+    const errorRatio = (backs.length + errors.length) / interactionTotal
+    if (errorRatio > 0.3) {
+      errorRateScore = 50 + Math.min(errorRatio * 40, 35) // 50-85
+    } else if (errorRatio > 0.15) {
+      errorRateScore = 55
+    }
+    // 低错误率保持50
+  }
+
+  // 信号3：交互频率（每分钟操作次数）
+  let freqScore = 50
+  const opsPerMin = (clicks.length + backs.length + errors.length) / (totalSec / 60)
+  if (opsPerMin > 20) {
+    freqScore = 50 + Math.min((opsPerMin - 20) / 10 * 25, 25) // 过密→50-75
+  } else if (opsPerMin >= 2) {
+    freqScore = 45 // 正常略低
+  } else if (opsPerMin < 0.5 && totalSec > 60) {
+    freqScore = 50 + 10 // 几乎没操作，可能犹豫
+  }
+
+  // 加权融合
+  const rawScore = avgIntervalScore * 0.35 + errorRateScore * 0.40 + freqScore * 0.25
+  const score = Math.round(Math.max(20, Math.min(100, rawScore)))
+
+  return {
+    score,
+    details: {
+      totalInteractions: interactionTotal,
+      clickCount: clicks.length,
+      backCount: backs.length,
+      errorCount: errors.length,
+      durationSec: Math.round(totalSec),
+      avgIntervalSec: clicks.length >= 2
+        ? parseFloat((clicks.reduce((sum, c, i) => i > 0 ? sum + (c.ts - clicks[i - 1].ts) / 1000 : 0, 0) / (clicks.length - 1)).toFixed(1))
+        : null,
+      opsPerMin: parseFloat(opsPerMin.toFixed(1)),
+      avgIntervalScore: Math.round(avgIntervalScore),
+      errorRateScore: Math.round(errorRateScore),
+      freqScore: Math.round(freqScore)
+    }
+  }
+}
+
+/**
+ * 三模态融合认知负荷评分
+ *
+ * 权重分配：
+ *   - NASA-TLX 问卷（主观）：50%
+ *   - 行为埋点（客观操作）：30%
+ *   - EEG 脑电（生理信号）：20%
+ *
+ * @param {{ score: number }} questionnaire - { score: 20-100 }
+ * @param {{ score: number }} behavioral - { score: 20-100 }
+ * @param {{ score: number }} eeg - { score: 20-100 }
+ * @returns {{ finalScore: number, breakdown: object }}
+ */
+export function calcFusedScore(questionnaire, behavioral, eeg) {
+  const qScore = (questionnaire && questionnaire.score != null) ? questionnaire.score : null
+  const bScore = (behavioral && behavioral.score != null) ? behavioral.score : null
+  const eScore = (eeg && eeg.score != null) ? eeg.score : null
+
+  const available = [qScore, bScore, eScore].filter(s => s != null)
+  if (available.length === 0) return { finalScore: null, breakdown: {} }
+
+  // 默认权重，如果某个模态缺失则重新分配
+  let wQ = 0.5, wB = 0.3, wE = 0.2
+
+  if (qScore == null) { wB = 0.55; wE = 0.45 }
+  else if (bScore == null) { wQ = 0.65; wE = 0.35 }
+  else if (eScore == null) { wQ = 0.6; wB = 0.4 }
+
+  let finalScore = 0
+  if (qScore != null) finalScore += qScore * wQ
+  if (bScore != null) finalScore += bScore * wB
+  if (eScore != null) finalScore += eScore * wE
+
+  finalScore = Math.round(Math.max(20, Math.min(100, finalScore)))
+
+  return {
+    finalScore,
+    breakdown: {
+      questionnaire: qScore,
+      behavioral: bScore,
+      eeg: eScore,
+      weights: { questionnaire: wQ, behavioral: wB, eeg: wE }
+    }
+  }
+}
+
+/**
  * 清空本地评估数据（可选，供管理端使用）
  */
 export function clearCognitiveLoadData() {

@@ -190,6 +190,53 @@
           <p class="score-desc">{{ scoreLevelDesc }}</p>
         </div>
 
+        <!-- 三模态评分明细 -->
+        <div class="fusion-card" v-if="testResult && testResult.questionnaireScore != null">
+          <h3 class="fusion-title">📊 评分详情</h3>
+          <div class="fusion-rows">
+            <div class="fusion-row">
+              <div class="fusion-row-head">
+                <span class="fusion-icon">📝</span>
+                <span class="fusion-name">问卷评分</span>
+                <span class="fusion-weight">权重 50%</span>
+              </div>
+              <div class="fusion-bar-wrap">
+                <div class="fusion-bar" :style="{ width: testResult.questionnaireScore + '%' }" :class="getBarClass(testResult.questionnaireScore)"></div>
+              </div>
+              <span class="fusion-val">{{ testResult.questionnaireScore }}分</span>
+            </div>
+            <div class="fusion-row" v-if="testResult.behavioralScore != null">
+              <div class="fusion-row-head">
+                <span class="fusion-icon">👆</span>
+                <span class="fusion-name">行为评分</span>
+                <span class="fusion-weight">权重 {{ (testResult.fusedBreakdown && testResult.fusedBreakdown.weights) ? Math.round(testResult.fusedBreakdown.weights.behavioral * 100) + '%' : '30%' }}</span>
+              </div>
+              <div class="fusion-bar-wrap">
+                <div class="fusion-bar" :style="{ width: testResult.behavioralScore + '%' }" :class="getBarClass(testResult.behavioralScore)"></div>
+              </div>
+              <span class="fusion-val">{{ testResult.behavioralScore }}分</span>
+              <p class="fusion-hint" v-if="testResult.behavioralDetails">
+                共{{ testResult.behavioralDetails.totalInteractions }}次操作，平均间隔{{ testResult.behavioralDetails.avgIntervalSec || '-' }}秒
+              </p>
+            </div>
+            <div class="fusion-row" v-if="testResult.eegScore != null">
+              <div class="fusion-row-head">
+                <span class="fusion-icon">🧠</span>
+                <span class="fusion-name">脑电评分</span>
+                <span class="fusion-weight">权重 {{ (testResult.fusedBreakdown && testResult.fusedBreakdown.weights) ? Math.round(testResult.fusedBreakdown.weights.eeg * 100) + '%' : '20%' }}</span>
+              </div>
+              <div class="fusion-bar-wrap">
+                <div class="fusion-bar" :style="{ width: testResult.eegScore + '%' }" :class="getBarClass(testResult.eegScore)"></div>
+              </div>
+              <span class="fusion-val">{{ testResult.eegScore }}分</span>
+            </div>
+            <div class="fusion-total">
+              <span>综合评分</span>
+              <span class="fusion-total-val" :class="'score-text-' + scoreLevel">{{ testResult.cognitiveScore }}分</span>
+            </div>
+          </div>
+        </div>
+
         <div class="done-summary" v-if="testResult">
           <div class="summary-row">
             <span>受试者</span>
@@ -226,7 +273,7 @@
 <script>
 import NasaTlxElderly from './NasaTlxElderly'
 import { createSubject, createSession, endSession } from '@/api/eegSession'
-import { recordEvent, recordQuestionnaire, COGNITIVE_EVENT_TYPES } from '@/utils/cognitiveLoad'
+import { recordEvent, recordQuestionnaire, COGNITIVE_EVENT_TYPES, calcBehavioralScore, calcFusedScore } from '@/utils/cognitiveLoad'
 import storage from '@/utils/storage'
 
 const TEST_STATE_KEY = 'elderly_test_state'
@@ -301,6 +348,11 @@ export default {
         high: '您在使用过程中感觉有些吃力，可能需要简化操作。'
       }
       return map[this.scoreLevel] || ''
+    },
+    getBarClass(score) {
+      if (score <= 30) return 'bar-low'
+      if (score <= 60) return 'bar-medium'
+      return 'bar-high'
     }
   },
   created() {
@@ -466,9 +518,31 @@ export default {
       this.recordTestEvent('post_questionnaire', { answers_count: Object.keys(data.answers).length })
       this.stopTimer()
 
-      // 计算认知负荷评分
-      const cognitiveScore = this.calcTlxScore(data.answers)
+      // 1. NASA-TLX 问卷分
+      const questionnaireScore = this.calcTlxScore(data.answers)
       const baselineScore = this.calcTlxScore(this.baselineAnswers)
+
+      // 2. 行为指标分
+      const behavioralResult = calcBehavioralScore(this.sessionId, this.elapsedTime)
+
+      // 3. EEG 仿真分（基于 theta/beta 比值模拟）
+      let eegScore = null
+      if (this.eegData.length > 0) {
+        // 用仿真数据的简单特征模拟：取最后60秒的信号方差
+        const recentData = this.eegData.slice(-15000) // ~60s @ 250Hz
+        const tp9 = recentData.map(d => d.TP9 || 0)
+        const mean = tp9.reduce((a, b) => a + b, 0) / tp9.length
+        const variance = tp9.reduce((a, v) => a + (v - mean) ** 2, 0) / tp9.length
+        // 方差越大→信号越不规则→认知负荷可能越高
+        eegScore = Math.round(Math.max(20, Math.min(100, 30 + Math.sqrt(variance) * 3)))
+      }
+
+      // 4. 三模态融合
+      const fused = calcFusedScore(
+        { score: questionnaireScore },
+        behavioralResult,
+        { score: eegScore }
+      )
 
       // 保存结果
       this.testResult = {
@@ -480,12 +554,18 @@ export default {
         eegDataPoints: this.eegData.length,
         baselineAnswers: this.baselineAnswers,
         postAnswers: this.postAnswers,
-        cognitiveScore: cognitiveScore,
-        baselineScore: baselineScore
+        cognitiveScore: fused.finalScore,
+        baselineScore: baselineScore,
+        // 三模态明细
+        questionnaireScore,
+        behavioralScore: behavioralResult.score,
+        behavioralDetails: behavioralResult.details,
+        eegScore,
+        fusedBreakdown: fused.breakdown
       }
 
       // 上报后端
-      this.stopEEGAndEndSession(cognitiveScore)
+      this.stopEEGAndEndSession(fused.finalScore, fused.breakdown)
       this.nextStep()
     },
 
@@ -530,7 +610,7 @@ export default {
     },
 
     // ===== 结束会话 =====
-    async stopEEGAndEndSession(cognitiveScore) {
+    async stopEEGAndEndSession(cognitiveScore, breakdown) {
       if (this.eegSimulationTimer) {
         clearInterval(this.eegSimulationTimer)
         this.eegSimulationTimer = null
@@ -560,7 +640,10 @@ export default {
               baseline: this.baselineAnswers,
               post: this.postAnswers,
               baseline_score: this.testResult && this.testResult.baselineScore,
-              post_score: cognitiveScore
+              post_score: cognitiveScore,
+              // 三模态融合明细
+              multimodal_fusion: breakdown || {},
+              behavioral_details: this.testResult && this.testResult.behavioralDetails || null
             })
           })
           console.log('[ElderlyTest] 会话上报成功')
@@ -1156,6 +1239,88 @@ export default {
   color: var(--text-muted);
   margin: 0;
   line-height: 1.5;
+}
+
+/* ===== 三模态融合评分明细 ===== */
+.fusion-card {
+  margin: 16px 0;
+  padding: 20px 24px;
+  background: var(--bg-primary);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+}
+.fusion-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+}
+.fusion-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.fusion-row-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.fusion-icon {
+  font-size: 18px;
+}
+.fusion-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+.fusion-weight {
+  font-size: 13px;
+  color: var(--text-muted);
+  background: var(--bg-accent-soft);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.fusion-bar-wrap {
+  height: 10px;
+  background: var(--bg-accent-soft);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.fusion-bar {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.6s ease;
+}
+.fusion-bar.bar-low { background: linear-gradient(90deg, #4CAF82, #66BB6A); }
+.fusion-bar.bar-medium { background: linear-gradient(90deg, #FFA726, #FFB74D); }
+.fusion-bar.bar-high { background: linear-gradient(90deg, #EF5350, #E57373); }
+.fusion-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.fusion-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+.fusion-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0 0;
+  margin-top: 8px;
+  border-top: 1px dashed var(--border);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.fusion-total-val {
+  font-size: 22px;
+  font-weight: 800;
 }
 
 /* ===== 完成 ===== */
