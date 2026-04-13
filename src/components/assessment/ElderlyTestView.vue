@@ -698,7 +698,7 @@ export default {
     recordTestEvent(eventType, extra = {}) {
       recordEvent(eventType, {
         task_id: this.taskId,
-        session_id: this.sessionId,
+        session_id: String(this.sessionId),
         source: 'elderly_test',
         ...extra
       })

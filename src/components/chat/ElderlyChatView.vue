@@ -783,7 +783,7 @@ export default {
       if (this.testActive) {
         recordEvent(COGNITIVE_EVENT_TYPES.CLICK, {
           task_id: this.testTaskId,
-          session_id: this.testSessionId,
+          session_id: String(this.testSessionId),
           source: 'elderly_test',
           action: 'send_message',
           message_length: text.length
@@ -945,12 +945,14 @@ export default {
       this.$router.push('/elderly-test')
     },
     finishTest() {
+      recordEvent(COGNITIVE_EVENT_TYPES.TASK_END, {
+        task_id: this.testTaskId,
+        session_id: String(this.testSessionId),
+        source: 'elderly_test'
+      })
       this.testActive = false
       this.testTaskId = null
       this.testSessionId = null
-      recordEvent(COGNITIVE_EVENT_TYPES.TASK_END, {
-        source: 'elderly_test'
-      })
       this.doNewConversation()
       this.$router.push('/elderly-test')
     },
