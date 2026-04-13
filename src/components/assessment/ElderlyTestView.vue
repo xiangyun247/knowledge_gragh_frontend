@@ -612,6 +612,14 @@ export default {
           await endSession(this.sessionId, {
             duration_seconds: Math.round(this.elapsedTime),
             avg_score: avgScore,
+            // 仿真模式下 EEG 特征为 null（无真实设备）
+            avg_theta_beta: null,
+            avg_alpha_beta: null,
+            avg_theta_power: null,
+            avg_alpha_power: null,
+            avg_beta_power: null,
+            avg_snr: null,
+            score_trend: [],
             cognitive_level: avgScore > 60 ? 'high' : avgScore > 30 ? 'medium' : 'low',
             session_note: JSON.stringify({
               test_type: 'elderly_companion_test',
@@ -1249,8 +1257,6 @@ export default {
   font-size: 13px;
   color: var(--text-muted);
   margin: 0 0 12px 0;
-}
-  margin: 0 0 16px;
 }
 .fusion-rows {
   display: flex;
