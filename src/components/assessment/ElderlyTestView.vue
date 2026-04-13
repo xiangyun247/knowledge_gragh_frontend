@@ -44,11 +44,11 @@
 
         <div class="info-form">
           <div class="form-row">
-            <label class="form-label">您的姓名</label>
+            <label class="form-label">您的姓名 <span class="optional-tag">选填，不填将匿名</span></label>
             <input
               v-model="subjectInfo.name"
               class="form-input"
-              placeholder="请输入姓名"
+              placeholder="可留空，自动匿名处理"
             />
           </div>
           <div class="form-row">
@@ -116,7 +116,7 @@
 
         <!-- 受试者信息确认 -->
         <div class="subject-confirm" v-if="!eegConnected">
-          <p class="confirm-label">受试者：{{ subjectInfo.name || subjectInfo.subjectCode }}</p>
+          <p class="confirm-label">受试者：{{ displayName }}</p>
         </div>
 
         <button
@@ -190,15 +190,16 @@
           <p class="score-desc">{{ scoreLevelDesc }}</p>
         </div>
 
-        <!-- 三模态评分明细 -->
+        <!-- 双模态评分明细 -->
         <div class="fusion-card" v-if="testResult && testResult.questionnaireScore != null">
           <h3 class="fusion-title">📊 评分详情</h3>
+          <p class="fusion-subtitle">基于问卷主观评估 + 行为埋点分析</p>
           <div class="fusion-rows">
             <div class="fusion-row">
               <div class="fusion-row-head">
                 <span class="fusion-icon">📝</span>
                 <span class="fusion-name">问卷评分</span>
-                <span class="fusion-weight">权重 50%</span>
+                <span class="fusion-weight">权重 {{ (testResult.fusedBreakdown && testResult.fusedBreakdown.weights) ? Math.round(testResult.fusedBreakdown.weights.questionnaire * 100) + '%' : '-' }}</span>
               </div>
               <div class="fusion-bar-wrap">
                 <div class="fusion-bar" :style="{ width: testResult.questionnaireScore + '%' }" :class="getBarClass(testResult.questionnaireScore)"></div>
@@ -209,7 +210,7 @@
               <div class="fusion-row-head">
                 <span class="fusion-icon">👆</span>
                 <span class="fusion-name">行为评分</span>
-                <span class="fusion-weight">权重 {{ (testResult.fusedBreakdown && testResult.fusedBreakdown.weights) ? Math.round(testResult.fusedBreakdown.weights.behavioral * 100) + '%' : '30%' }}</span>
+                <span class="fusion-weight">权重 {{ (testResult.fusedBreakdown && testResult.fusedBreakdown.weights) ? Math.round(testResult.fusedBreakdown.weights.behavioral * 100) + '%' : '-' }}</span>
               </div>
               <div class="fusion-bar-wrap">
                 <div class="fusion-bar" :style="{ width: testResult.behavioralScore + '%' }" :class="getBarClass(testResult.behavioralScore)"></div>
@@ -218,17 +219,6 @@
               <p class="fusion-hint" v-if="testResult.behavioralDetails">
                 共{{ testResult.behavioralDetails.totalInteractions }}次操作，平均间隔{{ testResult.behavioralDetails.avgIntervalSec || '-' }}秒
               </p>
-            </div>
-            <div class="fusion-row" v-if="testResult.eegScore != null">
-              <div class="fusion-row-head">
-                <span class="fusion-icon">🧠</span>
-                <span class="fusion-name">脑电评分</span>
-                <span class="fusion-weight">权重 {{ (testResult.fusedBreakdown && testResult.fusedBreakdown.weights) ? Math.round(testResult.fusedBreakdown.weights.eeg * 100) + '%' : '20%' }}</span>
-              </div>
-              <div class="fusion-bar-wrap">
-                <div class="fusion-bar" :style="{ width: testResult.eegScore + '%' }" :class="getBarClass(testResult.eegScore)"></div>
-              </div>
-              <span class="fusion-val">{{ testResult.eegScore }}分</span>
             </div>
             <div class="fusion-total">
               <span>综合评分</span>
@@ -240,7 +230,7 @@
         <div class="done-summary" v-if="testResult">
           <div class="summary-row">
             <span>受试者</span>
-            <span>{{ testResult.subjectName }}</span>
+            <span>{{ displayName }}</span>
           </div>
           <div class="summary-row">
             <span>测试时长</span>
@@ -328,7 +318,15 @@ export default {
       return 'theme-light'
     },
     formValid() {
-      return this.subjectInfo.name.trim() && this.subjectInfo.age > 0 && this.subjectInfo.gender
+      return this.subjectInfo.age > 0 && this.subjectInfo.gender
+    },
+    displayName() {
+      if (this.subjectInfo.name && this.subjectInfo.name.trim()) {
+        return this.subjectInfo.name.trim()
+      }
+      // 不填姓名 → 匿名：只显示编号后4位
+      const code = this.subjectInfo.subjectCode || ''
+      return '受试者 ' + (code.length > 4 ? code.slice(-4) : code)
     },
     scoreLevel() {
       if (!this.testResult || this.testResult.cognitiveScore == null) return ''
@@ -527,28 +525,16 @@ export default {
       // 2. 行为指标分
       const behavioralResult = calcBehavioralScore(this.sessionId, this.elapsedTime)
 
-      // 3. EEG 仿真分（基于 theta/beta 比值模拟）
-      let eegScore = null
-      if (this.eegData.length > 0) {
-        // 用仿真数据的简单特征模拟：取最后60秒的信号方差
-        const recentData = this.eegData.slice(-15000) // ~60s @ 250Hz
-        const tp9 = recentData.map(d => d.TP9 || 0)
-        const mean = tp9.reduce((a, b) => a + b, 0) / tp9.length
-        const variance = tp9.reduce((a, v) => a + (v - mean) ** 2, 0) / tp9.length
-        // 方差越大→信号越不规则→认知负荷可能越高
-        eegScore = Math.round(Math.max(20, Math.min(100, 30 + Math.sqrt(variance) * 3)))
-      }
-
-      // 4. 三模态融合
+      // 3. 三模态融合（当前无真实EEG设备，仅问卷+行为双模态）
       const fused = calcFusedScore(
         { score: questionnaireScore },
         behavioralResult,
-        { score: eegScore }
+        null // 无真实EEG数据
       )
 
       // 保存结果
       this.testResult = {
-        subjectName: this.subjectInfo.name || this.subjectInfo.subjectCode,
+        subjectName: this.displayName,
         duration: this.elapsedTime,
         baselineDone: !!this.baselineAnswers,
         postDone: !!this.postAnswers,
@@ -562,7 +548,6 @@ export default {
         questionnaireScore,
         behavioralScore: behavioralResult.score,
         behavioralDetails: behavioralResult.details,
-        eegScore,
         fusedBreakdown: fused.breakdown
       }
 
@@ -624,26 +609,19 @@ export default {
       if (this.sessionId && !this.sessionId.startsWith('local_')) {
         try {
           const avgScore = cognitiveScore || Math.round(30 + Math.random() * 40)
-          const scoreTrend = Array.from({ length: 10 }, () => Math.round(20 + Math.random() * 60))
           await endSession(this.sessionId, {
             duration_seconds: Math.round(this.elapsedTime),
             avg_score: avgScore,
-            avg_theta_beta: parseFloat((0.8 + Math.random() * 1.2).toFixed(2)),
-            avg_alpha_beta: parseFloat((0.6 + Math.random() * 1.0).toFixed(2)),
-            avg_theta_power: parseFloat((10 + Math.random() * 10).toFixed(1)),
-            avg_alpha_power: parseFloat((15 + Math.random() * 10).toFixed(1)),
-            avg_beta_power: parseFloat((12 + Math.random() * 10).toFixed(1)),
-            avg_snr: parseFloat((15 + Math.random() * 10).toFixed(1)),
-            score_trend: scoreTrend,
             cognitive_level: avgScore > 60 ? 'high' : avgScore > 30 ? 'medium' : 'low',
             session_note: JSON.stringify({
               test_type: 'elderly_companion_test',
-              subject_info: this.subjectInfo,
+              subject_display_name: this.displayName,
+              subject_info: { ...this.subjectInfo, name: this.displayName },
               baseline: this.baselineAnswers,
               post: this.postAnswers,
               baseline_score: this.testResult && this.testResult.baselineScore,
               post_score: cognitiveScore,
-              // 三模态融合明细
+              // 双模态融合明细（问卷+行为）
               multimodal_fusion: breakdown || {},
               behavioral_details: this.testResult && this.testResult.behavioralDetails || null
             })
@@ -882,6 +860,14 @@ export default {
 .font-size-2 .form-label { font-size: 21px; }
 .font-size-3 .form-label { font-size: 23px; }
 
+.optional-tag {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+
+
 .font-size-0 .step-label { font-size: 12px; }
 .font-size-1 .step-label { font-size: 13px; }
 .font-size-2 .step-label { font-size: 14px; }
@@ -1065,7 +1051,9 @@ export default {
   flex: 1;
 }
 .form-label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 17px;
   font-weight: 600;
   color: var(--text-primary);
@@ -1255,6 +1243,13 @@ export default {
   font-size: 18px;
   font-weight: 700;
   color: var(--text-primary);
+  margin: 0 0 4px 0;
+}
+.fusion-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 12px 0;
+}
   margin: 0 0 16px;
 }
 .fusion-rows {
