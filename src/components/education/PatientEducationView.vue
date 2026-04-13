@@ -229,6 +229,7 @@
 </template>
 
 <script>
+import DOMPurify from 'dompurify'
 import { mapState } from 'vuex'
 import dayjs from 'dayjs'
 import { sendMessageToBackend } from '@/api/chat'
@@ -557,9 +558,10 @@ export default {
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
       const lines = String(text).split('\n').map(esc)
-      return lines
+      const raw = lines
         .map(line => (line.trim() ? `<p class="edu-paragraph">${line}</p>` : '<p class="edu-paragraph">&nbsp;</p>'))
         .join('')
+      return DOMPurify.sanitize(raw, { ALLOWED_TAGS: ['p', 'br', 'strong', 'em'], ALLOWED_ATTR: ['class'] })
     },
 
     getFullText() {
