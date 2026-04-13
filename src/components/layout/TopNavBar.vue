@@ -224,9 +224,11 @@ export default {
   padding: 0 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: 70px;
-  flex-wrap: wrap;
+  gap: 16px;
+  height: auto;
+  min-height: 70px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .logo-section {
@@ -290,8 +292,11 @@ export default {
 .nav-menu {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 2px 4px;
+  justify-content: center;
+  flex: 1;
+  max-width: 860px;
 }
 
 .nav-item {
@@ -307,6 +312,7 @@ export default {
   position: relative;
   overflow: hidden;
   white-space: nowrap;
+  line-height: 1.4;
 }
 
 .nav-item::before {
@@ -425,7 +431,7 @@ export default {
   border-color: transparent;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 960px) {
   .nav-item-elderly span {
     display: inline !important;
   }
@@ -436,7 +442,18 @@ export default {
 }
 
 /* 响应式：中屏改为仅图标，避免顶栏挤换行 */
-@media (max-width: 1100px) {
+@media (max-width: 960px) {
+  .nav-menu {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .nav-menu::-webkit-scrollbar {
+    display: none;
+  }
+
   .nav-item span {
     display: none;
   }
@@ -444,6 +461,7 @@ export default {
   .nav-item {
     padding: 8px;
     border-radius: 50%;
+    flex-shrink: 0;
   }
   
   .system-name {
