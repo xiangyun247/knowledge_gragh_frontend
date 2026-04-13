@@ -5,8 +5,8 @@
       <div class="login-bg">
         <div class="bg-content">
           <img src="@/assets/images/logo.png" alt="Logo" class="bg-logo" />
-          <h2 class="bg-title">医疗知识图谱系统</h2>
-          <p class="bg-description">探索医疗知识的无限可能</p>
+          <h2 class="bg-title">认知负荷评估系统</h2>
+          <p class="bg-description">面向认知障碍老年人的认知负荷量化评估与辅助平台</p>
           
           <!-- 知识图谱可视化（带粒子特效） -->
           <div class="knowledge-graph">

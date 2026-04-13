@@ -3,7 +3,7 @@ module.exports = {
   // 页面标题（index.html 中的 htmlWebpackPlugin.options.title）
   chainWebpack: config => {
     config.plugin('html').tap(args => {
-      if (args[0]) args[0].title = '智护银龄 - 忆路康'
+      if (args[0]) args[0].title = '忆路康 - 认知负荷评估系统'
       return args
     })
   },

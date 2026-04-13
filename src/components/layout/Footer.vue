@@ -3,7 +3,7 @@
     <div class="container">
       <div class="footer-content">
         <div class="copyright-info">
-          <span>&copy; {{ new Date().getFullYear() }} 智护银龄. All Rights Reserved.</span>
+          <span>&copy; {{ new Date().getFullYear() }} 忆路康. All Rights Reserved.</span>
         </div>
         <div class="footer-links">
           <a href="#" class="footer-link">关于我们</a>

@@ -4,7 +4,7 @@
       <!-- Logo 和系统名称 -->
       <div class="logo-section">
         <img src="@/assets/images/logo.png" alt="Logo" class="logo" />
-        <h1 class="system-name">智护银龄</h1>
+        <h1 class="system-name">忆路康</h1>
       </div>
       
       <!-- 移动端菜单按钮 -->

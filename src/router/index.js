@@ -35,7 +35,7 @@ const routes = [
     name: 'Cover',
     component: Cover,
     meta: {
-      title: '智护银龄 - 欢迎',
+      title: '忆路康 - 欢迎',
       hideLayout: true
     }
   },
@@ -44,7 +44,7 @@ const routes = [
     name: 'Home',
     component: Home,
     meta: {
-      title: '智护银龄 - 首页'
+      title: '忆路康 - 首页'
     }
   },
   {
@@ -52,7 +52,7 @@ const routes = [
     name: 'Chat',
     component: Chat,
     meta: {
-      title: '智护银龄 - 聊天问答'
+      title: '忆路康 - 聊天问答'
       // 未登录也可访问，页面内操作时再校验登录
     }
   },
@@ -61,7 +61,7 @@ const routes = [
     name: 'ElderlyChat',
     component: ElderlyChat,
     meta: {
-      title: '智护银龄 - 和小忆聊天',
+      title: '忆路康 - 和小忆聊天',
       hideBackBar: true   // 老人模式有自己的底部导航，不需要全局返回栏
     }
   },
@@ -70,7 +70,7 @@ const routes = [
     name: 'ElderlyTest',
     component: ElderlyTest,
     meta: {
-      title: '智护银龄 - 认知评估测试',
+      title: '忆路康 - 认知评估测试',
       hideBackBar: true
     }
   },
@@ -79,7 +79,7 @@ const routes = [
     name: 'GraphView',
     component: GraphView,
     meta: {
-      title: '智护银龄 - 图谱可视化'
+      title: '忆路康 - 图谱可视化'
       // 未登录也可访问
     }
   },
@@ -89,7 +89,7 @@ const routes = [
     name: 'GraphViewWithFile',
     component: GraphView,
     meta: {
-      title: '智护银龄 - 图谱可视化'
+      title: '忆路康 - 图谱可视化'
       // 未登录也可访问
     }
   },
@@ -98,7 +98,7 @@ const routes = [
     name: 'Search',
     component: Search,
     meta: {
-      title: '智护银龄 - 实体搜索',
+      title: '忆路康 - 实体搜索',
       roles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]
     }
   },
@@ -107,7 +107,7 @@ const routes = [
     name: 'KnowledgeBase',
     component: KnowledgeBase,
     meta: {
-      title: '智护银龄 - 文档知识库'
+      title: '忆路康 - 文档知识库'
       // 未登录也可访问
     }
   },
@@ -116,7 +116,7 @@ const routes = [
     name: 'PatientEducation',
     component: PatientEducation,
     meta: {
-      title: '智护银龄 - 患者教育中心'
+      title: '忆路康 - 患者教育中心'
     }
   },
   {
@@ -124,7 +124,7 @@ const routes = [
     name: 'MedicationReminder',
     component: MedicationReminder,
     meta: {
-      title: '智护银龄 - 服药提醒'
+      title: '忆路康 - 服药提醒'
     }
   },
   {
@@ -132,7 +132,7 @@ const routes = [
     name: 'DataUpload',
     component: DataUpload,
     meta: {
-      title: '智护银龄 - 数据上传',
+      title: '忆路康 - 数据上传',
       roles: [ROLES.ADMIN, ROLES.DOCTOR] // 仅管理员、医生可访问
     }
   },
@@ -141,7 +141,7 @@ const routes = [
     name: 'History',
     component: History,
     meta: {
-      title: '智护银龄 - 历史记录',
+      title: '忆路康 - 历史记录',
       roles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]
     }
   },
@@ -150,7 +150,7 @@ const routes = [
     name: 'CognitiveLoadAssessment',
     component: CognitiveLoadAssessment,
     meta: {
-      title: '智护银龄 - 认知负荷评估',
+      title: '忆路康 - 认知负荷评估',
       roles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]
     }
   },
@@ -159,7 +159,7 @@ const routes = [
     name: 'EEGMonitor',
     component: EEGMonitor,
     meta: {
-      title: '智护银龄 - EEG实时监测'
+      title: '忆路康 - EEG实时监测'
     }
   },
   {
@@ -167,7 +167,7 @@ const routes = [
     name: 'CognitiveDashboard',
     component: CognitiveDashboard,
     meta: {
-      title: '智护银龄 - 机构看板',
+      title: '忆路康 - 机构看板',
       roles: [ROLES.ADMIN, ROLES.DOCTOR]
     }
   },
@@ -176,7 +176,7 @@ const routes = [
     name: 'FamilyReport',
     component: FamilyReport,
     meta: {
-      title: '智护银龄 - 家属周报'
+      title: '忆路康 - 家属周报'
     }
   },
   {
@@ -184,7 +184,7 @@ const routes = [
     name: 'FAQ',
     component: FAQ,
     meta: {
-      title: '智护银龄 - 常见问题'
+      title: '忆路康 - 常见问题'
     }
   },
   {
@@ -192,7 +192,7 @@ const routes = [
     name: 'Login',
     component: Login,
     meta: {
-      title: '智护银龄 - 登录/注册'
+      title: '忆路康 - 登录/注册'
     }
   },
   {
@@ -200,7 +200,7 @@ const routes = [
     name: 'ForgotPassword',
     component: ForgotPassword,
     meta: {
-      title: '智护银龄 - 找回密码'
+      title: '忆路康 - 找回密码'
     }
   },
   // 个人中心页面
@@ -209,7 +209,7 @@ const routes = [
     name: 'UserProfile',
     component: UserProfile,
     meta: {
-      title: '智护银龄 - 个人中心',
+      title: '忆路康 - 个人中心',
       requiresAuth: true
     }
   },
@@ -273,4 +273,3 @@ router.beforeEach((to, from, next) => {
 })
 
 export default router
-

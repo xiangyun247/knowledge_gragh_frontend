@@ -12,13 +12,13 @@
           </div>
 
           <h1 class="cover-title">
-            <span class="title-line">忆路康 · 智护银龄 认知辅助</span>
-            <span class="title-slogan">Low Cognitive Load Knowledge Assistant for Elderly with Cognitive Impairment</span>
-            <span class="title-highlight">低认知负荷，让记忆有守护</span>
+            <span class="title-line">忆路康 · 认知负荷评估系统</span>
+            <span class="title-slogan">Cognitive Load Assessment System for Elderly with Cognitive Impairment</span>
+            <span class="title-highlight">量化认知负荷，守护记忆之路</span>
           </h1>
 
           <p class="cover-subtitle">
-            基于大模型 + 知识图谱 + RAG，面向老龄认知障碍人群提供低认知负荷的知识辅助与患者教育，为照护者与机构提供可溯源的智能支持。
+            基于 EEG 脑电 + NASA-TLX 问卷 + 行为埋点的三模态融合，面向认知障碍老年人提供认知负荷量化评估、智能对话辅助与知识图谱支持。
           </p>
 
           <div class="cover-cta-buttons">
@@ -53,7 +53,7 @@
             <img
               class="hero-image"
               src="@/assets/images/Cover.png"
-              alt="忆路康 智护银龄认知辅助系统封面图"
+              alt="忆路康 认知负荷评估系统封面图"
             />
 
             <!-- 叠加迷你图谱 + 问答卡片，增强“真实系统”感 -->
