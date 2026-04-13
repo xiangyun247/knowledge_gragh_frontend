@@ -129,6 +129,8 @@ const SOURCE_LABELS = {
   patient_education: '患者教育',
   chat: '聊天问答',
   medication_reminder: '服药提醒',
+  elderly_test_baseline: '适老测试(前测)',
+  elderly_test_post: '适老测试(后测)',
   unknown: '其他'
 }
 const Q_LABELS = {
