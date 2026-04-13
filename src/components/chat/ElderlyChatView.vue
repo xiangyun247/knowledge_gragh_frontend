@@ -500,10 +500,11 @@ export default {
     document.addEventListener('visibilitychange', this._onVisibilityChange)
     // 系统主题变化监听
     this._mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    this._onMediaQueryChange = () => this.resolveTheme()
     if (this._mediaQuery.addEventListener) {
-      this._mediaQuery.addEventListener('change', () => this.resolveTheme())
+      this._mediaQuery.addEventListener('change', this._onMediaQueryChange)
     } else {
-      this._mediaQuery.addListener(() => this.resolveTheme())
+      this._mediaQuery.addListener(this._onMediaQueryChange)
     }
     // 占位符定时切换（每 8 秒换一个）
     this._placeholderTimer = setInterval(() => {
@@ -529,9 +530,9 @@ export default {
     }
     if (this._mediaQuery) {
       if (this._mediaQuery.removeEventListener) {
-        this._mediaQuery.removeEventListener('change')
+        this._mediaQuery.removeEventListener('change', this._onMediaQueryChange)
       } else {
-        this._mediaQuery.removeListener()
+        this._mediaQuery.removeListener(this._onMediaQueryChange)
       }
     }
     window.removeEventListener('historyUpdated', this.onHistoryUpdated)
