@@ -12,9 +12,9 @@
         <i :class="{ 'el-icon-menu': !isMenuOpen, 'el-icon-close': isMenuOpen }" class="menu-icon"></i>
       </div>
       
-      <!-- 功能按钮导航：首页 / 对话·图谱·知识库 / 搜索·上传 / 历史·FAQ -->
+      <!-- 功能按钮导航 -->
       <nav :class="{ 'nav-menu': true, 'nav-menu-open': isMenuOpen, 'nav-elderly': isElderly }">
-        <!-- 老人模式：只显示 3 个核心入口（首页就是聊天） -->
+        <!-- 老人模式：只显示 3 个核心入口 -->
         <template v-if="isElderly">
           <router-link to="/elderly-chat" class="nav-item nav-item-elderly" active-class="active" @click="closeMenu">
             <i class="el-icon-s-home"></i>
@@ -30,57 +30,106 @@
           </router-link>
         </template>
 
-        <!-- 其他身份：完整导航 -->
+        <!-- 其他身份：分组下拉菜单 -->
         <template v-else>
           <router-link to="/" class="nav-item" active-class="active" @click="closeMenu">
             <i class="el-icon-s-home"></i>
             <span>首页</span>
           </router-link>
-          <router-link to="/chat" class="nav-item" active-class="active" @click="closeMenu">
-            <i class="el-icon-chat-dot-round"></i>
-            <span>新对话</span>
-          </router-link>
-          <router-link to="/patient-education" class="nav-item" active-class="active" @click="closeMenu">
-            <i class="el-icon-medal"></i>
-            <span>患者教育中心</span>
-          </router-link>
-          <router-link to="/medication" class="nav-item" active-class="active" @click="closeMenu">
-            <i class="el-icon-first-aid-kit"></i>
-            <span>服药提醒</span>
-          </router-link>
-          <router-link to="/graph" class="nav-item" active-class="active" @click="closeMenu">
-            <i class="el-icon-data-analysis"></i>
-            <span>知识图谱</span>
-          </router-link>
-          <router-link to="/knowledge-base" class="nav-item" active-class="active" @click="closeMenu">
-            <i class="el-icon-document"></i>
-            <span>知识库</span>
-          </router-link>
-          <router-link v-if="canUseCore" to="/search" class="nav-item" active-class="active" @click="closeMenu">
-            <i class="el-icon-search"></i>
-            <span>实体搜索</span>
-          </router-link>
-          <router-link v-if="canUpload" to="/upload" class="nav-item" active-class="active" @click="closeMenu">
-            <i class="el-icon-upload2"></i>
-            <span>数据上传</span>
-          </router-link>
-          <router-link v-if="canUseCore" to="/history" class="nav-item" active-class="active" @click="closeMenu">
-            <i class="el-icon-document-copy"></i>
-            <span>历史记录</span>
-          </router-link>
-          <router-link v-if="canUseCore" to="/cognitive-load" class="nav-item" active-class="active" @click="closeMenu">
-            <i class="el-icon-data-line"></i>
-            <span>认知负荷评估</span>
-          </router-link>
-          <router-link to="/family-report" class="nav-item" active-class="active" @click="closeMenu">
-            <i class="el-icon-notebook-2"></i>
-            <span>家属周报</span>
-          </router-link>
-          <router-link v-if="canUpload" to="/admin/dashboard" class="nav-item" active-class="active" @click="closeMenu">
-            <i class="el-icon-monitor"></i>
-            <span>机构看板</span>
-          </router-link>
-          <router-link to="/faq" class="nav-item" active-class="active" @click="closeMenu">
+
+          <!-- 智能对话 -->
+          <el-dropdown trigger="hover" @command="handleNavCommand" @click.native.capture.stop>
+            <span class="nav-item nav-dropdown-trigger" :class="{ active: isGroupActive('/chat', '/patient-education') }">
+              <i class="el-icon-chat-dot-round"></i>
+              <span>智能对话</span>
+              <i class="el-icon-arrow-down nav-arrow"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="/chat" :class="{ 'is-active': $route.path === '/chat' }">
+                <i class="el-icon-chat-dot-round"></i> 新对话
+              </el-dropdown-item>
+              <el-dropdown-item command="/patient-education" :class="{ 'is-active': $route.path === '/patient-education' }">
+                <i class="el-icon-medal"></i> 患者教育中心
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+
+          <!-- 知识图谱 -->
+          <el-dropdown trigger="hover" @command="handleNavCommand" @click.native.capture.stop>
+            <span class="nav-item nav-dropdown-trigger" :class="{ active: isGroupActive('/graph', '/knowledge-base', '/search') }">
+              <i class="el-icon-data-analysis"></i>
+              <span>知识图谱</span>
+              <i class="el-icon-arrow-down nav-arrow"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="/graph" :class="{ 'is-active': $route.path === '/graph' }">
+                <i class="el-icon-data-analysis"></i> 图谱可视化
+              </el-dropdown-item>
+              <el-dropdown-item command="/knowledge-base" :class="{ 'is-active': $route.path === '/knowledge-base' }">
+                <i class="el-icon-document"></i> 知识库管理
+              </el-dropdown-item>
+              <el-dropdown-item v-if="canUseCore" command="/search" :class="{ 'is-active': $route.path === '/search' }">
+                <i class="el-icon-search"></i> 实体搜索
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+
+          <!-- 认知评估 -->
+          <el-dropdown trigger="hover" @command="handleNavCommand" @click.native.capture.stop>
+            <span class="nav-item nav-dropdown-trigger" :class="{ active: isGroupActive('/cognitive-load', '/family-report') }">
+              <i class="el-icon-data-line"></i>
+              <span>认知评估</span>
+              <i class="el-icon-arrow-down nav-arrow"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item v-if="canUseCore" command="/cognitive-load" :class="{ 'is-active': $route.path === '/cognitive-load' }">
+                <i class="el-icon-data-line"></i> 认知负荷评估
+              </el-dropdown-item>
+              <el-dropdown-item command="/family-report" :class="{ 'is-active': $route.path === '/family-report' }">
+                <i class="el-icon-notebook-2"></i> 家属周报
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+
+          <!-- 健康管理 -->
+          <el-dropdown trigger="hover" @command="handleNavCommand" @click.native.capture.stop>
+            <span class="nav-item nav-dropdown-trigger" :class="{ active: isGroupActive('/medication', '/upload') }">
+              <i class="el-icon-first-aid-kit"></i>
+              <span>健康管理</span>
+              <i class="el-icon-arrow-down nav-arrow"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="/medication" :class="{ 'is-active': $route.path === '/medication' }">
+                <i class="el-icon-first-aid-kit"></i> 服药提醒
+              </el-dropdown-item>
+              <el-dropdown-item v-if="canUpload" command="/upload" :class="{ 'is-active': $route.path === '/upload' }">
+                <i class="el-icon-upload2"></i> 数据上传
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+
+          <!-- 管理（仅管理员） -->
+          <el-dropdown v-if="canUpload" trigger="hover" @command="handleNavCommand" @click.native.capture.stop>
+            <span class="nav-item nav-dropdown-trigger" :class="{ active: isGroupActive('/admin/dashboard', '/history') }">
+              <i class="el-icon-monitor"></i>
+              <span>管理</span>
+              <i class="el-icon-arrow-down nav-arrow"></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item v-if="canUseCore" command="/history" :class="{ 'is-active': $route.path === '/history' }">
+                <i class="el-icon-document-copy"></i> 历史记录
+              </el-dropdown-item>
+              <el-dropdown-item command="/admin/dashboard" :class="{ 'is-active': $route.path === '/admin/dashboard' }">
+                <i class="el-icon-monitor"></i> 机构看板
+              </el-dropdown-item>
+              <el-dropdown-item command="/faq" :class="{ 'is-active': $route.path === '/faq' }">
+                <i class="el-icon-question"></i> 常见问题
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+
+          <!-- 普通用户：常见问题单独入口 -->
+          <router-link v-if="!canUpload" to="/faq" class="nav-item" active-class="active" @click="closeMenu">
             <i class="el-icon-question"></i>
             <span>常见问题</span>
           </router-link>
@@ -177,6 +226,15 @@ export default {
     closeMenu() {
       this.isMenuOpen = false
     },
+    isGroupActive(...paths) {
+      return paths.some(p => this.$route.path === p || this.$route.path.startsWith(p + '/'))
+    },
+    handleNavCommand(path) {
+      if (this.$route.path !== path) {
+        this.$router.push(path)
+      }
+      this.closeMenu()
+    },
     handleLoginClick() {
       // 检查当前路由是否已经是登录页面，避免导航重复错误
       if (this.$route.path !== '/login') {
@@ -224,11 +282,8 @@ export default {
   padding: 0 20px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  height: auto;
-  min-height: 70px;
-  padding-top: 8px;
-  padding-bottom: 8px;
+  gap: 8px;
+  height: 70px;
 }
 
 .logo-section {
@@ -292,9 +347,7 @@ export default {
 .nav-menu {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 2px 4px;
-  justify-content: center;
+  gap: 2px;
   flex: 1;
   max-width: 860px;
 }
@@ -339,6 +392,37 @@ export default {
 .nav-item.active {
   background: linear-gradient(135deg, #00f5d4, #00bbf9);
   box-shadow: 0 4px 12px rgba(0, 245, 212, 0.4);
+}
+
+/* 下拉菜单触发器 */
+.nav-dropdown-trigger {
+  cursor: pointer;
+  user-select: none;
+}
+
+.nav-arrow {
+  font-size: 12px;
+  margin-left: 2px;
+  transition: transform 0.3s ease;
+}
+
+.nav-menu .el-dropdown:hover .nav-arrow {
+  transform: rotate(180deg);
+}
+
+/* 下拉菜单项高亮 */
+.nav-menu .el-dropdown-menu__item {
+  padding: 8px 20px;
+}
+
+.nav-menu .el-dropdown-menu__item i {
+  margin-right: 6px;
+  color: #00f5d4;
+}
+
+.nav-menu .el-dropdown-menu__item.is-active {
+  color: #00f5d4;
+  font-weight: 600;
 }
 
 .user-section {
@@ -441,29 +525,21 @@ export default {
   }
 }
 
-/* 响应式：中屏改为仅图标，避免顶栏挤换行 */
+/* 响应式：中屏下拉菜单隐藏文字 */
 @media (max-width: 960px) {
-  .nav-menu {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  
-  .nav-menu::-webkit-scrollbar {
+  .nav-item span:not(.nav-arrow) {
     display: none;
   }
-
-  .nav-item span {
-    display: none;
-  }
-  
   .nav-item {
     padding: 8px;
     border-radius: 50%;
+  }
+  .nav-arrow {
+    display: none;
+  }
+  .nav-menu .el-dropdown {
     flex-shrink: 0;
   }
-  
   .system-name {
     font-size: 16px;
   }
@@ -473,38 +549,56 @@ export default {
   .mobile-menu-btn {
     display: flex;
   }
-  
+
   .nav-menu {
     position: fixed;
     top: 60px;
     left: -100%;
-    width: 200px;
+    width: 220px;
     height: calc(100vh - 60px);
     background-color: rgba(10, 14, 39, 0.95);
     backdrop-filter: blur(10px);
     border-right: 1px solid rgba(0, 245, 212, 0.2);
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     padding: 20px 0;
     transition: left 0.3s ease;
     box-shadow: 4px 0 20px rgba(0, 245, 212, 0.1);
   }
-  
+
   .nav-menu-open {
     left: 0;
   }
-  
+
+  .nav-menu .el-dropdown {
+    width: 100%;
+  }
+
+  .nav-dropdown-trigger {
+    width: 100%;
+    justify-content: flex-start;
+    border-radius: 10px;
+    margin: 0 10px;
+    padding: 12px 16px !important;
+    border-radius: 10px;
+  }
+
+  .nav-dropdown-trigger span:not(.nav-arrow),
+  .nav-arrow {
+    display: inline !important;
+  }
+
   .nav-item {
     width: 80%;
     justify-content: flex-start;
     border-radius: 10px;
-    margin-bottom: 10px;
+    margin: 0 auto 8px;
   }
-  
+
   .nav-item span {
-    display: inline;
+    display: inline !important;
   }
-  
+
   .system-name {
     display: none;
   }
