@@ -348,11 +348,6 @@ export default {
         high: '您在使用过程中感觉有些吃力，可能需要简化操作。'
       }
       return map[this.scoreLevel] || ''
-    },
-    getBarClass(score) {
-      if (score <= 30) return 'bar-low'
-      if (score <= 60) return 'bar-medium'
-      return 'bar-high'
     }
   },
   created() {
@@ -396,8 +391,16 @@ export default {
         this.$router.push('/elderly-chat')
       } else if (this.currentStep <= 2) {
         this.currentStep--
+      } else if (this.currentStep === 5) {
+        this.cleanup()
+        this.$router.push('/elderly-chat')
       }
-      // Step 3+ 不允许返回
+      // Step 3-4 不允许返回（聊天/问卷进行中）
+    },
+    getBarClass(score) {
+      if (score <= 30) return 'bar-low'
+      if (score <= 60) return 'bar-medium'
+      return 'bar-high'
     },
 
     // ===== Step 0: 提交个人信息 =====
@@ -437,9 +440,8 @@ export default {
 
         // 2. 创建会话
         try {
-          const res = await createSession({
-            subject_id: this.subjectInfo.subjectCode
-          })
+          const sessionData = { subject_id: this.subjectDbId || parseInt(this.subjectInfo.subjectCode) }
+          const res = await createSession(sessionData)
           if (res && res.data && res.data.session_id) {
             this.sessionId = res.data.session_id
           }
