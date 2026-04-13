@@ -35,31 +35,65 @@
       </div>
     </div>
 
-    <!-- Step 0: 准备页面 -->
+    <!-- Step 0: 填写个人信息 -->
     <div v-if="currentStep === 0" class="step-content">
       <div class="prepare-card">
-        <div class="prepare-icon">🧠</div>
-        <h2 class="prepare-heading">准备开始测试</h2>
-        <p class="prepare-desc">接下来的流程很简单，您放心~</p>
-        <div class="prepare-steps">
-          <div class="prepare-step">
-            <span class="ps-num">1</span>
-            <span>先帮您连上脑电设备</span>
+        <div class="prepare-icon">📝</div>
+        <h2 class="prepare-heading">先了解一下您</h2>
+        <p class="prepare-desc">填一下基本信息，我们好为您记录</p>
+
+        <div class="info-form">
+          <div class="form-row">
+            <label class="form-label">您的姓名</label>
+            <input
+              v-model="subjectInfo.name"
+              class="form-input"
+              placeholder="请输入姓名"
+            />
           </div>
-          <div class="prepare-step">
-            <span class="ps-num">2</span>
-            <span>填一个小问卷（问您几个感受）</span>
+          <div class="form-row">
+            <label class="form-label">编号</label>
+            <input
+              v-model="subjectInfo.subjectCode"
+              class="form-input"
+              placeholder="如 E001（自动分配）"
+            />
           </div>
-          <div class="prepare-step">
-            <span class="ps-num">3</span>
-            <span>跟小忆正常聊天（设备会一直在后台记录）</span>
-          </div>
-          <div class="prepare-step">
-            <span class="ps-num">4</span>
-            <span>聊完再填一次问卷就结束啦！</span>
+          <div class="form-row two-col">
+            <div class="col">
+              <label class="form-label">年龄</label>
+              <input
+                v-model.number="subjectInfo.age"
+                class="form-input"
+                type="number"
+                min="1"
+                max="120"
+                placeholder="岁"
+              />
+            </div>
+            <div class="col">
+              <label class="form-label">性别</label>
+              <div class="gender-btns">
+                <button
+                  :class="['gender-btn', { active: subjectInfo.gender === 'male' }]"
+                  @click="subjectInfo.gender = 'male'"
+                >👨 男</button>
+                <button
+                  :class="['gender-btn', { active: subjectInfo.gender === 'female' }]"
+                  @click="subjectInfo.gender = 'female'"
+                >👩 女</button>
+              </div>
+            </div>
           </div>
         </div>
-        <button class="big-btn" @click="nextStep">准备好了，开始</button>
+
+        <button
+          class="big-btn"
+          :disabled="!formValid"
+          @click="onInfoSubmit"
+        >
+          填好啦，下一步
+        </button>
       </div>
     </div>
 
@@ -70,7 +104,8 @@
           🎧
         </div>
         <h2>{{ eegConnected ? '设备已连接' : '正在连接脑电设备...' }}</h2>
-        <p>{{ eegConnected ? '信号良好，可以开始测试啦！' : '请确保设备已佩戴好并开机' }}</p>
+        <p v-if="!eegConnected">请确保设备已佩戴好并开机</p>
+        <p v-else>信号良好，可以开始测试啦！</p>
 
         <!-- 信号状态 -->
         <div class="signal-status" v-if="eegConnected">
@@ -79,19 +114,13 @@
           <span class="signal-detail">模拟模式</span>
         </div>
 
-        <!-- 受试者信息（实验操作者填写） -->
-        <div class="subject-section" v-if="!eegConnected">
-          <p class="subject-label">受试者编号</p>
-          <input
-            v-model="subjectCode"
-            class="subject-input"
-            placeholder="输入编号，如 E001"
-            @keyup.enter="connectEEG"
-          />
+        <!-- 受试者信息确认 -->
+        <div class="subject-confirm" v-if="!eegConnected">
+          <p class="confirm-label">受试者：{{ subjectInfo.name || subjectInfo.subjectCode }}</p>
         </div>
 
         <button
-          v-if="!eegConnected && subjectCode.trim()"
+          v-if="!eegConnected"
           class="big-btn"
           @click="connectEEG"
           :disabled="eegConnecting"
@@ -144,14 +173,28 @@
       />
     </div>
 
-    <!-- Step 5: 完成 -->
+    <!-- Step 5: 完成 + 评分结果 -->
     <div v-if="currentStep === 5" class="step-content">
       <div class="done-card">
         <div class="done-icon">🎉</div>
         <h2>测试完成啦！</h2>
         <p>辛苦啦，您表现得很好~</p>
 
+        <!-- 认知负荷评分结果 -->
+        <div class="score-card" v-if="testResult && testResult.cognitiveScore != null">
+          <div class="score-circle" :class="scoreLevel">
+            <span class="score-num">{{ testResult.cognitiveScore }}</span>
+            <span class="score-unit">分</span>
+          </div>
+          <p class="score-label">{{ scoreLevelText }}</p>
+          <p class="score-desc">{{ scoreLevelDesc }}</p>
+        </div>
+
         <div class="done-summary" v-if="testResult">
+          <div class="summary-row">
+            <span>受试者</span>
+            <span>{{ testResult.subjectName }}</span>
+          </div>
           <div class="summary-row">
             <span>测试时长</span>
             <span>{{ formatDuration(testResult.duration) }}</span>
@@ -168,6 +211,10 @@
             <span>脑电数据</span>
             <span>{{ testResult.eegDone ? '已采集' : '未采集' }}</span>
           </div>
+          <div class="summary-row" v-if="testResult.cognitiveScore != null">
+            <span>认知负荷评分</span>
+            <span :class="'score-text-' + scoreLevel">{{ testResult.cognitiveScore }}分（{{ scoreLevelText }}）</span>
+          </div>
         </div>
 
         <button class="big-btn" @click="backToChat">回到聊天</button>
@@ -177,8 +224,8 @@
 </template>
 
 <script>
-import NasaTlxElderly from './NasaTlxElderly.vue'
-import { createSession, endSession } from '@/api/eegSession'
+import NasaTlxElderly from './NasaTlxElderly'
+import { createSubject, createSession, endSession } from '@/api/eegSession'
 import { recordEvent, COGNITIVE_EVENT_TYPES } from '@/utils/cognitiveLoad'
 import storage from '@/utils/storage'
 
@@ -189,15 +236,22 @@ export default {
   components: { NasaTlxElderly },
   data() {
     return {
-      steps: ['准备', '设备', '前问卷', '聊天', '后问卷', '完成'],
+      steps: ['信息', '设备', '前问卷', '聊天', '后问卷', '完成'],
       currentStep: 0,
+      // 受试者个人信息
+      subjectInfo: {
+        name: '',
+        subjectCode: '',
+        age: null,
+        gender: ''
+      },
       // EEG
       eegConnected: false,
       eegConnecting: false,
-      subjectCode: '',
       // Session
       taskId: 'test-' + Date.now(),
       sessionId: null,
+      subjectDbId: null, // 数据库中的 subject_id
       // 计时
       elapsedTime: 0,
       sessionTimer: null,
@@ -212,6 +266,30 @@ export default {
       // EEG 模拟数据存储
       eegSimulationTimer: null,
       eegData: []
+    }
+  },
+  computed: {
+    formValid() {
+      return this.subjectInfo.name.trim() && this.subjectInfo.age > 0 && this.subjectInfo.gender
+    },
+    scoreLevel() {
+      if (!this.testResult || this.testResult.cognitiveScore == null) return ''
+      const s = this.testResult.cognitiveScore
+      if (s <= 30) return 'low'
+      if (s <= 60) return 'medium'
+      return 'high'
+    },
+    scoreLevelText() {
+      const map = { low: '认知负荷较低', medium: '认知负荷适中', high: '认知负荷较高' }
+      return map[this.scoreLevel] || ''
+    },
+    scoreLevelDesc() {
+      const map = {
+        low: '您在使用过程中感觉比较轻松，认知负担不大。',
+        medium: '您在使用过程中需要一定的注意力，但整体还好。',
+        high: '您在使用过程中感觉有些吃力，可能需要简化操作。'
+      }
+      return map[this.scoreLevel] || ''
     }
   },
   created() {
@@ -239,27 +317,55 @@ export default {
       // Step 3+ 不允许返回
     },
 
-    // ===== EEG 连接 =====
+    // ===== Step 0: 提交个人信息 =====
+    async onInfoSubmit() {
+      if (!this.formValid) return
+      // 如果没填编号，自动生成
+      if (!this.subjectInfo.subjectCode.trim()) {
+        this.subjectInfo.subjectCode = 'E' + String(Date.now()).slice(-6)
+      }
+      this.nextStep()
+    },
+
+    // ===== Step 1: 连接 EEG（自动创建受试者+会话） =====
     async connectEEG() {
-      if (!this.subjectCode.trim()) return
       this.eegConnecting = true
 
       try {
-        // 尝试后端创建会话
+        // 1. 创建受试者（如果后端可用）
+        try {
+          const subjectRes = await createSubject({
+            subject_code: this.subjectInfo.subjectCode,
+            name: this.subjectInfo.name,
+            age: this.subjectInfo.age,
+            gender: this.subjectInfo.gender,
+            cognitive_status: 'normal'
+          })
+          this.subjectDbId = subjectRes.data.id || subjectRes.data
+          console.log('[ElderlyTest] 受试者创建成功, id:', this.subjectDbId)
+        } catch (e) {
+          // 如果是"已存在"，尝试查一下
+          if (e.response && e.response.data && e.response.data.detail && e.response.data.detail.includes('已存在')) {
+            console.warn('[ElderlyTest] 受试者已存在，继续使用')
+          } else {
+            console.warn('[ElderlyTest] 创建受试者失败，使用本地模式:', e)
+          }
+        }
+
+        // 2. 创建会话
         try {
           const res = await createSession({
-            subject_id: this.subjectCode
+            subject_id: this.subjectInfo.subjectCode
           })
           if (res && res.data && res.data.session_id) {
             this.sessionId = res.data.session_id
           }
         } catch (e) {
-          // 后端可能不可用，用本地模式
           console.warn('[ElderlyTest] 后端创建会话失败，使用本地模式')
           this.sessionId = 'local_' + Date.now()
         }
 
-        // 模拟连接过程
+        // 3. 模拟连接过程
         await new Promise(resolve => setTimeout(resolve, 1500))
         this.eegConnected = true
         this.startEEGSimulation()
@@ -272,7 +378,6 @@ export default {
     },
 
     startEEGSimulation() {
-      // 生成模拟 EEG 数据（与 EEGMonitorView 类似逻辑）
       const sampleRate = 250
       const channels = ['TP9', 'AF7', 'AF8', 'TP10', 'Fp1', 'Fp2']
       this.eegData = []
@@ -284,7 +389,6 @@ export default {
         })
         sample.timestamp = ts
         this.eegData.push(sample)
-        // 保留最近 5 分钟数据（250Hz * 60s * 5min = 75000）
         if (this.eegData.length > 75000) {
           this.eegData = this.eegData.slice(-75000)
         }
@@ -292,15 +396,23 @@ export default {
     },
 
     generateEEGSignal() {
-      // 简化版 EEG 模拟：混合多个正弦波 + 噪声
       const t = Date.now() / 1000
       let val = 0
-      val += 10 * Math.sin(2 * Math.PI * 4 * t)     // delta (1-4 Hz)
-      val += 8 * Math.sin(2 * Math.PI * 8 * t)      // theta (4-8 Hz)
-      val += 5 * Math.sin(2 * Math.PI * 10 * t)     // alpha (8-12 Hz)
-      val += 3 * Math.sin(2 * Math.PI * 20 * t)     // beta (12-30 Hz)
+      val += 10 * Math.sin(2 * Math.PI * 4 * t)     // delta
+      val += 8 * Math.sin(2 * Math.PI * 8 * t)      // theta
+      val += 5 * Math.sin(2 * Math.PI * 10 * t)     // alpha
+      val += 3 * Math.sin(2 * Math.PI * 20 * t)     // beta
       val += (Math.random() - 0.5) * 4               // noise
       return val
+    },
+
+    // ===== NASA-TLX 评分计算 =====
+    calcTlxScore(answers) {
+      if (!answers) return null
+      const values = Object.values(answers).filter(v => v != null)
+      if (values.length === 0) return null
+      const sum = values.reduce((a, b) => a + b, 0)
+      return Math.round((sum / values.length) * 20) // 1-5 → 20-100 分
     },
 
     // ===== 量表 =====
@@ -316,7 +428,27 @@ export default {
       this.postAnswers = data.answers
       this.recordTestEvent('post_questionnaire', { answers_count: Object.keys(data.answers).length })
       this.stopTimer()
-      this.stopEEGAndEndSession()
+
+      // 计算认知负荷评分
+      const cognitiveScore = this.calcTlxScore(data.answers)
+      const baselineScore = this.calcTlxScore(this.baselineAnswers)
+
+      // 保存结果
+      this.testResult = {
+        subjectName: this.subjectInfo.name || this.subjectInfo.subjectCode,
+        duration: this.elapsedTime,
+        baselineDone: !!this.baselineAnswers,
+        postDone: !!this.postAnswers,
+        eegDone: this.eegData.length > 0,
+        eegDataPoints: this.eegData.length,
+        baselineAnswers: this.baselineAnswers,
+        postAnswers: this.postAnswers,
+        cognitiveScore: cognitiveScore,
+        baselineScore: baselineScore
+      }
+
+      // 上报后端
+      this.stopEEGAndEndSession(cognitiveScore)
       this.nextStep()
     },
 
@@ -331,6 +463,7 @@ export default {
         eegConnected: this.eegConnected,
         chatStarted: true,
         baselineAnswers: this.baselineAnswers,
+        subjectInfo: this.subjectInfo,
         startTime: Date.now()
       }
       storage.set(TEST_STATE_KEY, stateData)
@@ -338,7 +471,6 @@ export default {
     },
 
     finishChat() {
-      // 停止计时和 EEG
       this.recordTestEvent('task_end', { source: 'elderly_test' })
       this.nextStep()
     },
@@ -361,29 +493,19 @@ export default {
     },
 
     // ===== 结束会话 =====
-    async stopEEGAndEndSession() {
+    async stopEEGAndEndSession(cognitiveScore) {
       if (this.eegSimulationTimer) {
         clearInterval(this.eegSimulationTimer)
         this.eegSimulationTimer = null
       }
 
       console.log('[ElderlyTest] stopEEGAndEndSession, eegData.length:', this.eegData.length)
-      this.testResult = {
-        duration: this.elapsedTime,
-        baselineDone: !!this.baselineAnswers,
-        postDone: !!this.postAnswers,
-        eegDone: this.eegData.length > 0,
-        eegDataPoints: this.eegData.length,
-        baselineAnswers: this.baselineAnswers,
-        postAnswers: this.postAnswers
-      }
 
       // 尝试上报后端
       if (this.sessionId && !this.sessionId.startsWith('local_')) {
         try {
-          // 计算简单的 EEG 特征（模拟）
-          const avgScore = Math.round(30 + Math.random() * 40)
-          const scoreTrend = Array.from({ length: 10 }, () => Math.round(30 + Math.random() * 40))
+          const avgScore = cognitiveScore || Math.round(30 + Math.random() * 40)
+          const scoreTrend = Array.from({ length: 10 }, () => Math.round(20 + Math.random() * 60))
           await endSession(this.sessionId, {
             duration_seconds: Math.round(this.elapsedTime),
             avg_score: avgScore,
@@ -394,13 +516,17 @@ export default {
             avg_beta_power: parseFloat((12 + Math.random() * 10).toFixed(1)),
             avg_snr: parseFloat((15 + Math.random() * 10).toFixed(1)),
             score_trend: scoreTrend,
-            cognitive_level: avgScore > 60 ? 'high' : avgScore > 35 ? 'medium' : 'low',
+            cognitive_level: avgScore > 60 ? 'high' : avgScore > 30 ? 'medium' : 'low',
             session_note: JSON.stringify({
               test_type: 'elderly_companion_test',
+              subject_info: this.subjectInfo,
               baseline: this.baselineAnswers,
-              post: this.postAnswers
+              post: this.postAnswers,
+              baseline_score: this.testResult && this.testResult.baselineScore,
+              post_score: cognitiveScore
             })
           })
+          console.log('[ElderlyTest] 会话上报成功')
         } catch (e) {
           console.warn('[ElderlyTest] 结束会话上报失败:', e)
         }
@@ -414,12 +540,12 @@ export default {
     // ===== 状态管理 =====
     saveState() {
       storage.set(TEST_STATE_KEY, {
-        active: this.currentStep >= 2,
+        active: this.currentStep >= 1,
         currentStep: this.currentStep,
         taskId: this.taskId,
         sessionId: this.sessionId,
         eegConnected: this.eegConnected,
-        subjectCode: this.subjectCode,
+        subjectInfo: this.subjectInfo,
         chatStarted: this.chatStarted,
         baselineAnswers: this.baselineAnswers,
         startTime: this.isRunning ? (Date.now() - this.elapsedTime * 1000) : null
@@ -436,7 +562,7 @@ export default {
         this.taskId = saved.taskId || this.taskId
         this.sessionId = saved.sessionId
         this.eegConnected = saved.eegConnected
-        this.subjectCode = saved.subjectCode || ''
+        this.subjectInfo = saved.subjectInfo || this.subjectInfo
         this.chatStarted = saved.chatStarted || false
         this.currentStep = saved.currentStep !== undefined ? saved.currentStep : (this.chatStarted ? 3 : 2)
         this.baselineAnswers = saved.baselineAnswers || null
@@ -614,7 +740,7 @@ export default {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== 准备卡片 ===== */
+/* ===== 通用卡片 ===== */
 .prepare-card,
 .eeg-connect-card,
 .chat-phase-card,
@@ -651,31 +777,69 @@ export default {
   margin: 0 0 24px;
 }
 
-.prepare-steps {
+/* ===== 个人信息表单 ===== */
+.info-form {
   text-align: left;
   margin-bottom: 28px;
 }
-.prepare-step {
+.form-row {
+  margin-bottom: 20px;
+}
+.form-row.two-col {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 0;
-  border-bottom: 1px solid #F5EDE4;
+  gap: 16px;
+}
+.form-row.two-col .col {
+  flex: 1;
+}
+.form-label {
+  display: block;
+  font-size: 17px;
+  font-weight: 600;
+  color: #3D3229;
+  margin-bottom: 8px;
+}
+.form-input {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid #F0E6DB;
+  border-radius: 14px;
   font-size: 18px;
   color: #3D3229;
+  background: #FFF8F0;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
 }
-.prepare-step:last-child { border-bottom: none; }
-.ps-num {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+.form-input:focus {
+  border-color: #E8734A;
+}
+.form-input::placeholder {
+  color: #B8ADA3;
+}
+.gender-btns {
+  display: flex;
+  gap: 12px;
+}
+.gender-btn {
+  flex: 1;
+  padding: 14px 12px;
+  border: 2px solid #F0E6DB;
+  border-radius: 14px;
+  background: #FFF8F0;
+  font-size: 18px;
+  color: #5D4E3C;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.gender-btn.active {
+  border-color: #E8734A;
   background: #FFF1E6;
   color: #E8734A;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  flex-shrink: 0;
+  font-weight: 600;
+}
+.gender-btn:hover:not(.active) {
+  border-color: #D4C4B5;
 }
 
 /* ===== EEG 连接 ===== */
@@ -722,27 +886,16 @@ export default {
   margin-left: auto;
 }
 
-.subject-section {
+.subject-confirm {
   margin-bottom: 24px;
+  padding: 12px 20px;
+  background: #FFF1E6;
+  border-radius: 12px;
 }
-.subject-label {
-  font-size: 16px;
-  color: #7A7067;
-  margin-bottom: 8px;
-}
-.subject-input {
-  width: 200px;
-  padding: 14px 18px;
-  border: 2px solid #F0E6DB;
-  border-radius: 14px;
-  font-size: 20px;
-  color: #3D3229;
-  text-align: center;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.subject-input:focus {
-  border-color: #E8734A;
+.confirm-label {
+  font-size: 17px;
+  color: #5D4E3C;
+  font-weight: 500;
 }
 
 /* ===== 聊天阶段 ===== */
@@ -767,6 +920,60 @@ export default {
   animation: blink 1s ease-in-out infinite;
 }
 
+/* ===== 认知负荷评分卡 ===== */
+.score-card {
+  margin: 20px 0;
+  padding: 24px;
+  background: linear-gradient(135deg, #FFF8F0, #FFF1E6);
+  border-radius: 20px;
+  border: 1px solid #F0E6DB;
+}
+.score-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  transition: all 0.3s;
+}
+.score-circle.low {
+  background: linear-gradient(135deg, #4CAF82, #66BB6A);
+  box-shadow: 0 6px 20px rgba(76, 175, 130, 0.4);
+}
+.score-circle.medium {
+  background: linear-gradient(135deg, #FFA726, #FFB74D);
+  box-shadow: 0 6px 20px rgba(255, 167, 38, 0.4);
+}
+.score-circle.high {
+  background: linear-gradient(135deg, #EF5350, #E57373);
+  box-shadow: 0 6px 20px rgba(239, 83, 80, 0.4);
+}
+.score-num {
+  font-size: 36px;
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1;
+}
+.score-unit {
+  font-size: 14px;
+  color: rgba(255,255,255,0.85);
+}
+.score-label {
+  font-size: 20px;
+  font-weight: 700;
+  color: #3D3229;
+  margin: 0 0 6px;
+}
+.score-desc {
+  font-size: 16px;
+  color: #7A7067;
+  margin: 0;
+  line-height: 1.5;
+}
+
 /* ===== 完成 ===== */
 .done-summary {
   text-align: left;
@@ -784,6 +991,9 @@ export default {
   color: #3D3229;
 }
 .summary-row:last-child { border-bottom: none; }
+.score-text-low { color: #4CAF82; font-weight: 600; }
+.score-text-medium { color: #FFA726; font-weight: 600; }
+.score-text-high { color: #EF5350; font-weight: 600; }
 
 /* ===== 按钮 ===== */
 .big-btn {
@@ -838,18 +1048,28 @@ export default {
   .step-label {
     font-size: 11px;
   }
-  .task-question {
-    font-size: 20px;
-  }
-  .option-card {
-    padding: 16px;
-  }
-  .option-text {
+  .form-input {
     font-size: 16px;
+    padding: 12px 14px;
+  }
+  .gender-btn {
+    font-size: 16px;
+    padding: 12px;
   }
   .big-btn {
     padding: 14px 24px;
     font-size: 17px;
+  }
+  .score-circle {
+    width: 80px;
+    height: 80px;
+  }
+  .score-num {
+    font-size: 30px;
+  }
+  .form-row.two-col {
+    flex-direction: column;
+    gap: 0;
   }
 }
 </style>
