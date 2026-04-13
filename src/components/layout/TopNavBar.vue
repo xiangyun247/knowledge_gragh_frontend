@@ -544,7 +544,20 @@ export default {
   }
   
   .auth-buttons {
+    display: flex;
+  }
+  
+  .auth-buttons .el-button {
+    font-size: 11px;
+    padding: 4px 6px;
+  }
+  
+  .auth-buttons .el-button span {
     display: none;
+  }
+  
+  .auth-buttons .el-button i {
+    font-size: 16px;
   }
 }
 </style>

@@ -881,4 +881,28 @@ export default {
   padding: 60px 20px;
   text-align: center;
 }
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .trend-chart {
+    height: 220px;
+  }
+  .suggestion-cards {
+    grid-template-columns: 1fr;
+  }
+  .trend-summary {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .trend-chart {
+    height: 180px;
+  }
+  .report-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
 </style>

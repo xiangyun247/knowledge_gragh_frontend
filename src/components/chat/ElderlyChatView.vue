@@ -2122,6 +2122,38 @@ export default {
   }
 }
 
+@media (max-width: 375px) {
+  .elderly-session-sidebar {
+    width: 0;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    overflow: hidden;
+  }
+  .elderly-sidebar-toggle {
+    display: none;
+  }
+  .memory-panel {
+    width: 100%;
+    right: 0;
+    border-radius: 16px 16px 0 0;
+    max-height: 60vh;
+  }
+  .quick-reply-btn {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  .chat-input-area {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .chat-input-actions {
+    width: 100%;
+    justify-content: space-around;
+  }
+}
+
 /* ===== 覆盖 Element UI ===== */
 .elderly-chat-page .el-message {
   font-size: 16px !important;

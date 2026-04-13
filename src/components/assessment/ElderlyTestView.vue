@@ -817,4 +817,39 @@ export default {
 .big-btn.secondary:hover {
   background: #FFF5F0;
 }
+
+/* 响应式 */
+@media (max-width: 576px) {
+  .test-topbar {
+    padding: 12px 16px;
+  }
+  .test-title {
+    font-size: 18px;
+  }
+  .step-bar {
+    padding: 16px 12px;
+    gap: 2px;
+  }
+  .step-dot {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .step-label {
+    font-size: 11px;
+  }
+  .task-question {
+    font-size: 20px;
+  }
+  .option-card {
+    padding: 16px;
+  }
+  .option-text {
+    font-size: 16px;
+  }
+  .big-btn {
+    padding: 14px 24px;
+    font-size: 17px;
+  }
+}
 </style>

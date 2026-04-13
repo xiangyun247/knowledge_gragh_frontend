@@ -1438,6 +1438,8 @@ export default {
 @media (max-width: 480px) {
   .metrics-row { grid-template-columns: 1fr; }
   .activity-cards { grid-template-columns: 1fr; }
+  .quick-actions { width: 100%; flex-wrap: wrap; }
+  .engine-detail-row { grid-template-columns: 1fr 1fr; gap: 8px; }
 }
 
 /* ===== 今日日程时间轴 ===== */

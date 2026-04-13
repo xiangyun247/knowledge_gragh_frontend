@@ -1095,6 +1095,23 @@ export default {
   .edu-image-wrapper {
     max-width: 100%;
   }
+  .patient-edu-page {
+    padding: 0;
+    gap: 12px;
+  }
+  .panel-card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+  .panel-title {
+    font-size: 16px;
+  }
+  .edu-list-item {
+    padding: 10px;
+  }
+  .preset-topics {
+    gap: 6px;
+  }
 }
 </style>
 

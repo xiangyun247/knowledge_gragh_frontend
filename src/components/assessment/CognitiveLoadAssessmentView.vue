@@ -623,4 +623,17 @@ export default {
   .chart-row { flex-direction: column; }
   .stats-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+@media (max-width: 768px) {
+  .cognitive-load-page { padding: 12px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .chart-dom { height: 220px; }
+  .report-line { padding: 8px 10px; font-size: 13px; }
+}
+
+@media (max-width: 576px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .chart-dom { height: 180px; }
+  .header-actions { flex-direction: column; align-items: stretch; }
+}
 </style>

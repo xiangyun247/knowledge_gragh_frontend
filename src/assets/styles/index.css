@@ -450,3 +450,51 @@ html, body {
   font-size: var(--font-size-sm);
   margin-top: var(--spacing-xs);
 }
+
+/* ===== 全局移动端适配 ===== */
+
+/* Element UI Dialog 移动端全宽 */
+@media (max-width: 768px) {
+  .el-dialog {
+    width: 92% !important;
+    margin: 8px auto !important;
+    max-height: 90vh;
+  }
+  .el-dialog__body {
+    padding: 15px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+  .el-dialog__header {
+    padding: 15px 15px 10px;
+  }
+  .el-dialog__footer {
+    padding: 10px 15px 15px;
+  }
+}
+
+/* Element UI Table 移动端横向滚动 */
+@media (max-width: 768px) {
+  .el-table {
+    font-size: 13px;
+  }
+  .el-table__body-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* 全局 Footer 移动端 */
+@media (max-width: 576px) {
+  .footer .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 12px;
+  }
+  .footer .divider {
+    display: none;
+  }
+  .footer .container {
+    padding: 0 12px;
+  }
+}
