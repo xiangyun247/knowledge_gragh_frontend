@@ -101,6 +101,37 @@ export function sendMessageToBackendStream(question, sessionId, { onChunk, onDon
     .catch(onError)
 }
 
+/**
+ * 获取会话历史记忆（供"小忆记得"面板使用）
+ * @param {string} sessionId
+ */
+export function getSessionHistory(sessionId) {
+  return request({
+    url: `/api/agent/session/${encodeURIComponent(sessionId)}`,
+    method: 'get'
+  })
+}
+
+/**
+ * 文本转语音：调用后端 Edge-TTS API，返回 MP3 音频流
+ * @param {string} text 要朗读的文本
+ * @param {string} [voice] 语音名称，默认 zh-CN-XiaoxiaoNeural
+ */
+export function synthesizeTTS(text, voice) {
+  const base = (API_BASE || '').replace(/\/$/, '')
+  const url = base ? `${base}/api/tts/synthesize` : '/api/tts/synthesize'
+  const token = storage.get('access_token') || storage.get('token')
+  const headers = { 'Content-Type': 'application/json' }
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
+  return fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ text, voice: voice || 'zh-CN-XiaoxiaoNeural', rate: '-5%', volume: '+0%' }),
+    credentials: 'include'
+  })
+}
+
 // 获取统计信息
 export function getStats() {
   return request({
