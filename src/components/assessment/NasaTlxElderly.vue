@@ -173,12 +173,12 @@ export default {
 .tlx-title {
   font-size: 24px;
   font-weight: 700;
-  color: #3D3229;
+  color: var(--text-primary, #3D3229);
   margin: 0 0 10px;
 }
 .tlx-desc {
   font-size: 18px;
-  color: #7A7067;
+  color: var(--text-muted, #7A7067);
   line-height: 1.6;
   margin: 0;
 }
@@ -191,11 +191,11 @@ export default {
 }
 
 .tlx-item {
-  background: #FFFFFF;
+  background: var(--bg-card, #FFFFFF);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  border: 1px solid #F0E6DB;
+  box-shadow: 0 2px 8px var(--shadow, rgba(0,0,0,0.04));
+  border: 1px solid var(--border, #F0E6DB);
 }
 .tlx-item-header {
   display: flex;
@@ -207,8 +207,8 @@ export default {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #FFF1E6;
-  color: #E8734A;
+  background: var(--bg-accent-soft, #FFF1E6);
+  color: var(--accent, #E8734A);
   font-size: 18px;
   font-weight: 700;
   display: flex;
@@ -218,7 +218,7 @@ export default {
 }
 .tlx-question {
   font-size: 20px;
-  color: #3D3229;
+  color: var(--text-primary, #3D3229);
   line-height: 1.5;
   padding-top: 4px;
 }
@@ -236,20 +236,19 @@ export default {
   align-items: center;
   gap: 8px;
   padding: 14px 16px;
-  border: 2px solid #F0E6DB;
+  border: 2px solid var(--border, #F0E6DB);
   border-radius: 14px;
-  background: #FFF8F0;
+  background: var(--bg-input, #FFF8F0);
   cursor: pointer;
-  transition: all 0.2s;
   font-size: 0;
 }
 .tlx-option:hover {
-  border-color: #E8734A;
-  background: #FFF5F0;
+  border-color: var(--accent, #E8734A);
+  background: var(--bg-hover, #FFF5F0);
 }
 .tlx-option.active {
-  border-color: #E8734A;
-  background: #E8734A;
+  border-color: var(--accent, #E8734A);
+  background: var(--accent, #E8734A);
 }
 .tlx-option.active .opt-label,
 .tlx-option.active .opt-emoji {
@@ -263,7 +262,7 @@ export default {
 }
 .opt-label {
   font-size: 16px;
-  color: #3D3229;
+  color: var(--text-primary, #3D3229);
   line-height: 1.4;
 }
 
@@ -276,16 +275,15 @@ export default {
   font-size: 20px;
   font-weight: 600;
   color: #FFFFFF;
-  background: linear-gradient(135deg, #E8734A, #D4623D);
+  background: linear-gradient(135deg, var(--accent, #E8734A), var(--accent-hover, #D4623D));
   border: none;
   border-radius: 30px;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 6px 20px rgba(232, 115, 74, 0.35);
+  box-shadow: 0 6px 20px var(--shadow-accent, rgba(232, 115, 74, 0.35));
 }
 .tlx-submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(232, 115, 74, 0.45);
+  box-shadow: 0 8px 24px var(--shadow-accent, rgba(232, 115, 74, 0.45));
 }
 .tlx-submit:disabled {
   opacity: 0.45;
