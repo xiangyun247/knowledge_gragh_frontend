@@ -17,8 +17,8 @@
         <!-- 老人模式：只显示 3 个核心入口 -->
         <template v-if="isElderly">
           <router-link to="/elderly-chat" class="nav-item nav-item-elderly" active-class="active" @click="closeMenu">
-            <i class="el-icon-chat-dot-round"></i>
-            <span>小忆</span>
+            <i class="el-icon-s-home"></i>
+            <span>首页</span>
           </router-link>
           <router-link to="/medication" class="nav-item nav-item-elderly" active-class="active" @click="closeMenu">
             <i class="el-icon-first-aid-kit"></i>
