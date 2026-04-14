@@ -165,6 +165,6 @@ export function exportSessionsCSV(data) {
     url: '/api/eeg-session/sessions/export',
     method: 'post',
     data,
-    responseType: 'blob'
+    params: data.format ? { format: data.format } : {}
   })
 }

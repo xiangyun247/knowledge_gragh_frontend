@@ -10,6 +10,9 @@
         <el-button type="success" size="small" @click="exportCSV" :disabled="!hasData">
           <i class="el-icon-download"></i> 导出 CSV
         </el-button>
+        <el-button type="success" size="small" plain @click="exportExperimentCSV" :loading="exportExperimentLoading">
+          <i class="el-icon-document"></i> 导出实验记录
+        </el-button>
         <el-button type="info" size="small" @click="handleUploadToServer" :disabled="!hasData">
           <i class="el-icon-upload2"></i> 上传到服务器
         </el-button>
@@ -124,6 +127,7 @@ import {
 } from '@/utils/cognitiveLoad'
 import { uploadCognitiveEvents, uploadCognitiveQuestionnaires } from '@/api/cognitiveLoad'
 import { getEChartsTheme } from '@/utils/echartsTheme'
+import { exportSessionsCSV } from '@/api/eegSession'
 
 const SOURCE_LABELS = {
   patient_education: '患者教育',
@@ -152,6 +156,7 @@ export default {
   data() {
     return {
       loading: false,
+      exportExperimentLoading: false,
       events: [],
       questionnaires: [],
       chartInstances: {},
@@ -384,6 +389,31 @@ export default {
       a.click()
       URL.revokeObjectURL(url)
       this.$message.success('已导出 CSV')
+    },
+    async exportExperimentCSV() {
+      this.exportExperimentLoading = true
+      try {
+        const res = await exportSessionsCSV({ format: 'experiment' })
+        const csvText = res.csv || res.data?.csv || ''
+        if (!csvText) {
+          this.$message.warning('暂无已完成的实验记录可导出')
+          return
+        }
+        const bom = '\uFEFF'
+        const blob = new Blob([bom + csvText], { type: 'text/csv;charset=utf-8' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `experiment_records_${new Date().toISOString().slice(0, 10)}.csv`
+        a.click()
+        URL.revokeObjectURL(url)
+        this.$message.success(`已导出 ${res.count} 条实验记录`)
+      } catch (e) {
+        console.error('[export] 导出实验记录失败', e)
+        this.$message.error('导出失败：' + (e.message || '未知错误'))
+      } finally {
+        this.exportExperimentLoading = false
+      }
     },
     confirmClear() {
       this.$confirm('确定清空本地认知负荷数据吗？此操作不可恢复。', '提示', {
