@@ -161,10 +161,14 @@ export function getSessionSummary(params) {
  * @param {{ subject_ids?: number[], start_date?: string, end_date?: string }} data
  */
 export function exportSessionsCSV(data) {
+  const params = {}
+  if (data && data.format) params.format = data.format
+  if (data && data.start_date) params.start_date = data.start_date
+  if (data && data.end_date) params.end_date = data.end_date
   return request({
     url: '/api/eeg-session/sessions/export',
     method: 'post',
-    data,
-    params: data.format ? { format: data.format } : {}
+    data: (data && data.subject_ids) ? { subject_ids: data.subject_ids } : {},
+    params
   })
 }
