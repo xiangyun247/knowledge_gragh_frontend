@@ -165,10 +165,10 @@ export function exportSessionsCSV(data) {
   if (data && data.format) params.format = data.format
   if (data && data.start_date) params.start_date = data.start_date
   if (data && data.end_date) params.end_date = data.end_date
+  if (data && data.subject_ids) params.subject_ids = String(data.subject_ids)
   return request({
     url: '/api/eeg-session/sessions/export',
-    method: 'post',
-    data: (data && data.subject_ids) ? { subject_ids: data.subject_ids } : {},
+    method: 'get',
     params
   })
 }
