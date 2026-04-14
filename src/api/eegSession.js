@@ -168,7 +168,7 @@ export function exportSessionsCSV(data) {
   if (data && data.subject_ids) params.subject_ids = String(data.subject_ids)
   return request({
     url: '/api/eeg-session/sessions/export',
-    method: 'get',
-    params
+    method: 'post',
+    data: params
   })
 }
