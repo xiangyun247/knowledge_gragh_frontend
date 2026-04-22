@@ -172,14 +172,20 @@ service.interceptors.response.use(
     
     // 进度轮询等接口不弹出全局错误，由业务层自行处理
     const isProgressPoll = config && config.url && String(config.url).includes('/api/kg/build/progress/');
-    if (!isProgressPoll) {
+    // 登录/注册接口的400/422错误不显示全局提示，由业务层自行处理
+    const isAuthReq = config && config.url && (
+      String(config.url).includes('/api/auth/login') ||
+      String(config.url).includes('/api/auth/register')
+    );
+    const isAuthError = isAuthReq && response && (response.status === 400 || response.status === 422);
+    if (!isProgressPoll && !isAuthError) {
       Message({
         message: message,
         type: 'error',
         duration: 5 * 1000
       });
     }
-    
+
     return Promise.reject(error);
   }
 );

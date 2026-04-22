@@ -4,7 +4,7 @@
       <!-- 左侧背景区域 -->
       <div class="login-bg">
         <div class="bg-content">
-          <img src="@/assets/images/logo.png" alt="Logo" class="bg-logo" />
+          <img src="@/assets/images/logo1.png" alt="Logo" class="bg-logo" />
           <h2 class="bg-title">认知负荷评估系统</h2>
           <p class="bg-description">面向认知障碍老年人的认知负荷量化评估与辅助平台</p>
           
@@ -160,6 +160,13 @@
                     show-password
                   ></el-input>
                 </el-form-item>
+                <el-form-item label="身份" prop="role">
+                  <el-radio-group v-model="registerForm.role" size="medium">
+                    <el-radio label="patient">患者</el-radio>
+                    <el-radio label="doctor">医生</el-radio>
+                    <el-radio label="elderly">老人</el-radio>
+                  </el-radio-group>
+                </el-form-item>
                 <el-form-item>
                   <el-button type="primary" size="large" class="register-btn app-btn app-btn-primary" :loading="registerLoading" @click="handleRegister">
                     注册
@@ -198,7 +205,8 @@ export default {
         username: '',
         email: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        role: 'patient'
       },
       loginRules: {
         username: [
@@ -207,7 +215,7 @@ export default {
         ],
         password: [
           { required: true, message: '请输入密码', trigger: 'blur' },
-          { min: 6, message: '密码长度不能少于 6 个字符', trigger: 'blur' }
+          { min: 8, message: '密码长度不能少于 8 个字符', trigger: 'blur' }
         ]
       },
       registerRules: {
@@ -252,11 +260,11 @@ export default {
       this.$refs.loginForm.validate((valid) => {
         if (valid) {
           this.loginLoading = true
-          // 使用Vuex的login action
           this.login(this.loginForm)
             .then(() => {
               this.$router.push('/')
             })
+            .catch(() => {})
             .finally(() => {
               this.loginLoading = false
             })
@@ -270,16 +278,15 @@ export default {
       this.$refs.registerForm.validate((valid) => {
         if (valid) {
           this.registerLoading = true
-          // 使用Vuex的register action
           this.register(this.registerForm)
             .then(() => {
-              // 注册成功后自动把用户名填回登录表单，密码留空
               this.loginForm.username = this.registerForm.username
               this.loginForm.password = ''
               this.registerForm.password = ''
               this.registerForm.confirmPassword = ''
               this.activeTab = 'login'
             })
+            .catch(() => {})
             .finally(() => {
               this.registerLoading = false
             })

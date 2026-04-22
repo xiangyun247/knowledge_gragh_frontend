@@ -1,243 +1,121 @@
 <template>
   <div class="cover-container">
-    <!-- 封面主内容区：左文案 + 右实景图 -->
-    <section class="cover-hero">
-      <div class="hero-layout">
-        <!-- 左侧文案与按钮 -->
-        <div class="hero-left">
-          <div class="brand-chip">
-            <span class="brand-en">YILUKANG</span>
-            <span class="brand-sep">·</span>
-            <span class="brand-zh">忆路康</span>
-          </div>
-
-          <h1 class="cover-title">
-            <span class="title-line">忆路康 · 认知负荷评估系统</span>
-            <span class="title-slogan">Cognitive Load Assessment System for Elderly with Cognitive Impairment</span>
-            <span class="title-highlight">量化认知负荷，守护记忆之路</span>
-          </h1>
-
-          <p class="cover-subtitle">
-            基于 EEG 脑电 + NASA-TLX 问卷 + 行为埋点的三模态融合，面向认知障碍老年人提供认知负荷量化评估、智能对话辅助与知识图谱支持。
-          </p>
-
-          <div class="cover-cta-buttons">
-            <router-link to="/chat" class="btn-primary app-btn app-btn-primary" v-ripple>
-              <i class="el-icon-chat-dot-round"></i>
-              问一问
-            </router-link>
-            <router-link to="/patient-education" class="btn-primary app-btn app-btn-primary" v-ripple>
-              <i class="el-icon-medal"></i>
-              患者教育
-            </router-link>
-            <router-link to="/graph" class="btn-secondary app-btn app-btn-secondary" v-ripple>
-              <i class="el-icon-data-analysis"></i>
-              知识图谱
-            </router-link>
-            <router-link to="/home" class="btn-more app-btn" v-ripple>
-              <i class="el-icon-more"></i>
-              更多
-            </router-link>
-          </div>
-
-          <div class="hero-meta">
-            <span class="hero-meta-item">多模态数据：病历 · 影像 · 检验 · 指南</span>
-            <span class="hero-meta-dot"></span>
-            <span class="hero-meta-item">应用场景：病例讨论 · 诊疗决策支持 · 科研分析</span>
-          </div>
+    <!-- 主内容区 -->
+    <main class="cover-main">
+      <!-- 左侧内容 -->
+      <div class="main-left">
+        <div class="brand-header">
+          <img src="@/assets/images/logo1.png" alt="Logo" class="brand-logo" />
+          <h1 class="brand-name">忆路康</h1>
+        </div>
+        <h2 class="main-title">认知健康管理平台</h2>
+        <p class="main-subtitle">面向认知障碍老年人的智能照护系统</p>
+        <div class="action-buttons">
+          <router-link to="/chat" class="btn-primary">开始对话</router-link>
+          <router-link to="/patient-education" class="btn-secondary">查看文档</router-link>
+          <router-link to="/home" class="btn-enter">进入系统</router-link>
         </div>
 
-        <!-- 右侧真实感视觉区域 -->
-        <div class="hero-right">
-          <div class="hero-image-card">
-            <img
-              class="hero-image"
-              src="@/assets/images/Cover.png"
-              alt="忆路康 认知负荷评估系统封面图"
-            />
+        <!-- 底部快速入口 -->
+        <div class="quick-links">
+          <a href="#" class="quick-card">
+            <i class="el-icon-video-camera"></i>
+            <span>演示视频</span>
+          </a>
+          <a href="#" class="quick-card">
+            <i class="el-icon-document"></i>
+            <span>文档中心</span>
+          </a>
+          <a href="#" class="quick-card">
+            <i class="el-icon-edit-outline"></i>
+            <span>提交 Issue</span>
+          </a>
+          <a href="#" class="quick-card">
+            <i class="el-icon-chat-dot-round"></i>
+            <span>开发者线圈</span>
+          </a>
+        </div>
+      </div>
 
-            <!-- 叠加迷你图谱 + 问答卡片，增强“真实系统”感 -->
-            <div class="hero-overlay hero-overlay-chat">
-              <div class="overlay-header">
-                <span class="overlay-tag">实时问答</span>
-                <span class="overlay-status">在线 · 认知照护</span>
-              </div>
-              <div class="overlay-question">「轻度认知障碍老人居家要注意什么？」</div>
-              <div class="overlay-answer">
-                系统综合知识图谱与照护指南，建议 <span class="risk-high">规律作息、按时服药、防跌倒与走失</span>，
-                并尽量用分步、简化的方式呈现信息，降低认知负荷。
+      <!-- 右侧深色区域 + 卡片 -->
+      <div class="main-right">
+        <div class="stats-card">
+          <div class="stat-row">
+            <div class="stat-item">
+              <i class="el-icon-star-on stat-icon"></i>
+              <div class="stat-info">
+                <div class="stat-number">{{ userCount }}+</div>
+                <div class="stat-label">注册用户数</div>
+                <div class="stat-desc">服务社区认可与支持</div>
               </div>
             </div>
-
-            <div class="hero-overlay hero-overlay-graph">
-              <div class="mini-graph-title">老年认知照护知识图谱</div>
-              <div class="mini-graph-nodes">
-                <span class="mini-node mini-node-primary">轻度认知障碍</span>
-                <span class="mini-node">记忆减退</span>
-                <span class="mini-node">日常照护</span>
-                <span class="mini-node">服药提醒</span>
-                <span class="mini-node">认知负荷</span>
-                <span class="mini-node">患者教育</span>
+            <div class="stat-item">
+              <i class="el-icon-circle-check stat-icon"></i>
+              <div class="stat-info">
+                <div class="stat-number">{{ assessmentCount }}+</div>
+                <div class="stat-label">完成评估次数</div>
+                <div class="stat-desc">持续改进问题解决能力</div>
+              </div>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-item">
+              <i class="el-icon-data-line stat-icon"></i>
+              <div class="stat-info">
+                <div class="stat-number">{{ knowledgeNodes }}+</div>
+                <div class="stat-label">累计知识节点</div>
+                <div class="stat-desc">活跃的开发代和功能更新</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <i class="el-icon-lock stat-icon"></i>
+              <div class="stat-info">
+                <div class="stat-number">MIT 协议</div>
+                <div class="stat-label">开源协议</div>
+                <div class="stat-desc">完全免费，支持商业使用</div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
+    </main>
 
-    <!-- 下方：患者历程卡片（知识图谱概览区域精简为一张卡片） -->
-    <section class="cover-overview">
-      <div class="overview-timeline">
-        <div class="timeline-axis"></div>
-        <div class="overview-cards">
-          <div class="overview-card card-left patient-journey-card">
-            <div class="card-node"></div>
-            <div class="card-content">
-              <div class="patient-journey-header">
-                <div class="patient-journey-title">
-                  <span class="patient-label">患者历程：</span>
-                  <span class="patient-disease">老年认知障碍</span>
-                </div>
-                <div class="patient-case-meta">实时同步 · 病例 #AP-2026-018</div>
-              </div>
-
-              <ul class="patient-journey-steps">
-                <li class="journey-step">
-                  <span class="journey-dot journey-dot-primary"></span>
-                  <div class="journey-text">
-                    <div class="journey-title">急诊首诊</div>
-                    <div class="journey-desc">自动抽取主诉与既往史，生成结构化入院要点。</div>
-                  </div>
-                </li>
-                <li class="journey-step">
-                  <span class="journey-dot journey-dot-secondary"></span>
-                  <div class="journey-text">
-                    <div class="journey-title">影像与检验整合</div>
-                    <div class="journey-desc">关联 CT 所见与实验室指标，更新病例在图谱中的关联。</div>
-                  </div>
-                </li>
-                <li class="journey-step">
-                  <span class="journey-dot journey-dot-tertiary"></span>
-                  <div class="journey-text">
-                    <div class="journey-title">图谱推理 + 智能体会话</div>
-                    <div class="journey-desc">基于指南与图谱完成风险评估与管理建议。</div>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 进入系统按钮 + 系统状态（右下角区域） -->
-    <div class="cover-enter">
-      <div class="enter-status">
-        <span class="status-dot"></span>
-        <span class="status-text">系统状态：正常 · 数据实时更新</span>
-      </div>
-      <router-link to="/home" class="btn-enter app-btn app-btn-primary" v-ripple>
-        <span class="btn-text">进入系统</span>
-        <i class="el-icon-right"></i>
-      </router-link>
-    </div>
+    <!-- 底部版权 -->
+    <footer class="cover-footer">
+      © 忆路康 2026 v1.0.0
+    </footer>
   </div>
 </template>
 
 <script>
-import anime from 'animejs/lib/anime.es.js'
-
 export default {
   name: 'CoverView',
+  data() {
+    return {
+      userCount: '100',
+      assessmentCount: '1000+',
+      knowledgeNodes: '8000+'
+    }
+  },
   mounted() {
-    this.$nextTick(() => {
-      this.initAnimations()
-      this.startNumberAnimation()
-    })
+    this.startNumberAnimation()
   },
   methods: {
-    initAnimations() {
-      const isMedical = document.body.getAttribute('data-theme') === 'medical'
-      const baseEasing = 'easeOutCubic'
-      const titleDuration = isMedical ? 700 : 800
-      const blockDuration = isMedical ? 600 : 800
-      const translateTitle = isMedical ? -12 : -20
-      const buttonScaleFrom = isMedical ? 0.96 : 0.9
-      const cardTranslate = isMedical ? 18 : 30
-      const enterBtnScaleFrom = isMedical ? 0.98 : 0.95
-
-      // 标题和按钮淡入
-      anime({
-        targets: '.cover-title, .cover-subtitle',
-        opacity: [0, 1],
-        translateY: [translateTitle, 0],
-        delay: 200,
-        duration: titleDuration,
-        easing: baseEasing
-      })
-
-      anime({
-        targets: '.cover-cta-buttons .btn-primary, .cover-cta-buttons .btn-secondary',
-        opacity: [0, 1],
-        scale: [buttonScaleFrom, 1],
-        delay: anime.stagger(150, { start: 600 }),
-        duration: blockDuration,
-        easing: baseEasing
-      })
-
-      // 概览卡片时间线动画
-      const cards = document.querySelectorAll('.overview-card')
-      if (cards.length) {
-        anime({
-          targets: cards,
-          opacity: [0, 1],
-          translateX: (el, i) => {
-            return i % 2 === 0 ? [-cardTranslate, 0] : [cardTranslate, 0]
-          },
-          delay: anime.stagger(200, { start: 1000 }),
-          duration: blockDuration,
-          easing: baseEasing
-        })
-      }
-
-      // 进入系统按钮动画
-      anime({
-        targets: '.btn-enter',
-        opacity: [0, 1],
-        scale: [enterBtnScaleFrom, 1],
-        delay: 2000,
-        duration: blockDuration,
-        easing: baseEasing
-      })
-    },
-    
     startNumberAnimation() {
-      const numbers = document.querySelectorAll('.card-number')
+      const numbers = document.querySelectorAll('.stat-number')
       numbers.forEach(number => {
-        const target = number.innerText.replace(/[,%]/g, '')
-        const isPercentage = number.innerText.includes('%')
+        if (number.innerText.includes('MIT')) return
         
+        const target = parseInt(number.innerText)
         let current = 0
-        const increment = parseFloat(target) / 100
+        const increment = target / 100
         const timer = setInterval(() => {
           current += increment
-          if (current >= parseFloat(target)) {
-            current = parseFloat(target)
+          if (current >= target) {
+            current = target
             clearInterval(timer)
           }
-          
-          let displayText = ''
-          if (target.includes(',')) {
-            displayText = Math.floor(current).toLocaleString()
-          } else {
-            displayText = current.toFixed(1)
-          }
-          
-          if (isPercentage) {
-            displayText += '%'
-          }
-          
-          number.innerText = displayText
+          number.innerText = Math.floor(current).toLocaleString() + '+'
         }, 20)
       })
     }
@@ -247,852 +125,354 @@ export default {
 
 <style scoped>
 .cover-container {
-  height: 100vh;
-  max-width: 1440px;
-  margin: 0 auto;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 32px;
-  box-sizing: border-box;
+  background: #f8fafc;
+}
+
+/* 主内容区 */
+.cover-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 580px;
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 10% 0%, rgba(250, 204, 21, 0.15), transparent 55%),
-    radial-gradient(circle at 85% 25%, rgba(59, 130, 246, 0.16), transparent 55%),
-    radial-gradient(circle at 10% 80%, rgba(45, 212, 191, 0.14), transparent 55%),
-    linear-gradient(135deg, #020617 0%, #020617 40%, #020617 100%);
 }
 
-/* ================= 医疗主题适配（封面页） ================= */
-
-[data-theme="medical"] .cover-container {
-  background: var(--gradient-bg);
-  color: var(--text-primary);
-}
-
-[data-theme="medical"] .cover-title {
-  color: var(--text-primary);
-  text-shadow: none;
-}
-
-[data-theme="medical"] .cover-title .title-line,
-[data-theme="medical"] .cover-title .title-slogan,
-[data-theme="medical"] .cover-title .title-highlight {
-  background: none;
-  -webkit-background-clip: border-box;
-  -webkit-text-fill-color: currentColor;
-  background-clip: border-box;
-  color: var(--primary-blue);
-  text-shadow: none;
-}
-
-[data-theme="medical"] .cover-subtitle {
-  color: var(--text-muted);
-}
-
-/* 封面主内容区：左右布局 */
-.cover-hero {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  margin-bottom: 20px;
-}
-
-.hero-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.15fr);
-  gap: 40px;
-  align-items: center;
-}
-
-.hero-left {
+.main-left {
+  padding: 90px 70px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  z-index: 10;
+  justify-content: center;
 }
 
-.brand-chip {
-  display: inline-flex;
+/* 品牌区域 */
+.brand-header {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 14px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.7);
-  width: fit-content;
+  gap: 14px;
+  margin-bottom: 8px;
 }
 
-.brand-en {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #facc15;
+.brand-logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
 }
 
-.brand-sep {
-  color: rgba(148, 163, 184, 0.7);
-}
-
-.brand-zh {
-  font-size: 13px;
-  color: rgba(226, 232, 240, 0.9);
-}
-
-.cover-title {
-  font-size: clamp(32px, 3.4vw, 56px);
+.brand-name {
+  font-size: 40px;
   font-weight: 800;
-  margin-bottom: 10px;
-  line-height: 1.15;
-  letter-spacing: 0.04em;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
 }
 
-.title-line {
-  display: block;
-  background: linear-gradient(135deg, #e5e7eb, #f9fafb);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow:
-    0 0 24px rgba(15, 23, 42, 0.9);
-  animation: breathe 3s ease-in-out infinite;
+.main-title {
+  font-size: 56px;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.2;
+  margin: 0;
+  letter-spacing: -0.03em;
 }
 
-.title-slogan {
-  display: block;
+.main-subtitle {
+  font-size: 19px;
+  color: #64748b;
+  margin: 0;
   margin-top: 6px;
-  font-size: 14px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(226, 232, 240, 0.9); /* 中性浅灰白 */
-  background: none;
-  -webkit-background-clip: border-box;
-  -webkit-text-fill-color: currentColor;
-  background-clip: border-box;
-  text-shadow: none;
+  line-height: 1.6;
 }
 
-.title-highlight {
-  display: block;
+.action-buttons {
+  display: flex;
+  gap: 14px;
   margin-top: 8px;
-  font-size: 0.8em;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  background: linear-gradient(120deg, #22c55e, #38bdf8, #eab308);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow:
-    0 0 18px rgba(34, 197, 94, 0.9),
-    0 0 32px rgba(56, 189, 248, 0.7);
-  animation: breathe 3s ease-in-out infinite 0.4s;
-}
-
-@keyframes breathe {
-  0%, 100% {
-    opacity: 0.85;
-    filter: brightness(1);
-  }
-  50% {
-    opacity: 1;
-    filter: brightness(1.15);
-  }
-}
-
-.cover-subtitle {
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.85);
-  margin-bottom: 24px;
-  line-height: 1.8;
-  max-width: 640px;
-}
-
-.cover-cta-buttons {
-  display: flex;
-  gap: 24px;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-}
-
-.hero-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  font-size: 13px;
-  color: rgba(148, 163, 184, 0.9);
-}
-
-.hero-meta-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background-color: rgba(148, 163, 184, 0.6);
-}
-
-.btn-primary,
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 36px;
-  border-radius: 32px;
-  font-size: 17px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  border: none;
-  cursor: pointer;
-  overflow: hidden;
-  position: relative;
-}
-
-.btn-primary::before,
-.btn-secondary::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: all 0.4s ease;
-}
-
-.btn-primary:hover::before,
-.btn-secondary:hover::before {
-  left: 100%;
 }
 
 .btn-primary {
+  padding: 14px 36px;
+  border-radius: 8px;
   background: linear-gradient(135deg, #00f5d4, #00bbf9);
-  color: #020817;
-  box-shadow: 0 6px 30px rgba(0, 245, 212, 0.5), 0 0 40px rgba(0, 187, 249, 0.3);
+  color: #020617;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  box-shadow:
+    0 4px 18px rgba(0, 245, 212, 0.3),
+    0 0 35px rgba(0, 187, 249, 0.12);
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 32px rgba(0, 245, 212, 0.6), 0 0 48px rgba(0, 187, 249, 0.4);
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 26px rgba(0, 245, 212, 0.45),
+    0 0 55px rgba(0, 187, 249, 0.2);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: #00f5d4;
-  border: 2px solid rgba(0, 245, 212, 0.4);
-  box-shadow: 0 4px 20px rgba(0, 245, 212, 0.2);
-  backdrop-filter: blur(10px);
+  padding: 14px 36px;
+  border-radius: 8px;
+  background: white;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  transition: all 0.25s ease;
 }
 
 .btn-secondary:hover {
-  transform: translateY(-1px);
-  background: rgba(0, 245, 212, 0.12);
-  border-color: rgba(0, 245, 212, 0.6);
-  box-shadow: 0 5px 26px rgba(0, 245, 212, 0.35);
-}
-
-.btn-more {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border-radius: 24px;
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.06);
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-.btn-more:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-/* 右侧实景卡片 */
-.hero-right {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.hero-image-card {
-  position: relative;
-  width: 100%;
-  max-width: 520px;
-  border-radius: 28px;
-  overflow: hidden;
-  background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.98));
-  box-shadow:
-    0 24px 80px rgba(15, 23, 42, 0.9),
-    0 0 50px rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  transform-origin: center center;
-  transform: perspective(1200px) rotateX(0deg) rotateY(0deg);
-  transition: transform 0.4s ease, box-shadow 0.4s ease;
-}
-
-.hero-image-card:hover {
-  transform: perspective(1200px) rotateX(-3deg) rotateY(3deg) translateY(-4px);
-  box-shadow:
-    0 28px 90px rgba(15, 23, 42, 0.95),
-    0 0 70px rgba(15, 23, 42, 0.9);
-}
-
-.hero-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.95;
-  filter: saturate(1.15) contrast(1.05);
-}
-
-.hero-overlay {
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  border-radius: 16px;
-  padding: 12px 14px;
-  background: rgba(15, 23, 42, 0.94);
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.9);
-  color: #e5e7eb;
-  font-size: 12px;
-}
-
-.hero-overlay-chat {
-  bottom: 20px;
-}
-
-.hero-overlay-graph {
-  top: 16px;
-  right: auto;
-  left: auto;
-  max-width: 260px;
-  background: rgba(15, 23, 42, 0.9);
-}
-
-.overlay-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.overlay-tag {
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  background: rgba(34, 197, 94, 0.12);
-  color: #4ade80;
-  border: 1px solid rgba(34, 197, 94, 0.4);
-}
-
-.overlay-status {
-  font-size: 11px;
-  color: rgba(148, 163, 184, 0.9);
-}
-
-.overlay-question {
-  font-size: 12px;
-  color: rgba(248, 250, 252, 0.95);
-  margin-bottom: 4px;
-}
-
-.overlay-answer {
-  font-size: 11px;
-  color: rgba(209, 213, 219, 0.95);
-  line-height: 1.5;
-}
-
-.risk-high {
-  color: #f97316;
-  font-weight: 600;
-}
-
-.mini-graph-title {
-  font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: rgba(248, 250, 252, 0.96);
-}
-
-.mini-graph-nodes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.mini-node {
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  color: rgba(226, 232, 240, 0.9);
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.6);
-}
-
-.mini-node-primary {
-  background: radial-gradient(circle at 0 0, rgba(45, 212, 191, 0.3), rgba(15, 23, 42, 0.9));
-  border-color: rgba(45, 212, 191, 0.8);
-}
-
-/* 知识图谱概览 */
-.cover-overview {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto 8px;
-  position: relative;
-  z-index: 2;
-}
-
-.overview-title {
-  text-align: center;
-  font-size: 36px;
-  font-weight: 700;
-  margin-bottom: 50px;
-  background: linear-gradient(135deg, #00f5d4, #00bbf9);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  position: relative;
-}
-
-.overview-title::after {
-  content: '';
-  display: block;
-  width: 100px;
-  height: 3px;
-  background: linear-gradient(135deg, #00f5d4, #00bbf9);
-  margin: 20px auto;
-  border-radius: 2px;
-  box-shadow: 0 0 15px rgba(0, 245, 212, 0.6);
-}
-
-.overview-timeline {
-  position: relative;
-  padding: 16px 0 8px;
-}
-
-.timeline-axis {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: linear-gradient(to bottom, 
-    transparent 0%,
-    rgba(0, 245, 212, 0.4) 10%,
-    rgba(0, 245, 212, 0.8) 50%,
-    rgba(0, 187, 249, 0.8) 50%,
-    rgba(0, 245, 212, 0.4) 90%,
-    transparent 100%
-  );
-  transform: translateX(-50%);
-  box-shadow: 0 0 20px rgba(0, 245, 212, 0.5);
-}
-
-.overview-cards {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
-.overview-card {
-  position: relative;
-  width: 42%;
-  background: radial-gradient(circle at top left, rgba(0, 245, 212, 0.1), rgba(5, 11, 24, 0.95));
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 18px;
-  padding: 28px;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
-  transition: all 0.4s ease;
-}
-
-.overview-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 10px 40px rgba(0, 245, 212, 0.4), 0 0 30px rgba(0, 187, 249, 0.3);
-  border-color: rgba(0, 245, 212, 0.6);
-}
-
-.card-left {
-  margin-right: auto;
-}
-
-.card-right {
-  margin-left: auto;
-}
-
-.card-node {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 16px;
-  height: 16px;
-  background: radial-gradient(circle, #00f5d4, #00bbf9);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 20px rgba(0, 245, 212, 0.8), 0 0 40px rgba(0, 187, 249, 0.6);
-  z-index: 3;
-  animation: nodePulse 2s ease-in-out infinite;
-}
-
-@keyframes nodePulse {
-  0%, 100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.2);
-    opacity: 0.8;
-  }
-}
-
-.card-content {
-  position: relative;
-  z-index: 1;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.card-title {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 500;
-}
-
-.card-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  background: radial-gradient(circle at top, rgba(0, 245, 212, 0.22), rgba(5, 11, 24, 0.96));
-  box-shadow: 0 0 18px rgba(0, 245, 212, 0.65);
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  color: #e0faff;
-  backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
-}
-
-.card-icon::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 30% 0%, rgba(0, 245, 212, 0.4), transparent 55%);
-  opacity: 0.9;
-}
-
-.card-icon i {
-  position: relative;
-  z-index: 1;
-}
-
-.card-body {
-  margin-bottom: 20px;
-}
-
-.card-number {
-  font-size: 42px;
-  font-weight: 800;
-  background: linear-gradient(135deg, #00f5d4, #00bbf9);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  display: block;
-  margin-bottom: 6px;
-}
-
-.card-subtitle {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.card-trend {
-  color: #00f2a9;
-  font-weight: 600;
-  font-size: 15px;
-}
-
-.card-label {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 13px;
-}
-
-/* 患者历程卡片样式 */
-.patient-journey-card {
-  padding: 24px 24px 22px;
-}
-
-.patient-journey-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 18px;
-}
-
-.patient-journey-title {
-  font-size: 15px;
-  font-weight: 500;
-  color: rgba(226, 232, 240, 0.95);
-}
-
-.patient-label {
-  opacity: 0.9;
-}
-
-.patient-disease {
-  font-weight: 700;
-  color: #4ade80;
-}
-
-.patient-case-meta {
-  font-size: 12px;
-  color: rgba(148, 163, 184, 0.9);
-}
-
-.patient-journey-steps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.journey-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.journey-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  margin-top: 4px;
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.7);
-}
-
-.journey-dot-primary {
-  background: #22c55e;
-}
-
-.journey-dot-secondary {
-  background: #2dd4bf;
-  box-shadow: 0 0 12px rgba(45, 212, 191, 0.7);
-}
-
-.journey-dot-tertiary {
-  background: #38bdf8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
-}
-
-.journey-text {
-  flex: 1;
-}
-
-.journey-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(241, 245, 249, 0.98);
-  margin-bottom: 2px;
-}
-
-.journey-desc {
-  font-size: 13px;
-  color: rgba(148, 163, 184, 0.95);
-}
-
-/* 进入系统按钮 */
-.cover-enter {
-  position: absolute;
-  right: 40px;
-  bottom: 56px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  z-index: 2;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  color: #334155;
 }
 
 .btn-enter {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 48px;
-  border-radius: 40px;
-  font-size: 18px;
-  font-weight: 700;
+  padding: 14px 36px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
   text-decoration: none;
-  background: linear-gradient(135deg, #00f5d4, #00bbf9);
-  color: #020817;
-  box-shadow: 
-    0 8px 40px rgba(0, 245, 212, 0.6),
-    0 0 60px rgba(0, 187, 249, 0.4);
-  transition: all 0.4s ease;
-  position: relative;
-  overflow: hidden;
-  letter-spacing: 1px;
-}
-
-.btn-enter::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  transition: left 0.5s ease;
-}
-
-.btn-enter:hover::before {
-  left: 100%;
+  transition: all 0.25s ease;
+  box-shadow:
+    0 4px 18px rgba(15, 23, 42, 0.2),
+    0 0 30px rgba(15, 23, 42, 0.08);
 }
 
 .btn-enter:hover {
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: 
-    0 12px 50px rgba(0, 245, 212, 0.8),
-    0 0 80px rgba(0, 187, 249, 0.6);
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 26px rgba(15, 23, 42, 0.35),
+    0 0 50px rgba(15, 23, 42, 0.12);
 }
 
-.btn-text {
-  position: relative;
-  z-index: 1;
+/* 快速入口 */
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: auto;
+  padding-top: 48px;
 }
 
-.btn-enter i {
-  position: relative;
-  z-index: 1;
-  transition: transform 0.3s ease;
-}
-
-.btn-enter:hover i {
-  transform: translateX(4px);
-}
-
-.enter-status {
-  display: inline-flex;
+.quick-card {
+  background: white;
+  border-radius: 10px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 10px 18px;
-  border-radius: 999px;
-  background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.88));
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  box-shadow: 0 0 22px rgba(15, 23, 42, 0.95), 0 0 26px rgba(0, 245, 212, 0.35);
+  text-decoration: none;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f1f5f9;
+  transition: all 0.25s ease;
+}
+
+.quick-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 245, 212, 0.1);
+  transform: translateY(-3px);
+  border-color: rgba(0, 245, 212, 0.3);
+}
+
+.quick-card i {
+  font-size: 22px;
+  color: #00f5d4;
+}
+
+.quick-card span {
   font-size: 13px;
-  color: rgba(241, 245, 249, 0.95);
-  backdrop-filter: blur(10px);
+  font-weight: 500;
+  color: #475569;
+  text-align: center;
 }
 
-.status-dot {
-  width: 8px;
-  height: 8px;
+/* 右侧深色区域 */
+.main-right {
+  background:
+    radial-gradient(circle at 25% 15%, rgba(0, 245, 212, 0.12), transparent 45%),
+    radial-gradient(circle at 75% 85%, rgba(0, 187, 249, 0.08), transparent 40%),
+    linear-gradient(145deg, #020617 0%, #0c1929 50%, #020617 100%);
+  clip-path: polygon(18% 0, 100% 0, 100% 100%, 5% 100%);
+  padding: 80px 80px 80px 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.main-right::before {
+  content: '';
+  position: absolute;
+  top: -180px;
+  right: -80px;
+  width: 450px;
+  height: 450px;
   border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
+  background: radial-gradient(circle, rgba(0, 245, 212, 0.06) 0%, transparent 65%);
+  pointer-events: none;
 }
 
-.status-text {
-  white-space: nowrap;
+.main-right::after {
+  content: '';
+  position: absolute;
+  bottom: -120px;
+  left: 60px;
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 187, 249, 0.05) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* 右侧数据卡片 */
+.stats-card {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 245, 212, 0.18);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.5),
+    0 0 70px rgba(0, 245, 212, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  padding: 40px;
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+
+.stat-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.stat-icon {
+  font-size: 22px;
+  color: #00f5d4;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  filter: drop-shadow(0 0 8px rgba(0, 245, 212, 0.5));
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 24px rgba(0, 245, 212, 0.25);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.stat-desc {
+  font-size: 11px;
+  color: rgba(148, 163, 184, 0.6);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* 底部版权 */
+.cover-footer {
+  background: white;
+  border-top: 1px solid #f1f5f9;
+  padding: 18px;
+  text-align: center;
+  font-size: 13px;
+  color: #94a3b8;
 }
 
 /* 响应式设计 */
-@media (max-width: 1024px) {
-  .cover-title {
-    font-size: 56px;
+@media (max-width: 1100px) {
+  .cover-main {
+    grid-template-columns: 1fr;
   }
-  
-  .overview-card {
-    width: 48%;
+
+  .main-right {
+    clip-path: none;
+    padding: 60px 40px;
+    min-height: 400px;
+  }
+
+  .quick-links {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .main-left {
+    padding: 60px 40px;
+  }
+
+  .brand-name {
+    font-size: 34px;
+  }
+
+  .main-title {
+    font-size: 44px;
+  }
+
+  .main-right::before,
+  .main-right::after {
+    display: none;
   }
 }
 
 @media (max-width: 768px) {
-  .cover-container {
-    padding: 40px 16px;
+  .quick-links {
+    grid-template-columns: repeat(2, 1fr);
   }
-  
-  .cover-title {
-    font-size: 42px;
-    letter-spacing: 2px;
-  }
-  
-  .cover-subtitle {
-    font-size: 16px;
-  }
-  
-  .cover-cta-buttons {
+
+  .action-buttons {
     flex-direction: column;
-    align-items: center;
   }
-  
+
   .btn-primary,
   .btn-secondary {
-    width: 240px;
-    justify-content: center;
+    text-align: center;
   }
-  
-  .overview-title {
-    font-size: 28px;
-  }
-  
-  .overview-card {
-    width: 85%;
-    margin-left: auto !important;
-    margin-right: auto !important;
-  }
-  
-  .timeline-axis {
-    left: 20px;
-  }
-  
-  .card-node {
-    left: 20px;
-  }
-  
-  .btn-enter {
-    padding: 14px 36px;
-    font-size: 16px;
-  }
-}
 
-@media (max-width: 576px) {
-  .cover-title {
-    font-size: 32px;
+  .main-left {
+    padding: 40px 24px;
   }
-  
-  .cover-subtitle {
-    font-size: 14px;
+
+  .brand-name {
+    font-size: 30px;
   }
-  
-  .overview-card {
-    width: 100%;
-    padding: 20px;
+
+  .main-title {
+    font-size: 38px;
   }
-  
-  .card-number {
-    font-size: 32px;
+
+  .brand-logo {
+    width: 44px;
+    height: 44px;
   }
 }
 </style>
-

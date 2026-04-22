@@ -183,6 +183,7 @@
             </div>
             <el-checkbox v-model="enableDeepThink" size="small" class="stream-checkbox" v-if="chatMode === 'normal'">深度思考</el-checkbox>
             <el-checkbox v-model="enableConciseAnswer" size="small" class="stream-checkbox" v-if="chatMode === 'normal'">简洁回答（三步以内）</el-checkbox>
+            <el-checkbox v-model="enableAutoQuestionnaire" size="small" class="stream-checkbox" v-if="chatMode === 'normal'">自动填问卷</el-checkbox>
           </div>
         </div>
         <el-button 
@@ -322,6 +323,7 @@ export default {
       isTyping: false,
       enableDeepThink: false,
       enableConciseAnswer: false, // M9：简洁回答（三步以内简要版）
+      enableAutoQuestionnaire: true, // M11：自动弹出认知负荷问卷
       chatMode: 'normal', // 'normal' | 'patient_education' | 'science_tweet'
       sidebarOpen: true,
       tweetLoadingIndex: -1,
@@ -601,7 +603,7 @@ export default {
               source: COGNITIVE_SOURCE.CHAT,
               duration_ms: Date.now() - this.chatTaskStartTime
             })
-            this.showCognitiveQuestionnaire = true
+            this.showCognitiveQuestionnaire = this.enableAutoQuestionnaire
           }
           const m = this.messages[idx]
           if (m && m.type === 'system') {

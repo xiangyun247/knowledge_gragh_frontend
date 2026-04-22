@@ -92,7 +92,7 @@ export default {
           mapped = '用户名或密码不正确'
         }
         Message.error('登录失败：' + mapped)
-        throw error
+        throw error  // 重新抛出错误，阻止 .then() 执行
       }
     },
     // 注册：调用后端 /api/auth/register
@@ -101,7 +101,8 @@ export default {
         await auth.register({
           username: registerData.username,
           email: registerData.email,
-          password: registerData.password
+          password: registerData.password,
+          role: registerData.role || 'patient'
         })
         Message.success('注册成功，请登录')
       } catch (error) {
@@ -110,8 +111,10 @@ export default {
         if (/用户名已存在/.test(raw)) {
           mapped = '该用户名已被使用，请换一个'
         }
+        if (/email.*unique| Duplicate entry.*email/.test(raw)) {
+          mapped = '该邮箱已被注册，请使用其他邮箱'
+        }
         Message.error('注册失败：' + mapped)
-        throw error
       }
     },
     // 登出
