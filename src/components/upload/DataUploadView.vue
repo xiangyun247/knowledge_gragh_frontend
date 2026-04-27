@@ -357,6 +357,13 @@
             <i class="el-icon-server"></i>
             Hadoop批量操作
           </h3>
+          <el-alert
+            title="提示：当前云服务器未启用Hadoop集群，HDFS上传功能暂不可用。批量构建知识图谱功能正常可用。"
+            type="info"
+            :closable="false"
+            show-icon
+            style="margin-bottom: 12px;"
+          />
           <p class="hadoop-description">使用Hadoop和Celery进行批量文件处理和知识图谱构建。批量构建可直接使用已上传的文件，无需先上传到HDFS。</p>
           <div class="hadoop-options" v-if="completedFiles.filter(f => f.success && f.fileId).length > 0">
             <el-checkbox v-model="useHadoopForBuild">
@@ -431,7 +438,7 @@
             <i class="el-icon-document"></i>
             数据模板
           </h3>
-          <p class="template-description">下载数据模板，按格式准备知识图谱数据。系统支持 28 种实体类型（如疾病、症状、药物、检查、解剖部位等）和 21 种关系类型（如症状或体征、用于治疗、并发症等）。</p>
+          <p class="template-description">下载数据模板，按格式准备知识图谱数据。系统支持 30 种实体类型（如疾病、症状、药物、检查、解剖部位等）和 20 种关系类型（如症状或体征、用于治疗、并发症等）。</p>
           <div class="template-list">
             <el-button
               v-for="template in templates"
