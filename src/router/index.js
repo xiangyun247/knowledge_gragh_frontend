@@ -159,7 +159,8 @@ const routes = [
     name: 'EEGMonitor',
     component: EEGMonitor,
     meta: {
-      title: '忆路康 - EEG实时监测'
+      title: '忆路康 - EEG实时监测',
+      roles: [ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT]
     }
   },
   {

@@ -119,6 +119,9 @@
               <el-dropdown-item v-if="canUseCore" command="/history" :class="{ 'is-active': $route.path === '/history' }">
                 <i class="el-icon-document-copy"></i> 历史记录
               </el-dropdown-item>
+              <el-dropdown-item v-if="canUseCore" command="/eeg-monitor" :class="{ 'is-active': $route.path === '/eeg-monitor' }">
+                <i class="el-icon-monitor"></i> EEG 监测
+              </el-dropdown-item>
               <el-dropdown-item command="/admin/dashboard" :class="{ 'is-active': $route.path === '/admin/dashboard' }">
                 <i class="el-icon-monitor"></i> 机构看板
               </el-dropdown-item>

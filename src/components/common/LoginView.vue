@@ -5,7 +5,7 @@
       <div class="login-bg">
         <div class="bg-content">
           <img src="@/assets/images/logo1.png" alt="Logo" class="bg-logo" />
-          <h2 class="bg-title">认知负荷评估系统</h2>
+          <h2 class="bg-title">认知健康管理平台</h2>
           <p class="bg-description">面向认知障碍老年人的认知负荷量化评估与辅助平台</p>
           
           <!-- 知识图谱可视化（带粒子特效） -->

@@ -501,7 +501,7 @@ export default {
     // ===== 量表 =====
     onBaselineSubmit(data) {
       this.baselineAnswers = data.answers
-      // 记录到认知负荷评估系统
+      // 记录到认知健康管理系统
       const answersArr = Object.entries(data.answers).map(([qid, value]) => ({ qid, value }))
       recordQuestionnaire(this.taskId, this.sessionId, 'elderly_test_baseline', answersArr)
       this.recordTestEvent('baseline_questionnaire', { answers_count: Object.keys(data.answers).length })
@@ -512,7 +512,7 @@ export default {
 
     onPostSubmit(data) {
       this.postAnswers = data.answers
-      // 记录到认知负荷评估系统
+      // 记录到认知健康管理系统
       const answersArr = Object.entries(data.answers).map(([qid, value]) => ({ qid, value }))
       recordQuestionnaire(this.taskId, this.sessionId, 'elderly_test_post', answersArr)
       this.recordTestEvent('post_questionnaire', { answers_count: Object.keys(data.answers).length })

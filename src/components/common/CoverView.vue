@@ -64,7 +64,7 @@
               <div class="stat-info">
                 <div class="stat-number">{{ knowledgeNodes }}+</div>
                 <div class="stat-label">累计知识节点</div>
-                <div class="stat-desc">活跃的开发代和功能更新</div>
+                <div class="stat-desc">活跃的开发迭代和功能更新</div>
               </div>
             </div>
             <div class="stat-item">
@@ -92,7 +92,7 @@ export default {
   name: 'CoverView',
   data() {
     return {
-      userCount: '100',
+      userCount: '50+',
       assessmentCount: '1000+',
       knowledgeNodes: '8000+'
     }

@@ -71,7 +71,7 @@
           <div class="welcome-icon">
             <i class="el-icon-chat-dot-round"></i>
           </div>
-          <h3>欢迎使用「忆路康」认知负荷评估系统</h3>
+          <h3>欢迎使用「忆路康」认知健康管理系统</h3>
           <p>我专注老年认知障碍与认知负荷，基于知识图谱与文献为你提供可溯源的照护与患者教育支持（结果仅供参考，请遵医嘱）。</p>
           <div class="quick-questions">
             <el-button size="small" v-for="(q, index) in quickQuestions" :key="index" @click="sendQuickQuestion(q)">
